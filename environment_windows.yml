@@ -1,0 +1,17 @@
+name: search-ssl
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - python=3.10
+  - snakemake-minimal
+  - wandb
+  - pip
+  - pip:
+    - lightning
+    - lightly
+    - sunpy
+    - pandas
+    - wandb
+    - git+https://github.com/hits-sdo/hits-sdo-packager.git@pip_nodata
+
