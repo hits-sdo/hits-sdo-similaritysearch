@@ -13,5 +13,7 @@ dependencies:
     - sunpy
     - pandas
     - wandb
+    - opencv-python
+    - matplotlib
     - git+https://github.com/hits-sdo/hits-sdo-packager.git@pip_nodata
 
