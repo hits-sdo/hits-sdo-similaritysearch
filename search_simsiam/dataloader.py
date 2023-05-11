@@ -1,7 +1,8 @@
 from sdo_augmentation.augmentation import Augmentations
 import sys
-sys.path.append('search-utils')
-from image_utils import read_image, stitch_adj_imgs
+sys.path.append('./')
+print(sys.path)
+from search_utils.image_utils import read_image, stitch_adj_imgs
 
 import glob
 import json
