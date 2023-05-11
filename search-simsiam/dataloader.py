@@ -1,11 +1,11 @@
 from sdo_augmentation.augmentation import Augmentations
-from utils.image_utils import read_image, stitch_adj_imgs
 import sys
+sys.path.append('search-utils')
+from image_utils import read_image, stitch_adj_imgs
+
 import glob
 import json
 import matplotlib.pyplot as plt
-
-sys.path.append('./')
 
 file_dir = "./data/miniset/AIA171/monochrome/"
 
