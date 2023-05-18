@@ -12,11 +12,25 @@
         - transform to tensor
     - __len__()
         - return the length of the np array
-        
 
+
+## 5/12/23
 ## Consideration For Next Meeting
 - Random augmentations on a tile saved in json files after augmentation (parallel arrays)
-    -Naming convention - same name, different type augmentation (buddy naming, jason + tile thats already augmented)
+    -Naming convention - same name, different type augmentation (buddy naming, json + tile thats already augmented)
 - OR
 - Random augmentations in the data loader, by taking advatage of the composed transform function in pytorch
     - If so, refactor random augs from team yellow, or load the json file that were generated
+
+## 5/17/23 
+
+## closing thoughts
+    
+    - Implement augmentation functions from team yellow in order to test labels and ability to call augmented images from file path 
+        - Problem: how to import?
+        - Where do put? 
+    - Decrease mob time? for more rotations
+    - Retro in between: do we wanna keep going with it? (might be a good little break)
+    - Keep in mind: loading random augs or create them on the fly? (getitem)
+        - return tuple (image, dictionary)
+
