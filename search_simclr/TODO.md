@@ -34,3 +34,17 @@
     - Keep in mind: loading random augs or create them on the fly? (getitem)
         - return tuple (image, dictionary)
 
+## 5/24/23 
+- [x] Returned an image from the getitem function in dataset
+- [x] Fixed filepaths
+- [x] Imported team yellow augmentation classes
+- [x] Got an appropriate list of files from the miniset folder
+- [x] Started defining callable classes for Transform
+
+TODO: 
+- [ ] Complete the transform classes
+- [ ] Finish some more test cases
+    - Test cases for dataset class
+    - Test cases for the transforms
+- [ ] Implement the pytorch Lightning data module (tutorial pls)
+- [ ] Profit >:D

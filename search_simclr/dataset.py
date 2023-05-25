@@ -1,9 +1,16 @@
 # Hello this is a data set class
 
 import torch
+import matplotlib.pyplot as plt
 from torch.utils.data import Dataset
 from torch.utils.data import Dataset
 import os.path
+import pyprojroot
+root = pyprojroot.here()
+utils_dir = root / 'search_utils'
+import sys
+sys.path.append(str(root))
+from search_utils import image_utils
 
 # augmentations: "brighten": 1, "translate": (0, 0), "zoom": 1, "rotate": 0, "h_flip": False, "v_flip": False, 'blur': (1, 1), "p_flip": False
 
@@ -22,7 +29,13 @@ class SdoDataset(Dataset):
         return len(self.file_list)
     
     def __getitem__(self, idx):
-        tile = open(self.tile_dir + '/' + self.file_list[idx])
+        image_fullpath = os.path.join(self.tile_dir,self.file_list[idx])
+        
+        print(image_fullpath)
+        image = image_utils.read_image(image_fullpath, 'p')
+        return image
+        # tile = open(self.tile_dir + '/' + self.file_list[idx])
+        # print()
 
         # comment: I know in the augmentation class we have a read_image function,
         # could we just use this? This properly handles loading the contents of a
@@ -34,8 +47,18 @@ class SdoDataset(Dataset):
             and return normalized numpy array
             """
         '''
-        return tile
+        # return tile
         
 
-
+def main():
+    print(root)
+    print("hi mom")
+    tile_dir = root / 'data' / 'miniset' / 'AIA171' / 'monochrome'
+    test_dataset = SdoDataset(tile_dir)
+    test_image = test_dataset.__getitem__(25)
+    plt.imshow(test_image)
+    plt.title("test_image")
+    plt.show()
+if __name__ == "__main__":
+    main()
 # os.listdir(path)
