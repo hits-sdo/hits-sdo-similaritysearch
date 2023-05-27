@@ -45,6 +45,13 @@ class data_loader_test(unittest.TestCase):
         image_tuple = self.sdo_database.__getitem__(0)
         image_tuple2 = self.sdo_database_double_aug.__getitem__(0)
         self.assertNotEqual(np.sum(image_tuple[0]-image_tuple2[0]), 0)
+        
+    def test_dimensions(self):
+        image_tuple = self.sdo_database.__getitem__(0)
+        print(image_tuple[0].shape)
+        self.assertEqual(image_tuple[0].shape[0], 3)
+        self.assertEqual(image_tuple[1].shape[0], 3)
+        
 
 
     def tearDown(self):
