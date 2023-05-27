@@ -10,9 +10,11 @@ from sdo_augmentation.augmentation_list import AugmentationList
 from search_utils.image_utils import read_image
 
 class SDOTilesDataset(Dataset):
-    def __init__(self, data_path: str, double_augmentation: bool):
+    def __init__(self, data_path: str, double_augmentation: bool, data_stride:int = 1):
         self.data_path = data_path
         self.image_files = glob.glob(data_path + "/**/*.jpg", recursive=True)
+        if data_stride>1:
+            self.image_files = self.image_files[::data_stride]
         self.augmentation_list = AugmentationList(instrument="euv")
         self.double_augmentation = double_augmentation
 

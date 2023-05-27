@@ -18,13 +18,14 @@ class data_loader_test(unittest.TestCase):
         data_path = "D:\Mis Documentos\AAResearch\SEARCH\Miniset\\aia_171_color_1perMonth"
         os.path.normpath(data_path)
 
-        self.sdo_database = SDOTilesDataset(data_path, double_augmentation=False)
+        self.sdo_database = SDOTilesDataset(data_path, double_augmentation=False, data_stride=10)
         self.sdo_database_double_aug = SDOTilesDataset(data_path, double_augmentation=True)
 
     def test_loader_exists(self):
         self.assertIsNotNone(self.sdo_database)
 
     def test_database_length(self):
+        print(f'Database length: {self.sdo_database.__len__()}')
         self.assertNotEqual(self.sdo_database.__len__(), 0)
 
     def test_item_exists(self):
@@ -48,7 +49,7 @@ class data_loader_test(unittest.TestCase):
         
     def test_dimensions(self):
         image_tuple = self.sdo_database.__getitem__(0)
-        print(image_tuple[0].shape)
+        print(f'Image size: {image_tuple[0].shape}')
         self.assertEqual(image_tuple[0].shape[0], 3)
         self.assertEqual(image_tuple[1].shape[0], 3)
         
