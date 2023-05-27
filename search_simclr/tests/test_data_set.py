@@ -2,6 +2,11 @@ import dataset
 import unittest
 import dataset_aug
 import numpy as np
+import pyprojroot
+root = pyprojroot.here()
+utils_dir = root / 'search_utils'
+import sys
+sys.path.append(str(root))
 
 from search_simclr.dataset import SdoDataset
 
@@ -22,5 +27,4 @@ class test_data_set(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         pass
-
     

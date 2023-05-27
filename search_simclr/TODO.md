@@ -42,9 +42,17 @@
 - [x] Started defining callable classes for Transform
 
 TODO: 
-- [ ] Complete the transform classes
+- [X] Complete the transform classes
 - [ ] Finish some more test cases
     - Test cases for dataset class
     - Test cases for the transforms
 - [ ] Implement the pytorch Lightning data module (tutorial pls)
-- [ ] Profit >:D
+- [X] Profit >:D
+
+## 5/31/23
+- [ ] Finish the Test Cases for Augmentations
+- [ ] Finish the __getitem__ with RandomTransforms
+- [ ] Test using dataloader
+- [ ] Port dataloader boiler plate code to PyTorch Lightning
+- [ ] CONDA ENVIRONMENT
+- [ ] Profit ::moneybag::

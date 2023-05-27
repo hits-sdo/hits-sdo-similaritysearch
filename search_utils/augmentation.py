@@ -178,3 +178,4 @@ class Augmentations():
         augment_image = augment_image[y1:y2, x1:x2]
 
         return augment_image, title
+
