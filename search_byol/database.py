@@ -10,13 +10,14 @@ from sdo_augmentation.augmentation_list import AugmentationList
 from search_utils.image_utils import read_image
 
 class SDOTilesDataset(Dataset):
-    def __init__(self, data_path: str, double_augmentation: bool, data_stride:int = 1):
+    def __init__(self, data_path: str, double_augmentation: bool, data_stride:int = 1, datatype=np.float32):
         self.data_path = data_path
         self.image_files = glob.glob(data_path + "/**/*.jpg", recursive=True)
         if data_stride>1:
             self.image_files = self.image_files[::data_stride]
         self.augmentation_list = AugmentationList(instrument="euv")
         self.double_augmentation = double_augmentation
+        self.datatype=datatype
 
     def __len__(self):
         return len(self.image_files)
@@ -33,7 +34,7 @@ class SDOTilesDataset(Dataset):
             a = Augmentations(image, self.augmentation_list.randomize())
             image, _ = a.perform_augmentations(fill_void='Nearest')
 
-        image = np.moveaxis(image, [0, 1, 2], [1, 2, 0])
-        image2 = np.moveaxis(image2, [0, 1, 2], [1, 2, 0])
+        image = np.moveaxis(image, [0, 1, 2], [1, 2, 0]).astype(self.datatype)
+        image2 = np.moveaxis(image2, [0, 1, 2], [1, 2, 0]).astype(self.datatype)
 
         return image, image2
