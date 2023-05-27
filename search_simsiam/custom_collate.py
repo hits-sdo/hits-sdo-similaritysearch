@@ -12,19 +12,13 @@ def sunbird_collate(source_tuple):
     label = source_tuple[1]
     file_name = source_tuple[2]
 
-    source_image = np.array(source_tuple[0])
+    source_image = np.array(source_tuple[0])/255.
     
     print(source_image.shape)
 
     A = AugmentationList(instrument="euv")
     dict0 = A.randomize()
     dict1 = A.randomize()
-    
-    if 'brighten' in list(dict0.keys()):
-      del dict0['brighten']
-
-    if 'brighten' in list(dict1.keys()):
-      del dict1['brighten']
 
     print(dict0, "\n", dict1)
 
@@ -32,7 +26,7 @@ def sunbird_collate(source_tuple):
     Aug1 = Augmentations(source_image, dict1)
 
 
-    fill_type = None
+    fill_type = 'Nearest'
     img_t0, _ = Aug0.perform_augmentations(fill_void=fill_type)
     img_t1, _ = Aug1.perform_augmentations(fill_void=fill_type)
     
