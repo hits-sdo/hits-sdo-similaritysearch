@@ -8,4 +8,5 @@ lightly
 sunpy
 pandas
 wandb
+ipywidgets
 git+https://github.com/hits-sdo/hits-sdo-packager.git@pip_nodata
