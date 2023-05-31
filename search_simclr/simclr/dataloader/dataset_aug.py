@@ -21,9 +21,10 @@ import numpy as np
 
 #TODO: let's figure out how to get our augmentations class imported (local probably?)
 
+
 def random_augment_image(img):
     # Make random augmentation dictionary
-    augment_list = AugmentationList(instrument = "euv") # or mag
+    augment_list = AugmentationList(instrument = "euv")  # or mag
     rand_dict = augment_list.randomize()
         
     # Preform Augmentations
@@ -72,6 +73,7 @@ class Brighten(object):
 
     def __call__(self, img, value):
         return np.abs(img)**value
+    
 class Translate(object):
     def __init__(self, value):
         assert isinstance(value, (int, int))

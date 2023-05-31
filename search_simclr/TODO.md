@@ -54,5 +54,14 @@ TODO:
 - [ ] Finish the __getitem__ with RandomTransforms
 - [ ] Test using dataloader
 - [ ] Port dataloader boiler plate code to PyTorch Lightning
-- [ ] CONDA ENVIRONMENT
-- [ ] Profit ::moneybag::
+- [X] CONDA ENVIRONMENT
+- [X] Profit ::moneybag::
+
+## 6/2/23
+- [ ] FINISH THE TEST CASES FOR AUGMENTATIONS 
+ - Numpy.allclose (one line to check 2D arrays for equality)
+- [ ] __getitem__ w/ random transforms 
+- [ ] Port dataloader boiler plate code to PyTorch Lightning
+- [ ] Test using dataloader
+- [ ] EVERYONE INSTALL CONDA ENVIROMENT
+- [ ] PROFIT ( big money dollaz ) ::moneybag::

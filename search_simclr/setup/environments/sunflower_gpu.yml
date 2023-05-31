@@ -1,0 +1,26 @@
+name: sunflower_gpu
+channels:
+  - pytorch
+  - nvidia
+  - conda-forge
+  - defaults
+dependencies:
+  - python
+  - pip
+  - pytorch-cuda
+  - pytorch
+  - torchvision
+  - pandas
+  - pip:
+    - pytorch-lightning
+    - wandb
+    - tabulate
+    - tqdm
+    - pillow
+    - notebook
+    - jupyterlab
+    - matplotlib
+    - ipywidgets
+    - pyprojroot
+    - scikit-learn
+    - opencv-python

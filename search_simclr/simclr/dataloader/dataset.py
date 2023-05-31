@@ -29,7 +29,7 @@ class SdoDataset(Dataset):
         return len(self.file_list)
     
     def __getitem__(self, idx):
-        image_fullpath = os.path.join(self.tile_dir,self.file_list[idx])
+        image_fullpath = os.path.join(self.tile_dir, self.file_list[idx])
         
         print(image_fullpath)
         image = image_utils.read_image(image_fullpath, 'p')

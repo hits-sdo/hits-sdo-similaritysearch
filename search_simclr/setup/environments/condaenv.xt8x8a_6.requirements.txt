@@ -1,0 +1,12 @@
+pytorch-lightning
+wandb
+tabulate
+tqdm
+pillow
+notebook
+jupyterlab
+matplotlib
+ipywidgets
+pyprojroot
+scikit-learn
+opencv-python
