@@ -6,6 +6,7 @@ dependencies:
   - python=3.10
   - snakemake
   - wandb
+  - ipywidgets
   - opencv
   - pip
   - pip:
