@@ -7,6 +7,7 @@ dependencies:
   - snakemake-minimal
   - wandb
   - ipywidgets
+  - opencv
   - pip
   - pip:
     - lightning
