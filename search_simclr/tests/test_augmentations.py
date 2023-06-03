@@ -1,7 +1,6 @@
 import unittest
 import numpy as np
 import pyprojroot
-root = pyprojroot.here()
 import simclr.dataloader.dataset
 from simclr.dataloader.dataset_aug import (
     Blur,
@@ -15,7 +14,7 @@ from simclr.dataloader.dataset_aug import (
     ToTensor
 )
 import sys
-sys.path.append(str(root))
+sys.path.append(str(pyprojroot.here()))
 import matplotlib.pyplot as plt
 
 class test_augmentations(unittest.TestCase):
