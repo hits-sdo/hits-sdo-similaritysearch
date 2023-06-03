@@ -65,3 +65,8 @@ TODO:
 - [ ] Test using dataloader
 - [ ] EVERYONE INSTALL CONDA ENVIROMENT
 - [ ] PROFIT ( big money dollaz ) ::moneybag::
+
+## 6/5/23
+- [ ] Add augmentation to the dataset_aug class
+    - [ ] Add random noise augmentation to the dataset_aug class
+    - [ ] Add random cutout augmentation to the dataset_aug class
