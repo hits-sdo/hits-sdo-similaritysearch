@@ -1,23 +1,18 @@
-from sdo_augmentation.augmentation_list import AugmentationList
-from sdo_augmentation.augmentation import Augmentations
 import sys
-sys.path.append('./')
-from search_utils.image_utils import stitch_adj_imgs
 import numpy as np
 import torch
 import glob
+from lightly.data import LightlyDataset
+import matplotlib.pyplot as plt
+sys.path.append('./')
+from search_utils.image_utils import stitch_adj_imgs
+from sdo_augmentation.augmentation_list import AugmentationList
+from sdo_augmentation.augmentation import Augmentations
 
-
-
-def sunbirdCollate(fill_type='SuperImage'):
+def sunbirdCollate(fill_type='SuperImage', image_size=(128,128)):
 
     fill_type = fill_type
 
-    #ret_function = sunbirdCollate('Nearest')
-
-    #ret_function(input_tuple)
-
-    #treat input like list..?
     def sunbird_collate(source_tuple):
         '''
         ARG:    index of dataset class
@@ -60,7 +55,7 @@ def sunbirdCollate(fill_type='SuperImage'):
                 sup_aug_img2, _ = as2.perform_augmentations()
 
                 # Get size of img
-                img_h, img_w = 128, 128
+                img_h, img_w = image_size
 
                 # Get size of super image
                 sup_img_h, sup_img_w = super_image.shape[:2]
@@ -102,3 +97,22 @@ def sunbirdCollate(fill_type='SuperImage'):
 
         return (imgs_t0, imgs_t1), labels, file_names
     return sunbird_collate
+
+if __name__ == '__main__':
+    path_to_data = '/home/schatterjee/Documents/hits/aia_171_color_1perMonth'
+    dataset = LightlyDataset(input_dir=path_to_data)
+    fill_type = 'Nearest'
+    collate_fn = sunbirdCollate(fill_type=fill_type,
+                                image_size=(128, 128))
+    (img_t0, img_t1), label, file_name = collate_fn([dataset[10]])
+
+    plt.figure(figsize=(10, 5))
+    plt.suptitle("Team Sunbird's Collate Function")
+    plt.subplot(1, 2, 1)
+    plt.imshow(img_t0.permute(2, 3, 1, 0)[:, :, :, 0])
+    plt.ylabel(f"{fill_type} filling")
+    plt.title('Augmentation 1')
+    plt.subplot(1, 2, 2)
+    plt.imshow(img_t1.permute(2, 3, 1, 0)[:, :, :, 0])
+    plt.title('Augmentation 2')
+    plt.show()
