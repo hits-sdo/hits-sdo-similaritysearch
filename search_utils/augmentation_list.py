@@ -1,7 +1,11 @@
 """TODO add module docstring"""
 
+import pyprojroot
+root = pyprojroot.here()
+import sys
+sys.path.append(str(root))
 
-from augmentation import Augmentations
+from search_utils.augmentation import Augmentations
 import random
 import json
 from collections import Counter

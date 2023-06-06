@@ -11,16 +11,16 @@ utils_dir = root / 'search_utils'
 import sys
 sys.path.append(str(root))
 from search_utils import image_utils
+from search_simclr.simclr.dataloader import dataset_aug
 
 # augmentations: "brighten": 1, "translate": (0, 0), "zoom": 1, "rotate": 0, "h_flip": False, "v_flip": False, 'blur': (1, 1), "p_flip": False
 
 class SdoDataset(Dataset):
-    def __init__(self, tile_dir, augmentation_list = [], transform=None):  #WHAT ARE WE USING PATH FOR?
+    def __init__(self, tile_dir, transform=None):  #WHAT ARE WE USING PATH FOR?
         # self.data = data
         #self.labels = labels
         self.tile_dir = os.path.normpath(tile_dir)
         self.file_list = os.listdir(tile_dir)
-        self.augmentation_list = augmentation_list # team yellow saves it as a JSON; we want to turn to dictionary
         self.transform = transform # reserve transform for PyTorch transform
         # self.path = os.path.normpath(path) #/data/miniset/AIA171/monochrome/tile_20230206_000634_1024_0171_0896_0640.p 
         # full_path = f'{tile_dir}/{fname}'
@@ -33,7 +33,13 @@ class SdoDataset(Dataset):
         
         print(image_fullpath)
         image = image_utils.read_image(image_fullpath, 'p')
-        return image
+        
+        if (self.transform):
+            return self.transform(image)
+        else:
+            return image, image
+    
+    
         # tile = open(self.tile_dir + '/' + self.file_list[idx])
         # print()
 
@@ -54,9 +60,12 @@ def main():
     print(root)
     print("hi mom")
     tile_dir = root / 'data' / 'miniset' / 'AIA171' / 'monochrome'
-    test_dataset = SdoDataset(tile_dir)
-    test_image = test_dataset.__getitem__(25)
+    test_dataset = SdoDataset(tile_dir, transform=dataset_aug.Transforms_SimCLR)
+    test_image, augmented_image = test_dataset.__getitem__(25)
+    plt.subplot(1, 2, 1)
     plt.imshow(test_image)
+    plt.subplot(1, 2, 2)
+    plt.imshow(augmented_image)
     plt.title("test_image")
     plt.show()
 if __name__ == "__main__":

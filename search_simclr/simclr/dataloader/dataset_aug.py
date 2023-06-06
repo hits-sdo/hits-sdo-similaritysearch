@@ -5,9 +5,10 @@ import sys
 sys.path.append(str(root))
 import search_utils.augmentation_list
 from search_utils.augmentation_list import AugmentationList
-from search_utils.augmentations import Augmentations
+from search_utils.augmentation import Augmentations
 import cv2 as cv
 import numpy as np
+import torch
 
 # rewrite all functions as classes and put those inside call
 # because then we can use that 
@@ -123,9 +124,29 @@ class ToTensor(object):
     """Convert ndarrays in sample to Tensors."""
 
     def __call__(self, img):
-
         # swap color axis because
         # numpy image: H x W x C
         # torch image: C x H x W
         img = img.transpose((2, 0, 1))
-        return torch.from_numpy(img)   
+        return torch.from_numpy(img)
+
+
+class Transforms_SimCLR(object):
+    def __init__(self, blur, h_flip, v_flip, p_flip, brighten, translate, zoom, rotate):
+        self.train_transform = transforms.Compose([transforms.RandomApply(torch.nn.ModuleList([
+             #cv#transforms.
+            H_Flip(h_flip),
+            V_Flip(v_flip),
+            P_Flip(p_flip),
+            Rotate(rotate),
+            Brighten(brighten),
+            Translate(translate),
+            Zoom(zoom),
+            Blur(blur),
+        ])),
+        ToTensor()])
+
+        self.test_transform = transforms.ToTensor()
+    
+    def __call__(self, img):
+        return self.train_transform(img), self.test_transform(img)

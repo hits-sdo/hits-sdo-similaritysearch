@@ -70,3 +70,11 @@ TODO:
 - [ ] Add augmentation to the dataset_aug class
     - [ ] Add random noise augmentation to the dataset_aug class
     - [ ] Add random cutout augmentation to the dataset_aug class
+- [X] Fix dataset import
+
+## 6/7/23
+- [ ] Make dataset.py runnable by fixing the errors
+- [ ] Add augmentation to the dataset_aug class
+    - [ ] Add random noise augmentation to the dataset_aug class
+    - [ ] Add random cutout augmentation to the dataset_aug class
+- [ ] Port dataloader boiler plate code to PyTorch Lightning
