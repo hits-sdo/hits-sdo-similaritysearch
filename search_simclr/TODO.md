@@ -73,8 +73,19 @@ TODO:
 - [X] Fix dataset import
 
 ## 6/7/23
-- [ ] Make dataset.py runnable by fixing the errors
+- [X] Make dataset.py runnable by fixing the errors
 - [ ] Add augmentation to the dataset_aug class
     - [ ] Add random noise augmentation to the dataset_aug class
     - [ ] Add random cutout augmentation to the dataset_aug class
 - [ ] Port dataloader boiler plate code to PyTorch Lightning
+- [XX] Profit!!!!
+
+## 6/9/23
+- [ ] Add augmentation to the dataset_aug class
+    - [ ] Add random noise augmentation to the dataset_aug class
+    - [ ] Add random cutout augmentation to the dataset_aug class
+- [ ] Port dataloader boiler plate code to PyTorch Lightning
+- [ ] Return 2 images + filename (potentially? - Lightly pkg thing)
+- [ ] Pull request - new branch for modeling!
+- [ ] Profit
+

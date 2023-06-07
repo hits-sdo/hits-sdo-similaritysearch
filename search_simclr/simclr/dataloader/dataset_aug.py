@@ -35,69 +35,77 @@ def random_augment_image(img):
     
 class Blur(object):
     def __init__(self, value):
-        assert isinstance(value, (int, int))
+        self.blur = value
+        assert isinstance(value, tuple)
+        assert isinstance(value[0], int)
+        assert isinstance(value[1], int)      
         
-        
-    def __call__(self, img, value):
+    def __call__(self, img):
         """
         Blurs the image by the amount by blur (default = (1, 1))
         Blurring is performed as an average blurring
         with kernel size defined by blur
     """
-        image = cv.blur(img, (value[0], value[1]), 0)
+        image = cv.blur(img, (self.blur[0], self.blur[1]), 0)
         return image
     
 class H_Flip(object):
-    def __init__(self, value):
-        assert isinstance(value, (bool))
+    def __init__(self):
+        pass
         
-    def __call__(self, img, value):
+    def __call__(self, img):
         return cv.flip(img, 1)
         
 class V_Flip(object):
-    def __init__(self, value):
-        assert isinstance(value, (bool))
+    def __init__(self):
+        pass
         
-    def __call__(self, img, value):
+    def __call__(self, img):
         return cv.flip(img, 0)
     
 class P_Flip(object):
-    def __init__(self, value):
-        assert isinstance(value, (bool))
+    def __init__(self):
+        ...
         
-    def __call__(self, img, value):
+    def __call__(self, img):
         return (1-img)
     
 class Brighten(object):
     def __init__(self, value) -> None:
+        self.brighten = value
         assert isinstance(value, float)
 
-    def __call__(self, img, value):
-        return np.abs(img)**value
+    def __call__(self, img):
+        return np.abs(img)**self.brighten
     
 class Translate(object):
     def __init__(self, value):
-        assert isinstance(value, (int, int))
+        self.translate = value
+        assert isinstance(value, tuple)
+        assert isinstance(value[0], int)
+        assert isinstance(value[1], int)
+
     
-    def __call__(self, img, value):
+    def __call__(self, img):
         s = img.shape
-        m = np.float32([[1, 0, value[0]], [0, 1, value[1]]])
+        m = np.float32([[1, 0, self.translate[0]], [0, 1, self.translate[1]]])
         # Affine transformation to translate the image and output size
         img = cv.warpAffine(img, m, (s[1], s[0]))
         return img
     
 class Zoom(object):
     def __init__(self, value):
+        self.zoom = value
         assert isinstance(value, float)
     
-    def __call__(self, img, value):
+    def __call__(self, img):
         s = img.shape
-        s1 = (int(value*s[0]), int(value*s[1]))
+        s1 = (int(self.zoom*s[0]), int(self.zoom*s[1]))
         img_zeros = np.zeros(s)
 
         image_resize = cv.resize(img, (s1[1], s1[0]), interpolation=cv.INTER_AREA)
         # Resize the image using zoom as scaling factor with area interpolation
-        if value < 1:
+        if self.zoom < 1:
             y1 = s[0]//2 - s1[0]//2
             y2 = s[0]//2 + s1[0] - s1[0]//2
             x1 = s[1]//2 - s1[1]//2
@@ -109,13 +117,14 @@ class Zoom(object):
 
 class Rotate(object):
     def __init__(self, value):
+        self.rotate = value
         assert isinstance(value, float)
 
-    def __call__(self, img, value):
+    def __call__(self, img):
         s = img.shape
         cy = (s[0]-1)/2  # y center : float
         cx = (s[1]-1)/2  # x center : float
-        M = cv.getRotationMatrix2D((cx, cy), value, 1)  # rotation matrix
+        M = cv.getRotationMatrix2D((cx, cy), self.rotate, 1)  # rotation matrix
     
         # Affine transformation to rotate the image and output size s[1],s[0]
         return cv.warpAffine(img, M, (s[1], s[0]))
@@ -124,6 +133,12 @@ class ToTensor(object):
     """Convert ndarrays in sample to Tensors."""
 
     def __call__(self, img):
+        print(f'Image Shape = {img.shape}')
+        
+        # If the image is grayscale, expand its dimensions to have a third axis
+        if len(img.shape) == 2:
+            img = np.expand_dims(img, axis=-1)
+            
         # swap color axis because
         # numpy image: H x W x C
         # torch image: C x H x W
@@ -132,21 +147,32 @@ class ToTensor(object):
 
 
 class Transforms_SimCLR(object):
-    def __init__(self, blur, h_flip, v_flip, p_flip, brighten, translate, zoom, rotate):
-        self.train_transform = transforms.Compose([transforms.RandomApply(torch.nn.ModuleList([
-             #cv#transforms.
-            H_Flip(h_flip),
-            V_Flip(v_flip),
-            P_Flip(p_flip),
-            Rotate(rotate),
-            Brighten(brighten),
-            Translate(translate),
-            Zoom(zoom),
-            Blur(blur),
-        ])),
+    def __init__(self, blur, brighten, translate, zoom, rotate):
+        print(translate)
+        self.train_transform = transforms.Compose([
+            transforms.RandomApply([H_Flip()], p=0.5),
+            transforms.RandomApply([V_Flip()], p=0.5),
+            transforms.RandomApply([P_Flip()], p=0.5), 
+            transforms.RandomApply([Rotate(rotate)], p=0.5),
+            transforms.RandomApply([Brighten(brighten)], p=0.5),
+            transforms.RandomApply([Translate(translate)], p=0.5),
+            transforms.RandomApply([Zoom(zoom)], p=0.5),
+            transforms.RandomApply([Blur(blur)], p=0.5),
         ToTensor()])
 
         self.test_transform = transforms.ToTensor()
     
     def __call__(self, img):
-        return self.train_transform(img), self.test_transform(img)
+        return self.train_transform(img), self.train_transform(img)
+    
+
+    
+    #transforms = transforms.RandomApply(torch.nn.ModuleList([
+    #transforms.ColorJitter(),
+    # ]), p=0.3)
+    
+def main():
+    ...
+    
+if __name__ == "__main__":
+    main()

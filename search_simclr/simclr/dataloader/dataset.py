@@ -1,3 +1,4 @@
+
 # Hello this is a data set class
 
 import torch
@@ -26,15 +27,18 @@ class SdoDataset(Dataset):
         # full_path = f'{tile_dir}/{fname}'
     
     def __len__(self):
+        # Returns length of the dataset
         return len(self.file_list)
     
     def __getitem__(self, idx):
+        # Returns two images at given index
         image_fullpath = os.path.join(self.tile_dir, self.file_list[idx])
         
         print(image_fullpath)
         image = image_utils.read_image(image_fullpath, 'p')
         
         if (self.transform):
+            
             return self.transform(image)
         else:
             return image, image
@@ -60,12 +64,19 @@ def main():
     print(root)
     print("hi mom")
     tile_dir = root / 'data' / 'miniset' / 'AIA171' / 'monochrome'
-    test_dataset = SdoDataset(tile_dir, transform=dataset_aug.Transforms_SimCLR)
+    
+    # Define transforms
+    transform = dataset_aug.Transforms_SimCLR(blur=(1,1), brighten=1.0, translate=(1, 1), zoom=1.0, rotate=0.0)
+    test_dataset = SdoDataset(tile_dir, transform=transform)
     test_image, augmented_image = test_dataset.__getitem__(25)
+    
+    # Plot images side-by-side
     plt.subplot(1, 2, 1)
-    plt.imshow(test_image)
+    plt.imshow(test_image[0,:,:].numpy())
+    # plt.imshow(test_image.squeeze())
+
     plt.subplot(1, 2, 2)
-    plt.imshow(augmented_image)
+    plt.imshow(augmented_image[0,:,:].numpy())
     plt.title("test_image")
     plt.show()
 if __name__ == "__main__":
