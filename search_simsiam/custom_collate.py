@@ -103,7 +103,8 @@ if __name__ == '__main__':
     dataset = LightlyDataset(input_dir=path_to_data)
     fill_type = 'Nearest'
     collate_fn = sunbirdCollate(fill_type=fill_type,
-                                image_size=(128, 128))
+                                image_size=(128, 128),
+                                path_to_data=path_to_data)
     (img_t0, img_t1), label, file_name = collate_fn([dataset[10]])
 
     plt.figure(figsize=(10, 5))
