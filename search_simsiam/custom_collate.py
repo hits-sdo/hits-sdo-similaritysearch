@@ -9,7 +9,7 @@ from search_utils.image_utils import stitch_adj_imgs
 from sdo_augmentation.augmentation_list import AugmentationList
 from sdo_augmentation.augmentation import Augmentations
 
-def sunbirdCollate(fill_type='SuperImage', image_size=(128,128)):
+def sunbirdCollate(fill_type='SuperImage', image_size=(128,128), path_to_data = None):
 
     fill_type = fill_type
 
