@@ -52,7 +52,9 @@ class DataloaderTest(unittest.TestCase):
             Tests that the images returned in __getitem__() are different
         '''
         image_tuple = self.sdo_database[0]
+        image_tuple2 = self.sdo_database_double_aug[0]
         self.assertNotEqual(np.sum(image_tuple[0]-image_tuple[1]), 0)
+        self.assertNotEqual(np.sum(image_tuple2[0]-image_tuple2[1]), 0)
 
     def test_augmentation_dict(self):
         '''
