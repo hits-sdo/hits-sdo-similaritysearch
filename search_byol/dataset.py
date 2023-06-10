@@ -90,5 +90,5 @@ class SDOTilesDataset(Dataset):
         else:
 
             image = np.moveaxis(image, [0, 1, 2], [1, 2, 0]).astype(self.datatype)           
-            return image, None
+            return image, 0
 

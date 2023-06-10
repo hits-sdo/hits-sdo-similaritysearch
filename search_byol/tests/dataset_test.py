@@ -76,7 +76,7 @@ class DataloaderTest(unittest.TestCase):
         image_tuple = self.sdo_database[0]
         image_tuple2 = self.sdo_database_no_aug[0]
         self.assertEqual(np.sum(image_tuple[0]-image_tuple2[0]), 0)
-        self.assertIsNone(image_tuple2[1])
+        self.assertEqual(image_tuple2[1],0)
 
     def test_dimensions(self):
         '''
