@@ -93,6 +93,9 @@ TODO:
 - [ ] Vote which design to use (Pytorch, or Lightning)
 - [ ] Test Cutout Augmentation
 - [ ] Port everything to Pytorch Lightning Data Module
+- [ ] If everything works, PR to main
+    - [ ] Open an issue to dev the model
+    - [ ] Create a new branch "SUNFLOWER_SIMCLR_MODEL" with the issue ID
 - [ ] Simclr Model (Adapt lightly model to our dataset class)
 - [ ] Wandb (Weights and Bias)
 - [ ] Profit!!!💰💰💰💰💰💰💰💰💰💰💰💰💰💰💰💰💰💰💰
