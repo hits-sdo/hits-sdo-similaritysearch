@@ -66,7 +66,7 @@ def main():
     tile_dir = root / 'data' / 'miniset' / 'AIA171' / 'monochrome'
     
     # Define transforms
-    transform = dataset_aug.Transforms_SimCLR(blur=(1,1), brighten=1.0, translate=(1, 1), zoom=1.0, rotate=0.0)
+    transform = dataset_aug.Transforms_SimCLR(blur=(1,1), brighten=1.0, translate=(1, 1), zoom=1.0, rotate=0.0, noise_mean=0.0, noise_std=0.05, cutout_holes=0, cutout_size=0)
     test_dataset = SdoDataset(tile_dir, transform=transform)
     test_image, augmented_image = test_dataset.__getitem__(25)
     

@@ -9,6 +9,7 @@ from search_utils.augmentation import Augmentations
 import cv2 as cv
 import numpy as np
 import torch
+import random
 
 # rewrite all functions as classes and put those inside call
 # because then we can use that 
@@ -48,7 +49,75 @@ class Blur(object):
     """
         image = cv.blur(img, (self.blur[0], self.blur[1]), 0)
         return image
+
+class AddNoise(object):
+    """
+    Adds random noise to original image as np.ndarray
+    Args:
+      value(float): percentage value for amount of noise added  
+    """ 
+    # def __init__(self, value):
+    #     assert isinstance(value, float)
+    #     self.noise = value
+
+    # def __call__(self, img):
+    #     noisy_image = np.copy(img)
+    #     print(noisy_image.shape)
+    #     height, width = noisy_image.shape #add a _ for potential third value (channel)
+    #     num_pixels = int(self.noise * height * width)
+
+    #     # Generate random pixel coordinates
+    #     random_coords = np.random.randint(0, min(height, width), size=(num_pixels, 2))
+
+    #     # Add random noise to pixels
+    #     for coord in random_coords:
+    #         y, x = coord
+    #         r_noise = np.random.randint(0, 256, size=1)  # Generate random noise for RGB channels
+    #         noisy_image[y, x] += (r_noise - 128)
+
+    #     return noisy_image
     
+    
+    def __init__(self, mean=0, std_lim=0.05):
+        self.mean = mean
+        self.std_lim = std_lim
+        
+
+    def __call__(self, img):
+        self.std = random.uniform(0, self.std_lim)
+        print(self.std)
+        noise = np.random.normal(self.mean, self.std, img.shape)
+        img = img + noise
+        img = np.clip(img, 0, 1)
+        return img
+
+
+class Cutout(object):
+    def __init__(self, n_holes, length):
+        assert isinstance(n_holes, int)
+        assert isinstance(length, int)
+        self.n_holes = n_holes
+        self.length = length
+        
+
+    def __call__(self, img):
+        h, w = img.shape[:2]
+        mask = np.ones((h, w), np.float32)
+
+        for n in range(self.n_holes):
+            y = np.random.randint(h)
+            x = np.random.randint(w)
+
+            y1 = np.clip(y - self.length // 2, 0, h)
+            y2 = np.clip(y + self.length // 2, 0, h)
+            x1 = np.clip(x - self.length // 2, 0, w)
+            x2 = np.clip(x + self.length // 2, 0, w)
+
+            mask[y1:y2, x1:x2] = 0
+
+        img = img * mask[..., np.newaxis]
+        return img
+
 class H_Flip(object):
     def __init__(self):
         pass
@@ -147,17 +216,19 @@ class ToTensor(object):
 
 
 class Transforms_SimCLR(object):
-    def __init__(self, blur, brighten, translate, zoom, rotate):
-        print(translate)
+    def __init__(self, blur, brighten, translate, zoom, rotate, noise_mean, noise_std, cutout_holes, cutout_size):
+        #print(translate)
         self.train_transform = transforms.Compose([
-            transforms.RandomApply([H_Flip()], p=0.5),
-            transforms.RandomApply([V_Flip()], p=0.5),
-            transforms.RandomApply([P_Flip()], p=0.5), 
-            transforms.RandomApply([Rotate(rotate)], p=0.5),
-            transforms.RandomApply([Brighten(brighten)], p=0.5),
-            transforms.RandomApply([Translate(translate)], p=0.5),
-            transforms.RandomApply([Zoom(zoom)], p=0.5),
-            transforms.RandomApply([Blur(blur)], p=0.5),
+            transforms.RandomApply([H_Flip()], p=0),
+            transforms.RandomApply([V_Flip()], p=0),
+            transforms.RandomApply([P_Flip()], p=0), 
+            transforms.RandomApply([Rotate(rotate)], p=0),
+            transforms.RandomApply([Brighten(brighten)], p=0),
+            transforms.RandomApply([Translate(translate)], p=0),
+            transforms.RandomApply([Zoom(zoom)], p=0),
+            transforms.RandomApply([Blur(blur)], p=0),
+            transforms.RandomApply([AddNoise(noise_mean, noise_std)], p=1),
+            transforms.RandomApply([Cutout(cutout_holes, cutout_size)], p=0),
         ToTensor()])
 
         self.test_transform = transforms.ToTensor()
