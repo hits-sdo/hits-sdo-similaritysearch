@@ -5,7 +5,7 @@
 import unittest
 import os
 import numpy as np
-from search_byol.database import SDOTilesDataset
+from search_byol.dataset import SDOTilesDataset
 
 class DataloaderTest(unittest.TestCase):
     '''
@@ -18,8 +18,9 @@ class DataloaderTest(unittest.TestCase):
         data_path = "D:\\Mis Documentos\\AAResearch\\SEARCH\\Miniset\\aia_171_color_1perMonth"
         os.path.normpath(data_path)
 
-        self.sdo_database = SDOTilesDataset(data_path, double_augmentation=False, data_stride=10)
-        self.sdo_database_double_aug = SDOTilesDataset(data_path, double_augmentation=True)
+        self.sdo_database = SDOTilesDataset(data_path, augmentation='single', data_stride=10)
+        self.sdo_database_double_aug = SDOTilesDataset(data_path, augmentation='double', data_stride=10)
+        self.sdo_database_no_aug = SDOTilesDataset(data_path, augmentation=None, data_stride=10)
 
     def test_loader_exists(self):
         '''
@@ -51,7 +52,9 @@ class DataloaderTest(unittest.TestCase):
             Tests that the images returned in __getitem__() are different
         '''
         image_tuple = self.sdo_database[0]
+        image_tuple2 = self.sdo_database_double_aug[0]
         self.assertNotEqual(np.sum(image_tuple[0]-image_tuple[1]), 0)
+        self.assertNotEqual(np.sum(image_tuple2[0]-image_tuple2[1]), 0)
 
     def test_augmentation_dict(self):
         '''
@@ -67,6 +70,15 @@ class DataloaderTest(unittest.TestCase):
         image_tuple = self.sdo_database[0]
         image_tuple2 = self.sdo_database_double_aug[0]
         self.assertNotEqual(np.sum(image_tuple[0]-image_tuple2[0]), 0)
+
+    def test_no_augmentation(self):
+        '''
+            Test that the no augmentation returns only the original image
+        '''
+        image_tuple = self.sdo_database[0]
+        image_tuple2 = self.sdo_database_no_aug[0]
+        self.assertEqual(np.sum(image_tuple[0]-image_tuple2[0]), 0)
+        self.assertEqual(image_tuple2[1],0)
 
     def test_dimensions(self):
         '''
