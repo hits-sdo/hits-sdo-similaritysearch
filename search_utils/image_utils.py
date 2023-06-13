@@ -30,7 +30,7 @@ def read_image(image_loc, image_format):
 
     return image
 
-def stitch_adj_imgs(data_dir, file_name, EXISTING_FILES):
+def stitch_adj_imgs(data_dir, file_name, EXISTING_FILES, multi_wl=False):
     '''
     Stitches surrounding 8 images to inputted image in 
     order to not have unfilled edges 
@@ -48,14 +48,26 @@ def stitch_adj_imgs(data_dir, file_name, EXISTING_FILES):
             stitched parent image
 
     Ex file_name Format:
+        multi_wl = False
         '20100601_000036_aia.lev1_euv_12s_4k_tile_2688_768.jpg'
+        multi_wl = True
+        '20100601_000008_aia_211_193_171_tile_1024_2304.jpg'
     '''
-    date_instrument, tile_info, file_format = file_name.split('.')
+
+    if multi_wl is False:
+        date_instrument, tile_info, file_format = file_name.split('.')
+    else:
+        tile_info, file_format = file_name.split('.')
+        tile_info_list = tile_info.split('_')
+        idx = tile_info_list.index('aia') + 1
+        date_instrument = '_'.join(tile_info_list[:idx])
+        tile_info = '_'.join(tile_info_list[idx:])
+    
     list_info = tile_info.split('_')
 
     iStart, jStart = np.array(list_info[-2:]).astype('int')
 
-    list_info_constant = '_'.join(list_info[:5])
+    list_info_constant = '_'.join(list_info[:-2])
 
     coordinates = [
         (0, 0), (0, 1), (0, 2), (1, 0), (1, 1), (1, 2), (2, 0), (2, 1), (2, 2)]
@@ -68,8 +80,12 @@ def stitch_adj_imgs(data_dir, file_name, EXISTING_FILES):
 
         tile_info = "_".join([list_info_constant, str(i_s), str(j_s)])
 
-        tile_name = ".".join([date_instrument, tile_info, file_format])
-
+        if multi_wl is False:
+            tile_name = ".".join([date_instrument, tile_info, file_format])
+        else:
+            tile_name = ".".join(['_'.join([date_instrument, tile_info]),
+                                  file_format])
+                   
         if tile_name in EXISTING_FILES:
             im = read_image(data_dir + tile_name, file_format)
             superImage[i*image_len: (i+1)*image_len, j*image_len:
