@@ -4,6 +4,7 @@ import os
 import json
 # import pyprojroot
 from dataclasses import dataclass
+from search_utils.image_utils import *
 from typing import NamedTuple 
 from PIL import Image
 
@@ -57,12 +58,27 @@ class TilerClass:
 
     def __post_init__(self):
         """
-        Initialize class variables 
+        Initialize class variables and set up parent image
         """ 
-        self.parent_width, self.parent_height = np.shape(self.parent_image)
         self.tile_item_list = []
         self.tile_meta_dict = {}
 
+        parent_shape = np.shape(self.parent_image)
+        self.parent_height = parent_shape[0]
+        self.parent_width = parent_shape[1]
+        
+        # pad parent if fractional tiles
+        if self.parent_width % self.tile_width > 0 or self.parent_height % self.tile_height > 0:
+            self.pad_parent()  
+            self.parent_height, self.parent_width = np.shape(self.parent_image)
+
+    def pad_parent(self):
+        b_padding, t_padding = calculate_padding(self.parent_height,self.tile_height)
+        l_padding, r_padding = calculate_padding(self.parent_width,self.tile_width) 
+        self.center = ((self.parent_height+b_padding+t_padding)//2,(self.parent_width+l_padding+r_padding)//2)
+        self.parent_image = np.pad(self.parent_image,((b_padding,t_padding),(l_padding,r_padding)))
+        return 
+    
     def cut_set_tiles(self):
         """
         This function takes the parent image (numpy array like) and divides it up into 
