@@ -84,7 +84,7 @@ class TilerClass:
         self.center = ((self.parent_height+b_padding+t_padding)//2,(self.parent_width+l_padding+r_padding)//2)
         self.parent_image = np.pad(self.parent_image,((b_padding,t_padding),(l_padding,r_padding)))
     
-    def cut_set_tiles(self,subset=False):
+    def cut_set_tiles(self,subset=False,thresh=100):
         """
         This function takes the parent image (numpy array like) and divides it up into 
         TileItems of the specified tile width and height.
@@ -103,18 +103,9 @@ class TilerClass:
             diameter = self.radius * 2
             assert diameter <= self.parent_height and diameter <= self.parent_width, \
                 'The diameter of the circle is too large for the parent image, please choose a smaller radius'
-
-            # Find the number of tiles to build up vertically and across horizontally
-            diameter_bound_x, num_col = 0, 0
-            diameter_bound_y, num_row = 0, 0
-
-            while (diameter_bound_x < diameter) and (diameter_bound_x + self.tile_width <= self.parent_width):
-                diameter_bound_x += self.tile_width
-                num_col += 1
-
-            while (diameter_bound_y < diameter) and (diameter_bound_y + self.tile_height <= self.parent_height):
-                diameter_bound_y += self.tile_height
-                num_row += 1
+            
+            num_row = diameter // self.tile_height
+            num_col = diameter // self.tile_width
 
             # Find top left corner of the bounding box
             offset_x = ((num_col * self.tile_width) - diameter) // 2
@@ -144,6 +135,10 @@ class TilerClass:
                 # Crop duplicate
                 temp_image = self.parent_image[start_x:start_x+width,start_y:start_y+height]
 
+                if subset & (np.max(np.abs(temp_image[:]))<thresh):
+                    # don't save tile if data is below thresh (likely outside disk)
+                    continue
+
                 # Save as new tile to a folder called tiles 
                 np.save(f'{self.output_dir}/tiles/tile_{start_y}_{start_x}.npy',temp_image)
            
@@ -172,44 +167,15 @@ class TilerClass:
         
         return
 
-    # def reconstruct_parent_img(self):
-    #     """Reconstruct parent image from tiles"""
-        
-    #     pass
-
-
-    
-
 
 if __name__ == '__main__':
-    #parent_height = ParentTransformationsFromTile.parent_img_height_after_padding
-    #parent_width = ParentTransformationsFromTile.parent_img_width_after_padding
-
-    #these are example values set the init
-    # parent_height = 4096
-    # parent_width = 4096
-    # dicti = generate_tile_metadata()
+    # these are example values set the init
     cx = 4096//2
     cy = 4096//2
     tc = TilerClass(None, 512, 1024, '', 4096, 4096, 'data/raw/latest_4096_0193.jpg',
         tempDict, '', [], 1792, (cx,cy), '', '')
 
-    tc.generate_tile_fpath_write()
-    tc.cut_subset_tiles()
-    # tc.cut_set_tiles()
+    tc.cut_set_tiles()
     tc.tile_meta_dict = tc.generate_tile_metadata()
     tc.convert_export_dict_to_json()
 
-    # parent_image: bytearray
-    # tile_width: int
-    # tile_height: int
-    # tile_path_output: str
-    # parent_height : int
-    # parent_width : int
-    # parent_path_input : str
-    # tile_meta_dict: dict
-    # tile_meta_dict_path: str
-    # tile_item_list: list[TileItem]
-    # radius: int
-    # center: tuple
-    # output_dir: str
