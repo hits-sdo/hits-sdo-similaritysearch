@@ -92,3 +92,26 @@ def stitch_adj_imgs(data_dir, file_name, EXISTING_FILES, multi_wl=False):
                        (j+1)*image_len] = im
 
     return superImage
+
+def calculate_padding(parent_dim,tile_dim):
+    """
+    If the tile doesn't divide evenly into the parent then calculate
+    excess padding
+
+    Parameters: 
+        parent_dim (int):   in pixels
+        tile_dim (int):     in pixels
+
+    Returns:
+        padding (tuple):    padding on left and right side
+    """
+
+    leftover_padding = parent_dim % tile_dim
+    if leftover_padding == 0:
+        return (0, 0)
+    leftover_padding = tile_dim - leftover_padding
+
+    left_padding = leftover_padding // 2
+    right_padding = leftover_padding - left_padding
+    padding = (left_padding, right_padding)
+    return padding
