@@ -163,3 +163,5 @@ cython_debug/
 *.jpg
 *.json
 *.h5
+
+wandb/*
