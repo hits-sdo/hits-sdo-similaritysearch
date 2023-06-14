@@ -160,3 +160,6 @@ cython_debug/
 #.idea/
 
 *.npy
+*.jpg
+*.json
+*.h5
