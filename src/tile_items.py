@@ -1,4 +1,7 @@
-"""TileItem utilizes NamedTuple"""
+import sys,os
+sys.path.append(os.getcwd())
+
+import h5py
 import numpy as np
 import os
 import json
@@ -8,30 +11,12 @@ from search_utils.image_utils import *
 from typing import NamedTuple 
 from PIL import Image
 
-# base_path = pyprojroot.find_root(pyprojroot.has_dir('.git'))
-
-# {parent_dim: (w,h), parent_padded: (w,h), tile_width....}
 class TileItem(NamedTuple):
     tile_width:int
     tile_height:int
     origin_row: int
     origin_col: int
     tile_fname: str
-
-#populate with functions in TilerClass
-
-tempDict = {
-    'instrument': 'AIA',
-    'date': 'APRIL 4, 2021',
-    'time': '12:00:00',
-    'wavelength': '193.4823420',
-    'AIA_or_HMI': 'AIA',
-    'padding': '(2,34,5)',
-    'number_child_tiles': '100',
-    'tile_list': (),
-    'center': (0,0),
-    'radius': 5
-}
 
 @dataclass
 class TilerClass:
@@ -170,12 +155,20 @@ class TilerClass:
 
 if __name__ == '__main__':
     # these are example values set the init
-    cx = 4096//2
-    cy = 4096//2
-    tc = TilerClass(None, 512, 1024, '', 4096, 4096, 'data/raw/latest_4096_0193.jpg',
-        tempDict, '', [], 1792, (cx,cy), '', '')
+    radius = (0.9*1024)//2
+    center = (512,512)
+    out_dir = 'data/test_tiles'
+    tile_dim = 64
 
-    tc.cut_set_tiles()
-    tc.tile_meta_dict = tc.generate_tile_metadata()
-    tc.convert_export_dict_to_json()
+    for file in os.listdir('data/test'):
+        data = h5py.File('data/test/'+file,'r')['magnetogram']
+        date_time = file.split('.')[-2].strip('_TAI')
+        fname = date_time+'_'+file.split('_')[0]
+        file_dict = {'date_time': date_time,
+                     'instrument':file.split('_')[0],
+                     'resolution':1024}
+        tc = TilerClass(data, fname, tile_dim, tile_dim, radius, center,out_dir,file_dict)
+        tc.cut_set_tiles()
+        tc.tile_meta_dict = tc.generate_tile_metadata()
+        tc.convert_export_dict_to_json()
 
