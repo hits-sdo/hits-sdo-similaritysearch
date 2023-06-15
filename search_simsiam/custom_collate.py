@@ -91,8 +91,8 @@ def sunbirdCollate(fill_type='SuperImage', image_size=(128,128), path_to_data = 
             imgs_t0.append(img_t0)
             imgs_t1.append(img_t1)
 
-        imgs_t0 = torch.from_numpy(np.array(imgs_t0)).permute(0, 3, 1, 2)
-        imgs_t1 = torch.from_numpy(np.array(imgs_t1)).permute(0, 3, 1, 2)
+        imgs_t0 = torch.from_numpy(np.array(imgs_t0).astype(np.float32)).permute(0, 3, 1, 2)
+        imgs_t1 = torch.from_numpy(np.array(imgs_t1).astype(np.float32)).permute(0, 3, 1, 2)
 
         labels = torch.tensor(labels)
 
