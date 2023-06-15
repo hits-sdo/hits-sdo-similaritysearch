@@ -3,7 +3,7 @@ sys.path.append(os.getcwd())
 
 import unittest
 import h5py
-from tiler import *
+from src.tiler import *
 
 class TilerTest(unittest.TestCase):
 
