@@ -46,7 +46,7 @@ class TilerClass:
         """
         Set up parent image and class variables
         """ 
-        self.output_dir = self.output_dir + os.sep + self.parent_file_name
+        self.tile_dir = self.output_dir + os.sep + self.parent_file_name
         parent_shape = np.shape(self.parent_image)
         self.parent_height = parent_shape[0]
         self.parent_width = parent_shape[1]
@@ -69,6 +69,23 @@ class TilerClass:
         self.center = ((self.parent_height+b_padding+t_padding)//2,(self.parent_width+l_padding+r_padding)//2)
         self.parent_image = np.pad(self.parent_image,((b_padding,t_padding),(l_padding,r_padding)))
     
+    def save_parent_jpg(self,maxval=1500):
+        """
+        Convert data to byte array and save as jpg in given folder
+
+        Parameters:
+            maxval (float):     value to clip magnetograms at (Gauss)
+        """
+        parent_jpg = np.array(self.parent_image)
+        # clip max values
+        parent_jpg[np.where(parent_jpg>maxval)] = maxval
+        parent_jpg[np.where(parent_jpg<-maxval)] = -maxval
+        # scale between 0 and 255
+        parent_jpg = ((parent_jpg+maxval)/(2*maxval)*255).astype(np.uint8)
+        im = Image.fromarray(parent_jpg)
+        im.save(self.output_dir+os.sep+self.parent_file_name+'.jpg')
+        
+
     def cut_set_tiles(self,subset=False,thresh=100):
         """
         This function takes the parent image (numpy array like) and divides it up into 
@@ -106,7 +123,7 @@ class TilerClass:
             num_col = self.parent_width // self.tile_width
 
         # create a folder called tiles
-        os.makedirs(self.output_dir+'/tiles', exist_ok=True)
+        os.makedirs(self.tile_dir+'/tiles', exist_ok=True)
 
         self.tile_item_list = []
         for row in range(num_row):
@@ -125,7 +142,7 @@ class TilerClass:
                     continue
 
                 # Save as new tile to a folder called tiles 
-                np.save(f'{self.output_dir}/tiles/tile_{start_y}_{start_x}.npy',temp_image)
+                np.save(f'{self.tile_dir}/tiles/tile_{start_y}_{start_x}.npy',temp_image)
            
                 # Create a TileItem
                 tile_item = TileItem(self.tile_width, self.tile_height, start_y, start_x, \
@@ -146,8 +163,8 @@ class TilerClass:
         """Convert metadata to json"""
         dicti = self.tile_meta_dict
 
-        os.makedirs(self.output_dir+'/tile_meta_data', exist_ok=True)
-        with open(f'{self.output_dir}/tile_meta_data/{self.parent_file_name}_metadata.json', 'w') as outfile:
+        os.makedirs(self.tile_dir+'/tile_meta_data', exist_ok=True)
+        with open(f'{self.tile_dir}/tile_meta_data/{self.parent_file_name}_metadata.json', 'w') as outfile:
             json.dump(dicti, outfile)
         
         return
@@ -171,4 +188,5 @@ if __name__ == '__main__':
         tc.cut_set_tiles()
         tc.tile_meta_dict = tc.generate_tile_metadata()
         tc.convert_export_dict_to_json()
+        tc.save_parent_jpg()
 
