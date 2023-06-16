@@ -128,14 +128,12 @@ class TilerClass:
         self.tile_item_list = []
         for row in range(num_row):
             for col in range(num_col):
-                # Find the top left corner and width and height of the tile for cropping
+                # Find the top left corner of the tile for cropping
                 start_x = col * self.tile_width + x_1
                 start_y = row * self.tile_height + y_1
-                width = self.tile_width + start_x
-                height = self.tile_height + start_y
 
                 # Crop duplicate
-                temp_image = self.parent_image[start_x:start_x+width,start_y:start_y+height]
+                temp_image = self.parent_image[start_x:start_x+self.tile_width,start_y:start_y+self.tile_height]
 
                 if subset & (np.max(np.abs(temp_image[:]))<thresh):
                     # don't save tile if data is below thresh (likely outside disk)
@@ -172,7 +170,7 @@ class TilerClass:
 
 if __name__ == '__main__':
     # these are example values set the init
-    radius = (0.9*1024)//2
+    radius = int((0.9*1024)//2)
     center = (512,512)
     out_dir = 'data/test_tiles'
     tile_dim = 64
@@ -185,7 +183,7 @@ if __name__ == '__main__':
                      'instrument':file.split('_')[0],
                      'resolution':1024}
         tc = TilerClass(data, fname, tile_dim, tile_dim, radius, center,out_dir,file_dict)
-        tc.cut_set_tiles()
+        tc.cut_set_tiles(subset=True)
         tc.tile_meta_dict = tc.generate_tile_metadata()
         tc.convert_export_dict_to_json()
         tc.save_parent_jpg()

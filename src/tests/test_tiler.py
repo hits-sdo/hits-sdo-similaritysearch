@@ -25,8 +25,16 @@ class TilerTest(unittest.TestCase):
         self.tiler.cut_set_tiles()
         self.assertEqual(len(self.tiler.tile_item_list),np.ceil(self.test_data_width/self.tile_dim)*np.ceil(self.test_data_height/self.tile_dim))
         self.assertIsInstance(self.tiler.tile_item_list[0],TileItem)
+        tile = np.load(self.output_dir+'/'+self.parent_filename+'/tiles/'+self.tiler.tile_item_list[0].tile_fname)
+        self.assertEqual(np.shape(tile)[0],self.tile_dim)
+        self.assertEqual(np.shape(tile)[1],self.tile_dim)
+
+    def test_cutSubsetTiles(self):
         self.tiler.cut_set_tiles(subset=True)
         self.assertLessEqual(len(self.tiler.tile_item_list),np.ceil(2*self.radius/self.tile_dim)*np.ceil(2*self.radius/self.tile_dim))
+        tile = np.load(self.output_dir+'/'+self.parent_filename+'/tiles/'+self.tiler.tile_item_list[0].tile_fname)
+        self.assertEqual(np.shape(tile)[0],self.tile_dim)
+        self.assertEqual(np.shape(tile)[1],self.tile_dim)
 
     def test_padding(self):
         padding = (self.tiler.parent_height-self.test_data_height)//2
