@@ -11,7 +11,7 @@ def read_image(image_loc, image_format):
         image_loc(str):
             path (includes filename)
         image_format(str):
-            .jpg or .p or .png
+            .jpg or .p or .png or .npy
 
     Returns:
         image(np array)    
@@ -23,10 +23,13 @@ def read_image(image_loc, image_format):
         imfile.close()
         image = image.astype(float) / 255
 
-    if (image_format == 'jpg' or image_format == 'png'
+    elif (image_format == 'jpg' or image_format == 'png'
             or image_format == 'jpeg'):
         im = Image.open(image_loc)
         image = np.array(im).astype(float) / 255
+
+    elif image_format == 'npy':
+        image = np.load(image_loc).astype(float)
 
     return image
 
