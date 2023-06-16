@@ -99,3 +99,14 @@ TODO:
 - [ ] Simclr Model (Adapt lightly model to our dataset class)
 - [ ] Wandb (Weights and Bias)
 - [ ] Profit!!!💰💰💰💰💰💰💰💰💰💰💰💰💰💰💰💰💰💰💰
+
+## 6/16/23
+- [x] added FillVoids class for use with compose function from pytorch transforms
+- [x] added StitchAdjacentImagesVer2 class for use with compose function from pytorch transforms
+- [ ] test fillVoids and StitchAdjacentImagesVer2 using the transforms_Simclr compose function
+- [ ] add pytorch data module 
+- [ ] test pytorch data module
+- [ ] merge branch to main by making PR
+- [ ] create an issue for the model using lightly
+- [ ] create a branch using the issue id number and start creating model
+- [ ] profit

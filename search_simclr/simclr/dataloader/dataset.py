@@ -36,20 +36,11 @@ class SdoDataset(Dataset):
         image_fullpath = os.path.join(self.tile_dir, self.file_list[idx])
         
         print("Full Path: "+image_fullpath)
-        
+        image = image_utils.read_image(image_fullpath, 'p')
         if (self.transform):
-            use_fill_voids = True
             
-            if (use_fill_voids):
-                # Fill voids
-                image = image_utils.read_image(image_fullpath, 'p')
-                v, h = image.shape[0]//2, image.shape[1]//2
-                if len(image.shape) == 3:
-                    image = np.pad(image, ((v, v), (h, h), (0, 0)), 'edge')
-                else:
-                    image = np.pad(image, ((v, v), (h, h)), 'edge')
-            else:  # Stich images together
-                image = image_utils.stitch_adj_imgs(self.tile_dir + '/', self.file_list[idx], self.file_list)
+            image = fill_voids(self.tile_dir, self.file_list, image_fullpath, idx)
+            
             
             # Transform images by augmentations
             image1, image2 = self.transform(image)
@@ -74,23 +65,53 @@ class SdoDataset(Dataset):
         else:
             image = image_utils.read_image(image_fullpath, 'p')
             return image, image
-    
-    
-        # tile = open(self.tile_dir + '/' + self.file_list[idx])
-        # print()
-
-        # comment: I know in the augmentation class we have a read_image function,
-        # could we just use this? This properly handles loading the contents of a
-        # pickle file into an image object - Sierra
-        '''
-        def read_image(image_loc, image_format):
-             """
-            read images in pickle/jpg/png format
-            and return normalized numpy array
-            """
-        '''
-        # return tile
         
+def fill_voids(tile_dir, file_list, image_fullpath, idx):
+    # Fill voids
+    image = image_utils.read_image(image_fullpath, 'p')
+    v, h = image.shape[0]//2, image.shape[1]//2
+    if len(image.shape) == 3:
+        image = np.pad(image, ((v, v), (h, h), (0, 0)), 'edge')
+    else:
+        image = np.pad(image, ((v, v), (h, h)), 'edge')
+        
+    # Stitch images
+    #image2 = image_utils.stitch_adj_imgs(tile_dir + '/', file_list[idx], file_list)
+    
+    # Append image (Overlay the stitched img ontop of the padded filled void image)
+ 
+    
+    return image
+
+
+def stitch_adj_imgs_v2(data_dir, file_name, EXISTING_FILES):
+    """
+    stitches adjacent images to return a superimage
+    """
+    len_ = len(file_name)-len('0000_0000.p')
+    iStart = int(file_name[-11:-7])
+    jStart = int(file_name[-6:-2])
+    # coordinates of surrounding tiles
+    coordinates = [
+        (0, 0), (0, 1), (0, 2), (1, 0), (1, 1), (1, 2), (2, 0), (2, 1), (2, 2)]
+
+    image_len = read_image(data_dir + file_name, 'p').shape[0]
+    # replace np.zeros w/ the interpolated image from fill_voids
+    # superImage = np.zeros((3*image_len, 3*image_len))
+
+    superImage = fill_voids
+    for i, j in coordinates:
+        i_s = iStart - image_len + i * image_len
+        j_s = jStart - image_len + j * image_len
+
+        tile_name = \
+            f"{file_name[0:len_]}{str(i_s).zfill(4)}_{str(j_s).zfill(4)}.p"
+        if tile_name in EXISTING_FILES:
+            im = read_image(data_dir + tile_name, 'p')
+            superImage[i*image_len: (i+1)*image_len, j*image_len:
+                       (j+1)*image_len] = im
+
+    return superImage
 
 def main():
     print(root)

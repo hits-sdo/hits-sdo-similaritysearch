@@ -1,3 +1,4 @@
+from typing import Any
 from torchvision import transforms
 import pyprojroot
 root = pyprojroot.here()
@@ -90,6 +91,59 @@ class AddNoise(object):
         img = img + noise
         img = np.clip(img, 0, 1)
         return img
+    
+class FillVoids(object):
+    def __init__(self):
+        ...
+
+    def __call__(tile_dir, file_list, image_fullpath, idx, image):
+         # Fill voids
+        #image = image_utils.read_image(image_fullpath, 'p')
+        v, h = image.shape[0]//2, image.shape[1]//2
+        if len(image.shape) == 3:
+            image = np.pad(image, ((v, v), (h, h), (0, 0)), 'edge')
+        else:
+            image = np.pad(image, ((v, v), (h, h)), 'edge')
+            
+        # Stitch images
+        #image2 = image_utils.stitch_adj_imgs(tile_dir + '/', file_list[idx], file_list)
+        
+        # Append image (Overlay the stitched img ontop of the padded filled void image)
+    
+        
+        return image
+        
+class StitchAdjacentImagesVer2(object):
+    def __init__(self) -> None:
+        pass
+
+    def __call__(self, data_dir, file_name, EXISTING_FILES, superImage):
+        """
+        stitches adjacent images to return a superimage
+        """
+        len_ = len(file_name)-len('0000_0000.p')
+        iStart = int(file_name[-11:-7])
+        jStart = int(file_name[-6:-2])
+        # coordinates of surrounding tiles
+        coordinates = [
+            (0, 0), (0, 1), (0, 2), (1, 0), (1, 1), (1, 2), (2, 0), (2, 1), (2, 2)]
+
+        image_len = read_image(data_dir + file_name, 'p').shape[0]
+        # replace np.zeros w/ the interpolated image from fill_voids
+        # superImage = np.zeros((3*image_len, 3*image_len))
+
+        for i, j in coordinates:
+            i_s = iStart - image_len + i * image_len
+            j_s = jStart - image_len + j * image_len
+
+            tile_name = \
+                f"{file_name[0:len_]}{str(i_s).zfill(4)}_{str(j_s).zfill(4)}.p"
+            if tile_name in EXISTING_FILES:
+                im = read_image(data_dir + tile_name, 'p')
+                superImage[i*image_len: (i+1)*image_len, j*image_len:
+                        (j+1)*image_len] = im
+
+        return superImage
 
 
 class Cutout(object):
