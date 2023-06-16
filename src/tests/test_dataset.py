@@ -8,6 +8,7 @@ import unittest
 import os
 import numpy as np
 from src.data import TilesDataset
+import torch
 
 class DatasetTest(unittest.TestCase):
     '''
@@ -20,9 +21,9 @@ class DatasetTest(unittest.TestCase):
         data_path = "data/tiles_HMI_small"
         os.path.normpath(data_path)
 
-        self.database = TilesDataset(data_path, augmentation='single', data_stride=10)
-        self.database_double_aug = TilesDataset(data_path, augmentation='double', data_stride=10)
-        self.database_no_aug = TilesDataset(data_path, augmentation=None, data_stride=10)
+        self.database = TilesDataset(data_path, augmentation='single')
+        self.database_double_aug = TilesDataset(data_path, augmentation='double')
+        self.database_no_aug = TilesDataset(data_path, augmentation=None)
 
     def test_loader_exists(self):
         '''
@@ -55,8 +56,8 @@ class DatasetTest(unittest.TestCase):
         '''
         image_tuple = self.database[0]
         image_tuple2 = self.database_double_aug[0]
-        self.assertNotEqual(np.sum(image_tuple[0]-image_tuple[1]), 0)
-        self.assertNotEqual(np.sum(image_tuple2[0]-image_tuple2[1]), 0)
+        self.assertNotEqual(torch.sum(image_tuple[1]-image_tuple[2]), 0)
+        self.assertNotEqual(torch.sum(image_tuple2[1]-image_tuple2[2]), 0)
 
     def test_augmentation_dict(self):
         '''
@@ -71,7 +72,7 @@ class DatasetTest(unittest.TestCase):
         '''
         image_tuple = self.database[0]
         image_tuple2 = self.database_double_aug[0]
-        self.assertNotEqual(np.sum(image_tuple[0]-image_tuple2[0]), 0)
+        self.assertNotEqual(torch.sum(image_tuple[1]-image_tuple2[1]), 0)
 
     def test_no_augmentation(self):
         '''
@@ -79,16 +80,16 @@ class DatasetTest(unittest.TestCase):
         '''
         image_tuple = self.database[0]
         image_tuple2 = self.database_no_aug[0]
-        self.assertEqual(np.sum(image_tuple[0]-image_tuple2[0]), 0)
+        self.assertEqual(torch.sum(image_tuple[1]-image_tuple2[1]), 0)
 
     def test_dimensions(self):
         '''
             Tests that the dimensions are valid
         '''
         image_tuple = self.database[0]
-        print(f'Image size: {image_tuple[0].shape}')
-        self.assertEqual(image_tuple[0].shape[0], 1)
+        print(f'Image size: {image_tuple[1].shape}')
         self.assertEqual(image_tuple[1].shape[0], 1)
+        self.assertEqual(image_tuple[2].shape[0], 1)
 
     def tearDown(self):
         '''

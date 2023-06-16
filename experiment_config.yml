@@ -1,0 +1,25 @@
+data:
+  augmentation: double
+  data_path: data/tiles_HMI_small
+meta:
+  project: solar-self-similarity
+  name: test-a
+  group: debug
+  tags: []
+  resume: false
+model:
+  checkpoint_location: None
+  dropout_ratio: 0
+  load_checkpoint: false
+  projection_size: 2
+  prediction_size: 2
+  channels: 1
+testing:
+  eval: false
+training:
+  batch_size: 128
+  epochs: 10
+  lr: 0.01
+  wd: 0.001
+  momentum_start: 0.9
+  momentum_end: 1

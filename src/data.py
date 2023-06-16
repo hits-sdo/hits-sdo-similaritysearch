@@ -19,7 +19,7 @@ class TilesDataset(Dataset):
         
     """
     def __init__(self, data_path: str, augmentation: str='single',
-                 data_stride:int = 1,instrument:str='mag',filetype:str='npy',
+                 instrument:str='mag',filetype:str='npy',
                  datatype=np.float32):
         '''
             Initializes image files in the dataset
@@ -37,8 +37,6 @@ class TilesDataset(Dataset):
         '''
         self.data_path = data_path
         self.image_files = glob.glob(data_path + "/**/*."+filetype, recursive=True)
-        if data_stride>1:
-            self.image_files = self.image_files[::data_stride]
         self.augmentation_list = AugmentationList(instrument=instrument)
         self.filetype=filetype
         self.datatype=datatype
@@ -68,7 +66,8 @@ class TilesDataset(Dataset):
                 of the input and image can be the original image, or another augmented
                 modification, in which case image2 is double augmented
         '''
-        image = read_image(image_loc=self.image_files[idx],image_format="npy")
+        file = self.image_files[idx]
+        image = read_image(image_loc=file,image_format="npy")
         
         # Normalize magnetogram data
         # clip magnetogram data within max value
@@ -96,7 +95,29 @@ class TilesDataset(Dataset):
             image = np.expand_dims(image,0)
             image2 = np.expand_dims(image2,0)
 
-        return image, image2
-        return torch.Tensor(image), torch.Tensor(image2)
+        return file,torch.Tensor(image), torch.Tensor(image2)
 
     
+class TilesDataModule(pl.LightningDataModule):
+    """
+    Datamodule for self supervision on tiles dataset
+    """
+
+    def __init__(self,data_path:str,batch:int=128,augmentation:str='double'):
+        super().__init__()
+        self.data_path = data_path
+        self.batch_size = batch
+        self.augmentation = augmentation
+
+    def prepare_data(self):
+        pass
+
+    def setup(self,stage:str):
+        self.train_set = TilesDataset(self.data_path,self.augmentation)
+        self.data_set = TilesDataset(self.data_path,augmentation='none')
+
+    def train_dataloader(self):
+        return DataLoader(self.train_set,batch_size=self.batch_size,num_workers=4,shuffle=True)
+    
+    def test_dataloader(self):
+        return DataLoader(self.data_set,batch_size=self.batch_size,num_workers=4)
