@@ -7,10 +7,12 @@ sys.path.append(str(root))
 import search_utils.augmentation_list
 from search_utils.augmentation_list import AugmentationList
 from search_utils.augmentation import Augmentations
+from search_utils.image_utils import read_image
 import cv2 as cv
 import numpy as np
 import torch
 import random
+import os.path
 
 # rewrite all functions as classes and put those inside call
 # because then we can use that 
@@ -93,53 +95,69 @@ class AddNoise(object):
         return img
     
 class FillVoids(object):
+    """
+        Do this after stitch adj img
+
+        FIX THESE:
+        [ ] Adapt to three channel images
+        [ ] Change interpolation technique (to include stitched imgs as part of interpolation)
+    """
     def __init__(self):
         ...
 
-    def __call__(tile_dir, file_list, image_fullpath, idx, image):
+    def __call__(self, image):
          # Fill voids
         #image = image_utils.read_image(image_fullpath, 'p')
-        v, h = image.shape[0]//2, image.shape[1]//2
-        if len(image.shape) == 3:
-            image = np.pad(image, ((v, v), (h, h), (0, 0)), 'edge')
-        else:
-            image = np.pad(image, ((v, v), (h, h)), 'edge')
+        # v, h = image.shape[0]//2, image.shape[1]//2
+        # if len(image.shape) == 3:
+        #     image = np.pad(image, ((v, v), (h, h), (0, 0)), 'edge')
+        # else:
+        #     image = np.pad(image, ((v, v), (h, h)), 'edge')
             
-        # Stitch images
-        #image2 = image_utils.stitch_adj_imgs(tile_dir + '/', file_list[idx], file_list)
-        
-        # Append image (Overlay the stitched img ontop of the padded filled void image)
-    
-        
-        return image
-        
-class StitchAdjacentImagesVer2(object):
-    def __init__(self) -> None:
-        pass
+        print("Image: "+image)
+        mask = cv.inRange(image, (0, 0, 0), (0, 0, 0))
+        radius = 3 # The radius around a pixel to inpaint, smaller values are less blurry
+        filled_image = cv.inpaint(image, mask, radius, cv.INPAINT_NS) # cv2.INPAINT_NS or cv2.INPAINT_TELEA
 
-    def __call__(self, data_dir, file_name, EXISTING_FILES, superImage):
+        return filled_image
+        
+class StitchAdjacentImagesVer2(object): 
+    
+    """ 
+        do stitch adj images before fill voids (Fill voids uses center tile 
+        interpolation and you would want to take average of all tiles if 
+        that info is available)
+    """
+
+    def __init__(self, data_dir, file_name, file_list) -> None:
+        self.data_dir = data_dir
+        self.file_name = file_name
+        self.file_list = file_list
+
+    def __call__(self, superImage):
         """
         stitches adjacent images to return a superimage
         """
-        len_ = len(file_name)-len('0000_0000.p')
-        iStart = int(file_name[-11:-7])
-        jStart = int(file_name[-6:-2])
+        len_ = len(self.file_name)-len('0000_0000.p')
+        iStart = int(self.file_name[-11:-7])
+        jStart = int(self.file_name[-6:-2])
         # coordinates of surrounding tiles
         coordinates = [
             (0, 0), (0, 1), (0, 2), (1, 0), (1, 1), (1, 2), (2, 0), (2, 1), (2, 2)]
 
-        image_len = read_image(data_dir + file_name, 'p').shape[0]
+        image_len = read_image(os.path.join(self.data_dir, self.file_name), 'p').shape[0]
         # replace np.zeros w/ the interpolated image from fill_voids
-        # superImage = np.zeros((3*image_len, 3*image_len))
+        superImage = np.zeros((3*image_len, 3*image_len))
+        
 
         for i, j in coordinates:
             i_s = iStart - image_len + i * image_len
             j_s = jStart - image_len + j * image_len
 
             tile_name = \
-                f"{file_name[0:len_]}{str(i_s).zfill(4)}_{str(j_s).zfill(4)}.p"
-            if tile_name in EXISTING_FILES:
-                im = read_image(data_dir + tile_name, 'p')
+                f"{self.file_name[0:len_]}{str(i_s).zfill(4)}_{str(j_s).zfill(4)}.p"
+            if tile_name in self.file_list:
+                im = read_image(os.path.join(self.data_dir, tile_name), 'p')
                 superImage[i*image_len: (i+1)*image_len, j*image_len:
                         (j+1)*image_len] = im
 
@@ -252,6 +270,18 @@ class Rotate(object):
         # Affine transformation to rotate the image and output size s[1],s[0]
         return cv.warpAffine(img, M, (s[1], s[0]))
     
+class Crop(object):
+    """Crop image prior to ToTensor step"""
+    def __call__(self, img):
+         # Crop middle part of image1
+        shape1 = img.shape[-2:]
+        h1 = shape1[0] // 3
+        h2 = shape1[0] // 3 * 2
+        w1 = shape1[1] // 3
+        w2 = shape1[1] // 3 * 2
+        cropped_image = img[:,h1:h2,w1:w2] # channels,height,width
+        return cropped_image
+                
 class ToTensor(object):
     """Convert ndarrays in sample to Tensors."""
 
@@ -267,12 +297,27 @@ class ToTensor(object):
         # torch image: C x H x W
         img = img.transpose((2, 0, 1))
         return torch.from_numpy(img)
-
-
+    
 class Transforms_SimCLR(object):
-    def __init__(self, blur, brighten, translate, zoom, rotate, noise_mean, noise_std, cutout_holes, cutout_size):
+    def __init__(self, 
+                 blur, 
+                 brighten, 
+                 translate, 
+                 zoom, 
+                 rotate, 
+                 noise_mean, 
+                 noise_std, 
+                 cutout_holes, 
+                 cutout_size, 
+                 data_dir, 
+                 file_name, 
+                 file_list):
         #print(translate)
+        
         self.train_transform = transforms.Compose([
+            # Stitch image should happen before the fill voids
+            StitchAdjacentImagesVer2(data_dir, file_name, file_list),
+            FillVoids(), 
             transforms.RandomApply([H_Flip()], p=0),
             transforms.RandomApply([V_Flip()], p=0),
             transforms.RandomApply([P_Flip()], p=0), 
@@ -283,7 +328,10 @@ class Transforms_SimCLR(object):
             transforms.RandomApply([Blur(blur)], p=0),
             transforms.RandomApply([AddNoise(noise_mean, noise_std)], p=0),
             transforms.RandomApply([Cutout(cutout_holes, cutout_size)], p=0),
+            
         ToTensor()])
+        
+        
 
         self.test_transform = transforms.ToTensor()
     

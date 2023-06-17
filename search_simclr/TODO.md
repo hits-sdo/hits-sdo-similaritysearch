@@ -109,4 +109,14 @@ TODO:
 - [ ] merge branch to main by making PR
 - [ ] create an issue for the model using lightly
 - [ ] create a branch using the issue id number and start creating model
-- [ ] profit
+- [x] profit
+
+## 6/21/23
+- [ ] fix the fillVoids class line 120 (inPaint & inRange) check the image format (check RGB, HSV ordering) and also check the shape of the image, and datatype
+- [ ] clean out the __getitem__ function in dataset.py, so it only has the self.transforms and the two images it returns
+- [ ] pytorch lightning datamodule!!!
+- [ ] test the pytorch lightning datamodule
+- [ ] merge branch to main by making PR
+- [ ] create an issue for the model using lightly
+- [ ] create a branch using the issue id number and start creating model
+- [ ] profit 💰💰💰💰💰💰
