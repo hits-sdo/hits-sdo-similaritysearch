@@ -6,7 +6,9 @@ from lightly.loss import NegativeCosineSimilarity
 from lightly.models.modules import BYOLPredictionHead, BYOLProjectionHead, SimSiamPredictionHead, SimSiamProjectionHead
 from lightly.models.utils import deactivate_requires_grad, update_momentum
 from lightly.utils.scheduler import cosine_schedule
+import numpy as np
 from torch import nn, optim
+import torch
 import torchvision
 import torch.nn.functional as F
 import pytorch_lightning as pl
@@ -41,7 +43,7 @@ class BYOL(pl.LightningModule):
             wd (float):                 L2 regularization parameter
             epochs (int):               Number of epochs for scheduler
     """
-    def __init__(self, lr=0.1, wd=1e-3, input_channels=1, projection_size=256, prediction_size=256, cosine_scheduler_start=0.9, cosine_scheduler_end=1.0, epochs=10):
+    def __init__(self, lr=0.1, wd=1e-3, input_channels=1, projection_size=2, prediction_size=2, cosine_scheduler_start=0.9, cosine_scheduler_end=1.0, epochs=10):
         super().__init__()
 
         resnet = torchvision.models.resnet18()
@@ -67,8 +69,9 @@ class BYOL(pl.LightningModule):
         self.epochs = epochs
         self.lr = lr
         self.weight_decay = wd
+        self.projection_size=projection_size
 
-        # define metrics
+        self.save_hyperparameters()
 
     def forward(self, x):
         y = self.backbone(x).flatten(start_dim=1)
@@ -81,6 +84,10 @@ class BYOL(pl.LightningModule):
         z = self.projection_head_momentum(y)
         z = z.detach()
         return z
+    
+    def embed(self,x):
+        y = self.backbone_momentum(x).flatten(start_dim=1)
+        return y
 
     def training_step(self, batch, batch_idx):
         momentum = cosine_schedule(self.current_epoch, self.epochs, self.cosine_scheduler_start, self.cosine_scheduler_end)
@@ -116,7 +123,16 @@ class BYOL(pl.LightningModule):
 
         val_loss = 0.5*(self.loss(p0,z1)+self.loss(p1,z0))
 
-        self.log_dict({'val_loss':val_loss},
+        # calculate the per-dimension standard deviation of the outputs
+        # we can use this later to check whether the embeddings are collapsing
+        output = self.embed(x0)
+        output = F.normalize(output, dim=1)
+        output_std = output.std(dim=0)
+        output_std = output_std.mean()
+        collapse_level = max(0.0,1-np.sqrt(512)*output_std)
+
+        self.log_dict({'val_loss':val_loss,
+                       'collapse_level':collapse_level},
                       on_step=False,on_epoch=True)
 
     def test_step(self,batch,batch_idx):
@@ -155,7 +171,7 @@ class BYOL(pl.LightningModule):
                 embedding:      embeddings for batch
         """
         f,x0,_ = batch
-        embedding = self.backbone(x0).flatten(start_dim=1)
+        embedding = self.embed(x0)
         return f,embedding
     
     def on_load_checkpoint(self, checkpoint: dict) -> None:
