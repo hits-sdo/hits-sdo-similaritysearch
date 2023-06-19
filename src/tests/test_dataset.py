@@ -5,6 +5,7 @@ import sys,os
 sys.path.append(os.getcwd())
 
 import unittest
+import glob
 import os
 import numpy as np
 from src.data import TilesDataset
@@ -20,10 +21,11 @@ class DatasetTest(unittest.TestCase):
         '''
         data_path = "data/tiles_HMI_small"
         os.path.normpath(data_path)
+        image_files = glob.glob(data_path + "/**/*.npy", recursive=True)
 
-        self.database = TilesDataset(data_path, augmentation='single')
-        self.database_double_aug = TilesDataset(data_path, augmentation='double')
-        self.database_no_aug = TilesDataset(data_path, augmentation=None)
+        self.database = TilesDataset(image_files, augmentation='single')
+        self.database_double_aug = TilesDataset(image_files, augmentation='double')
+        self.database_no_aug = TilesDataset(image_files, augmentation=None)
 
     def test_loader_exists(self):
         '''
