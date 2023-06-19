@@ -167,3 +167,5 @@ cython_debug/
 
 wandb/*
 *.ckpt
+
+handouts/*
