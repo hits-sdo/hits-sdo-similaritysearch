@@ -3,7 +3,7 @@ sys.path.append(os.getcwd())
 
 import glob
 import torch
-from torchvision import transforms
+import torchvision.transforms.v2 as transforms
 import h5py
 import numpy as np
 import pandas as pd
@@ -19,7 +19,7 @@ class TilesDataset(Dataset):
         Pytorch dataset for handling magnetogram tile data 
         
     """
-    def __init__(self, image_files: list, augmentation: str='single',
+    def __init__(self, image_files: list, transform:transforms.ToTensor(), augmentation: str='single',
                  instrument:str='mag',filetype:str='npy',
                  datatype=np.float32):
         '''
@@ -37,7 +37,7 @@ class TilesDataset(Dataset):
                 datatype (numpy.dtype): datatype to use for the images
         '''
         self.image_files = image_files
-        self.augmentation_list = AugmentationList(instrument=instrument)
+        self.transform = transform
         self.filetype=filetype
         self.datatype=datatype
         self.augmentation = augmentation
@@ -76,26 +76,22 @@ class TilesDataset(Dataset):
         image[np.where(image<-maxval)] = -maxval
         # scale between -1 and 1
         image = (image+maxval)/2/maxval
+        image = np.expand_dims(image,0)
 
         image2 = image.copy()
+        image = torch.Tensor(image)
+        image2 = torch.Tensor(image2)
 
         if self.augmentation.lower() != 'none':
 
-            aug = Augmentations(image, self.augmentation_list.randomize())
-            image2, _ = aug.perform_augmentations(fill_void='Nearest')
+            # aug = Augmentations(image, self.augmentation_list.randomize())
+            # image2, _ = aug.perform_augmentations(fill_void='Nearest')
+            image2 = self.transform(image)
 
             if self.augmentation.lower() == 'double':
-                aug = Augmentations(image, self.augmentation_list.randomize())
-                image, _ = aug.perform_augmentations(fill_void='Nearest')
+                image = self.transform(image)    
 
-        if image.ndim == 3:
-            image = np.moveaxis(image, [0, 1, 2], [1, 2, 0]).astype(self.datatype)           
-            image2 = np.moveaxis(image2, [0, 1, 2], [1, 2, 0]).astype(self.datatype)           
-        elif image.ndim == 2:
-            image = np.expand_dims(image,0)
-            image2 = np.expand_dims(image2,0)
-
-        return file,torch.Tensor(image), torch.Tensor(image2)
+        return file,image,image2
 
     
 class TilesDataModule(pl.LightningDataModule):
@@ -103,12 +99,28 @@ class TilesDataModule(pl.LightningDataModule):
     Datamodule for self supervision on tiles dataset
     """
 
-    def __init__(self,data_path:str,batch:int=128,augmentation:str='double',filetype:str='npy'):
+    def __init__(self,data_path:str,batch:int=128,augmentation:str='double',filetype:str='npy',dim:int=128):
         super().__init__()
         self.data_path = data_path
         self.batch_size = batch
         self.augmentation = augmentation
         self.filetype = filetype
+
+        # define data transforms - augmentation for training
+        self.transform = transforms.Compose([
+            transforms.ToTensor(),
+            transforms.RandomInvert(p=0.3),
+            transforms.RandomAdjustSharpness(1.5,p=0.3),
+            transforms.RandomApply(torch.nn.ModuleList([
+                 transforms.GaussianBlur(kernel_size=9,sigma=(0.1,4.0)),
+                 ]),p=0.3),
+            transforms.RandomApply(torch.nn.ModuleList([
+                 transforms.RandomRotation(degrees=45,fill=0.5)
+                 ]),p=0.3),
+            transforms.RandomVerticalFlip(p=0.3),
+            transforms.ScaleJitter(target_size=(128,128),scale_range=(0.7,1.3),antialias=True),
+            transforms.Resize((dim,dim),antialias=True)
+        ])
 
     def prepare_data(self):
         self.image_files = glob.glob(self.data_path + "/**/*."+self.filetype, recursive=True)
@@ -118,8 +130,8 @@ class TilesDataModule(pl.LightningDataModule):
         random.shuffle(self.image_files)
         train_files = self.image_files[:int(0.8*len(self.image_files))]
         val_files = self.image_files[int(0.8*len(self.image_files)):]
-        self.train_set = TilesDataset(train_files,self.augmentation)
-        self.val_set = TilesDataset(val_files,augmentation='none')
+        self.train_set = TilesDataset(train_files,self.transform,self.augmentation)
+        self.val_set = TilesDataset(val_files,self.transform,augmentation='single')
         self.trainval_set = TilesDataset(self.image_files,augmentation='none')
 
     def train_dataloader(self):

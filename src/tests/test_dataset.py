@@ -8,7 +8,7 @@ import unittest
 import glob
 import os
 import numpy as np
-from src.data import TilesDataset
+from src.data import TilesDataset,TilesDataModule
 import torch
 
 class DatasetTest(unittest.TestCase):
@@ -22,10 +22,11 @@ class DatasetTest(unittest.TestCase):
         data_path = "data/tiles_HMI_small"
         os.path.normpath(data_path)
         image_files = glob.glob(data_path + "/**/*.npy", recursive=True)
-
-        self.database = TilesDataset(image_files, augmentation='single')
-        self.database_double_aug = TilesDataset(image_files, augmentation='double')
-        self.database_no_aug = TilesDataset(image_files, augmentation=None)
+        self.data = TilesDataModule(data_path)
+        self.transform = self.data.transform
+        self.database = TilesDataset(image_files, self.transform,augmentation='single')
+        self.database_double_aug = TilesDataset(image_files, self.transform,augmentation='double')
+        self.database_no_aug = TilesDataset(image_files, self.transform,augmentation=None)
 
     def test_loader_exists(self):
         '''
@@ -61,12 +62,6 @@ class DatasetTest(unittest.TestCase):
         self.assertNotEqual(torch.sum(image_tuple[1]-image_tuple[2]), 0)
         self.assertNotEqual(torch.sum(image_tuple2[1]-image_tuple2[2]), 0)
 
-    def test_augmentation_dict(self):
-        '''
-            Tests that the augmentation list is a dict
-        '''
-        aug_list = self.database.augmentation_list.randomize()
-        self.assertIsInstance(aug_list, dict)
 
     def test_double_augmentation(self):
         '''
