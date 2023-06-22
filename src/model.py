@@ -43,7 +43,8 @@ class BYOL(pl.LightningModule):
             wd (float):                 L2 regularization parameter
             epochs (int):               Number of epochs for scheduler
     """
-    def __init__(self, lr=0.1, wd=1e-3, input_channels=1, projection_size=2, prediction_size=2, cosine_scheduler_start=0.9, cosine_scheduler_end=1.0, epochs=10):
+    def __init__(self, lr=0.1, wd=1e-3, input_channels=1, projection_size=2, prediction_size=2, 
+                 cosine_scheduler_start=0.9, cosine_scheduler_end=1.0, epochs=10, loss='contrast'):
         super().__init__()
 
         resnet = torchvision.models.resnet18()
@@ -60,9 +61,10 @@ class BYOL(pl.LightningModule):
         deactivate_requires_grad(self.projection_head_momentum)
 
         # define loss function
-        # self.loss = NegativeCosineSimilarity()
-
-        self.loss = NTXentLoss()
+        if loss == 'contrast':
+            self.loss = NTXentLoss()
+        else:
+            self.loss = NegativeCosineSimilarity()
 
         self.cosine_scheduler_start = cosine_scheduler_start
         self.cosine_scheduler_end = cosine_scheduler_end

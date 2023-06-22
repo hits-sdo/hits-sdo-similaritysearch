@@ -48,7 +48,8 @@ def main():
                  projection_size=config.model['projection_size'],
                  prediction_size=config.model['prediction_size'],
                  cosine_scheduler_start=config.training['momentum_start'],
-                 cosine_scheduler_end=config.training['momentum_end'])
+                 cosine_scheduler_end=config.training['momentum_end'],
+                 loss=config.training['loss'])
 
     # initialize wandb logger
     wandb_logger = WandbLogger(log_model='all')

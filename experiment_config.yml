@@ -3,10 +3,11 @@ data:
   data_path: data/tiles_HMI_small
 meta:
   project: solar-self-similarity
-  name: test-a
+  name: nxtent-loss
   group: debug
   tags: []
   resume: false
+  outdir: ''
 model:
   checkpoint_location: None
   dropout_ratio: 0
@@ -17,9 +18,10 @@ model:
 testing:
   eval: false
 training:
-  batch_size: 128
-  epochs: 10
+  batch_size: 256
+  epochs: 30
   lr: 0.01
-  wd: 0.001
-  momentum_start: 0.9
+  wd: 0.0001
+  momentum_start: 0.99
   momentum_end: 1
+  loss: 'contrast'
