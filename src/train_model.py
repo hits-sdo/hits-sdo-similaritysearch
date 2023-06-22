@@ -5,8 +5,11 @@ import numpy as np
 import torchvision
 from torch import nn
 import wandb
+from sklearn import random_projection
+from sklearn.preprocessing import MinMaxScaler, normalize
 from src.data import TilesDataModule
 from src.model import BYOL, SimSiam
+from search_utils.analysis_utils import *
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks import ModelSummary, ModelCheckpoint 
 from pytorch_lightning.callbacks.early_stopping import EarlyStopping
@@ -68,19 +71,22 @@ def main():
     trainer.fit(model=model,datamodule=data)
 
     # save predictions
-    preds = trainer.predict(model=model,dataloaders=data.test_dataloader())
-    file = []
-    embeddings = []
-    embeddings_proj = []
-    for predbatch in preds:
-        file.extend(predbatch[0])
-        embeddings.extend(np.array(predbatch[1]))
-        embeddings_proj.extend(np.array(predbatch[2]))
+    preds_train = trainer.predict(model=model,dataloaders=data.train_dataloader())
+    files_train, embeddings_train,embeddings_proj_train = save_predictions(preds_train,wandb.run.dir,'train')
 
-    np.save(wandb.run.dir+os.sep+'embeddings.npy',np.array(embeddings))
-    np.save(wandb.run.dir+os.sep+'embeddings_proj.npy',np.array(embeddings_proj))
-    df = pd.DataFrame({'filename':file})
-    df.to_csv(wandb.run.dir+os.sep+'filenames.csv',index=False)
+    # normalize and project embeddings into 2D for plotting
+    projection = random_projection.GaussianRandomProjection(n_components=2)
+    embeddings_2d_train = projection.fit_transform(embeddings_train)    
+    
+    scaler = MinMaxScaler()
+    embeddings_2d_train = scaler.fit_transform(embeddings_2d_train)
+    fig = get_scatter_plot_with_thumbnails(embeddings_2d_train,files_train)
+    wandb.log({"Backbone_embeddings_2D": wandb.Image(fig)})
+
+    scaler2 = MinMaxScaler()
+    embeddings_proj_train = scaler2.fit_transform(embeddings_proj_train)
+    fig2 = get_scatter_plot_with_thumbnails(embeddings_proj_train,files_train)
+    wandb.log({"Projection_embeddings_2D": wandb.Image(fig2)})
 
     wandb.finish()
 
