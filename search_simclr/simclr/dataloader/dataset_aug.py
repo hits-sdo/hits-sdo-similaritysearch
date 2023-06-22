@@ -94,101 +94,100 @@ class AddNoise(object):
         img = np.clip(img, 0, 1)
         return img
     
-class FillVoids(object):
-    """
-        Do this after stitch adj img
+# class FillVoids(object):
+#     """
+#         Do this after stitch adj img
 
-        FIX THESE:
-        [ ] Adapt to three channel images
-        [ ] Change interpolation technique (to include stitched imgs as part of interpolation)
-    """
-    def __init__(self):
-        ...
+#         FIX THESE:
+#         [ ] Adapt to three channel images
+#         [ ] Change interpolation technique (to include stitched imgs as part of interpolation)
+#     """
+#     def __init__(self):
+#         ...
 
-    def __call__(self, image):
-         # Fill voids
-        #image = image_utils.read_image(image_fullpath, 'p')
-        # v, h = image.shape[0]//2, image.shape[1]//2
-        # if len(image.shape) == 3:
-        #     image = np.pad(image, ((v, v), (h, h), (0, 0)), 'edge')
-        # else:
-        #     image = np.pad(image, ((v, v), (h, h)), 'edge')
+#     def __call__(self, image):
+#          # Fill voids
+#         #image = image_utils.read_image(image_fullpath, 'p')
+#         # v, h = image.shape[0]//2, image.shape[1]//2
+#         # if len(image.shape) == 3:
+#         #     image = np.pad(image, ((v, v), (h, h), (0, 0)), 'edge')
+#         # else:
+#         #     image = np.pad(image, ((v, v), (h, h)), 'edge')
             
-        print("Image: "+image)
-        mask = cv.inRange(image, (0, 0, 0), (0, 0, 0))
-        radius = 3 # The radius around a pixel to inpaint, smaller values are less blurry
-        filled_image = cv.inpaint(image, mask, radius, cv.INPAINT_NS) # cv2.INPAINT_NS or cv2.INPAINT_TELEA
+#         # print("Image: "+image)
+#         mask = cv.inRange(image, (0, 0, 0), (0, 0, 0))
+#         radius = 3 # The radius around a pixel to inpaint, smaller values are less blurry
+#         filled_image = cv.inpaint(image, mask, radius, cv.INPAINT_NS) # cv2.INPAINT_NS or cv2.INPAINT_TELEA
 
-        return filled_image
+#         return filled_image
         
-class StitchAdjacentImagesVer2(object): 
+# class StitchAdjacentImagesVer2(object): 
     
-    """ 
-        do stitch adj images before fill voids (Fill voids uses center tile 
-        interpolation and you would want to take average of all tiles if 
-        that info is available)
-    """
+#     """ 
+#         do stitch adj images before fill voids (Fill voids uses center tile 
+#         interpolation and you would want to take average of all tiles if 
+#         that info is available)
+#     """
 
-    def __init__(self, data_dir, file_name, file_list) -> None:
-        self.data_dir = data_dir
-        self.file_name = file_name
-        self.file_list = file_list
+#     def __init__(self, data_dir, file_name, file_list) -> None:
+#         self.data_dir = data_dir
+#         self.file_name = file_name
+#         self.file_list = file_list
 
-    def __call__(self, superImage):
-        """
-        stitches adjacent images to return a superimage
-        """
-        len_ = len(self.file_name)-len('0000_0000.p')
-        iStart = int(self.file_name[-11:-7])
-        jStart = int(self.file_name[-6:-2])
-        # coordinates of surrounding tiles
-        coordinates = [
-            (0, 0), (0, 1), (0, 2), (1, 0), (1, 1), (1, 2), (2, 0), (2, 1), (2, 2)]
+#     def __call__(self, superImage):
+#         """
+#         stitches adjacent images to return a superimage
+#         """
+#         len_ = len(self.file_name)-len('0000_0000.p')
+#         iStart = int(self.file_name[-11:-7])
+#         jStart = int(self.file_name[-6:-2])
+#         # coordinates of surrounding tiles
+#         coordinates = [
+#             (0, 0), (0, 1), (0, 2), (1, 0), (1, 1), (1, 2), (2, 0), (2, 1), (2, 2)]
 
-        image_len = read_image(os.path.join(self.data_dir, self.file_name), 'p').shape[0]
-        # replace np.zeros w/ the interpolated image from fill_voids
-        superImage = np.zeros((3*image_len, 3*image_len))
+#         image_len = read_image(os.path.join(self.data_dir, self.file_name), 'p').shape[0]
+#         # replace np.zeros w/ the interpolated image from fill_voids
+#         superImage = np.zeros((3*image_len, 3*image_len))
         
 
-        for i, j in coordinates:
-            i_s = iStart - image_len + i * image_len
-            j_s = jStart - image_len + j * image_len
+#         for i, j in coordinates:
+#             i_s = iStart - image_len + i * image_len
+#             j_s = jStart - image_len + j * image_len
 
-            tile_name = \
-                f"{self.file_name[0:len_]}{str(i_s).zfill(4)}_{str(j_s).zfill(4)}.p"
-            if tile_name in self.file_list:
-                im = read_image(os.path.join(self.data_dir, tile_name), 'p')
-                superImage[i*image_len: (i+1)*image_len, j*image_len:
-                        (j+1)*image_len] = im
+#             tile_name = \
+#                 f"{self.file_name[0:len_]}{str(i_s).zfill(4)}_{str(j_s).zfill(4)}.p"
+#             if tile_name in self.file_list:
+#                 im = read_image(os.path.join(self.data_dir, tile_name), 'p')
+#                 superImage[i*image_len: (i+1)*image_len, j*image_len:
+#                         (j+1)*image_len] = im
 
-        return superImage
+#         return superImage
 
-
-class Cutout(object):
-    def __init__(self, n_holes, length):
-        assert isinstance(n_holes, int)
-        assert isinstance(length, int)
-        self.n_holes = n_holes
-        self.length = length
+# class Cutout(object):
+#     def __init__(self, n_holes, length):
+#         assert isinstance(n_holes, int)
+#         assert isinstance(length, int)
+#         self.n_holes = n_holes
+#         self.length = length
         
 
-    def __call__(self, img):
-        h, w = img.shape[:2]
-        mask = np.ones((h, w), np.float32)
+#     def __call__(self, img):
+#         h, w = img.shape[:2]
+#         mask = np.ones((h, w), np.float32)
 
-        for n in range(self.n_holes):
-            y = np.random.randint(h)
-            x = np.random.randint(w)
+#         for n in range(self.n_holes):
+#             y = np.random.randint(h)
+#             x = np.random.randint(w)
 
-            y1 = np.clip(y - self.length // 2, 0, h)
-            y2 = np.clip(y + self.length // 2, 0, h)
-            x1 = np.clip(x - self.length // 2, 0, w)
-            x2 = np.clip(x + self.length // 2, 0, w)
+#             y1 = np.clip(y - self.length // 2, 0, h)
+#             y2 = np.clip(y + self.length // 2, 0, h)
+#             x1 = np.clip(x - self.length // 2, 0, w)
+#             x2 = np.clip(x + self.length // 2, 0, w)
 
-            mask[y1:y2, x1:x2] = 0
+#             mask[y1:y2, x1:x2] = 0
 
-        img = img * mask[..., np.newaxis]
-        return img
+#         img = img * mask[..., np.newaxis]
+#         return img
 
 class H_Flip(object):
     def __init__(self):
@@ -307,27 +306,28 @@ class Transforms_SimCLR(object):
                  rotate, 
                  noise_mean, 
                  noise_std, 
-                 cutout_holes, 
-                 cutout_size, 
-                 data_dir, 
-                 file_name, 
-                 file_list):
+                #  cutout_holes, 
+                #  cutout_size, 
+                #  data_dir, 
+                #  file_name, 
+                #  file_list
+                ):
         #print(translate)
         
         self.train_transform = transforms.Compose([
             # Stitch image should happen before the fill voids
-            StitchAdjacentImagesVer2(data_dir, file_name, file_list),
-            FillVoids(), 
-            transforms.RandomApply([H_Flip()], p=0),
-            transforms.RandomApply([V_Flip()], p=0),
-            transforms.RandomApply([P_Flip()], p=0), 
-            transforms.RandomApply([Rotate(rotate)], p=1),
-            transforms.RandomApply([Brighten(brighten)], p=0),
-            transforms.RandomApply([Translate(translate)], p=0),
-            transforms.RandomApply([Zoom(zoom)], p=0),
-            transforms.RandomApply([Blur(blur)], p=0),
-            transforms.RandomApply([AddNoise(noise_mean, noise_std)], p=0),
-            transforms.RandomApply([Cutout(cutout_holes, cutout_size)], p=0),
+            # StitchAdjacentImagesVer2(data_dir, file_name, file_list),
+            # FillVoids(), 
+            transforms.RandomApply([H_Flip()], p=0.5),
+            transforms.RandomApply([V_Flip()], p=0.5),
+            transforms.RandomApply([P_Flip()], p=0.5), 
+            transforms.RandomApply([Rotate(rotate)], p=0.5),
+            transforms.RandomApply([Brighten(brighten)], p=0.5),
+            transforms.RandomApply([Translate(translate)], p=0.5),
+            transforms.RandomApply([Zoom(zoom)], p=0.5),
+            transforms.RandomApply([Blur(blur)], p=0.5),
+            transforms.RandomApply([AddNoise(noise_mean, noise_std)], p=0.5),
+            # transforms.RandomApply([Cutout(cutout_holes, cutout_size)], p=1),
             
         ToTensor()])
         
@@ -336,7 +336,9 @@ class Transforms_SimCLR(object):
         self.test_transform = transforms.ToTensor()
     
     def __call__(self, img):
-        return self.train_transform(img), self.train_transform(img)
+        transformed_image1 = np.float32(self.train_transform(img))
+        transformed_image2 = np.float32(self.train_transform(img))
+        return transformed_image1, transformed_image2
     
 
     
