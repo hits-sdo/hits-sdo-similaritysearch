@@ -2,7 +2,7 @@ import sys,os
 sys.path.append(os.getcwd())
 
 import numpy as np
-
+import torchvision
 from torch import nn
 import wandb
 from src.data import TilesDataModule
@@ -14,6 +14,8 @@ import pandas as pd
 from pytorch_lightning.loggers import WandbLogger
 import torch
 import yaml
+
+torchvision.disable_beta_transforms_warning()
 
 def main():    
     # read in config file
@@ -58,22 +60,27 @@ def main():
     trainer = pl.Trainer(accelerator='gpu',
                          devices=1,
                          max_epochs=config.training['epochs'],
-                         log_every_n_steps=1,
-                         limit_train_batches=10,
-                         limit_test_batches=4,
+                         log_every_n_steps=50,
+                        #  limit_train_batches=5,
+                        #  limit_test_batches=1,
                          logger=wandb_logger,
                          deterministic=True)
     trainer.fit(model=model,datamodule=data)
 
-    # save predictions locally
+    # save predictions
     preds = trainer.predict(model=model,dataloaders=data.test_dataloader())
     file = []
     embeddings = []
+    embeddings_proj = []
     for predbatch in preds:
         file.extend(predbatch[0])
         embeddings.extend(np.array(predbatch[1]))
-    df = pd.DataFrame({'filename':file,'embedding':embeddings})
-    df.to_csv(wandb.run.dir+os.sep+'embeddings.csv',index=False)
+        embeddings_proj.extend(np.array(predbatch[2]))
+
+    np.save(wandb.run.dir+os.sep+'embeddings.npy',np.array(embeddings))
+    np.save(wandb.run.dir+os.sep+'embeddings_proj.npy',np.array(embeddings_proj))
+    df = pd.DataFrame({'filename':file})
+    df.to_csv(wandb.run.dir+os.sep+'filenames.csv',index=False)
 
     wandb.finish()
 

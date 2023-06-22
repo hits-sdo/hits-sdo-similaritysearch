@@ -14,12 +14,13 @@ from torch.utils.data import Dataset,DataLoader
 from sdo_augmentation.augmentation import Augmentations
 from sdo_augmentation.augmentation_list import AugmentationList
 
+
 class TilesDataset(Dataset):
     """
         Pytorch dataset for handling magnetogram tile data 
         
     """
-    def __init__(self, image_files: list, transform:transforms.ToTensor(), augmentation: str='single',
+    def __init__(self, image_files: list, transform, augmentation: str='single', 
                  instrument:str='mag',filetype:str='npy',
                  datatype=np.float32):
         '''
@@ -108,7 +109,6 @@ class TilesDataModule(pl.LightningDataModule):
 
         # define data transforms - augmentation for training
         self.transform = transforms.Compose([
-            transforms.ToTensor(),
             transforms.RandomInvert(p=0.3),
             transforms.RandomAdjustSharpness(1.5,p=0.3),
             transforms.RandomApply(torch.nn.ModuleList([
@@ -132,7 +132,7 @@ class TilesDataModule(pl.LightningDataModule):
         val_files = self.image_files[int(0.8*len(self.image_files)):]
         self.train_set = TilesDataset(train_files,self.transform,self.augmentation)
         self.val_set = TilesDataset(val_files,self.transform,augmentation='single')
-        self.trainval_set = TilesDataset(self.image_files,augmentation='none')
+        self.trainval_set = TilesDataset(self.image_files,self.transform,augmentation='none')
 
     def train_dataloader(self):
         return DataLoader(self.train_set,batch_size=self.batch_size,num_workers=4,shuffle=True)
