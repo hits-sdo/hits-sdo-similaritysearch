@@ -2,7 +2,7 @@ import sys,os
 sys.path.append(os.getcwd())
 
 import copy
-from lightly.loss import NegativeCosineSimilarity
+from lightly.loss import NegativeCosineSimilarity, NTXentLoss
 from lightly.models.modules import BYOLPredictionHead, BYOLProjectionHead, SimSiamPredictionHead, SimSiamProjectionHead
 from lightly.models.utils import deactivate_requires_grad, update_momentum
 from lightly.utils.scheduler import cosine_schedule
@@ -60,9 +60,9 @@ class BYOL(pl.LightningModule):
         deactivate_requires_grad(self.projection_head_momentum)
 
         # define loss function
-        self.loss = NegativeCosineSimilarity()
+        # self.loss = NegativeCosineSimilarity()
 
-        # self.loss_contrast = NTXentLoss()
+        self.loss = NTXentLoss()
 
         self.cosine_scheduler_start = cosine_scheduler_start
         self.cosine_scheduler_end = cosine_scheduler_end
@@ -101,7 +101,7 @@ class BYOL(pl.LightningModule):
         z1 = self.forward_momentum(x1)
 
         loss = 0.5 * (self.loss(p0, z1) + self.loss(p1, z0))
-        # loss_contrast = 0.5 * (self.loss_contrast(p0, z1) + self.loss_contrast(p1, z0))
+        # loss = 0.5 * (self.loss_contrast(p0, z1) + self.loss_contrast(p1, z0))
 
         self.log('loss', loss)
         return loss
@@ -172,7 +172,8 @@ class BYOL(pl.LightningModule):
         """
         f,x0,_ = batch
         embedding = self.embed(x0)
-        return f,embedding
+        embedding_proj = self.forward_momentum(x0)
+        return f,embedding,embedding_proj
     
     def on_load_checkpoint(self, checkpoint: dict) -> None:
         state_dict = checkpoint["state_dict"]
