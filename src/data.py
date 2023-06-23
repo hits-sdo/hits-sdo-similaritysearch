@@ -1,6 +1,7 @@
 import sys,os
 sys.path.append(os.getcwd())
 
+from datetime import datetime,timedelta
 import glob
 import torch
 import torchvision.transforms.v2 as transforms
@@ -14,7 +15,59 @@ from torch.utils.data import Dataset,DataLoader
 from sdo_augmentation.augmentation import Augmentations
 from sdo_augmentation.augmentation_list import AugmentationList
 
+def split_data(df,val_split,test=''):
+    """
+        Split dataset into training, validation, hold-out (pseudotest) and test sets.
+        The test set can be either 'test_a' which is all data from November and December,
+        or 'test_b' which is >2020, or both combined. The hold-out set is data from
+        Sept 15-Oct 31. The remaining data is split temporally 4:1 into training and 
+        validation.
 
+        Parameters:
+            df (dataframe):     Pandas dataframe containing all the data
+            val_split (0-4):    Number between 0-4 indicating which temporal training/validation split to select    
+            test (str):         Which test set to choose ('test_a' or 'test_b', otherwise both)
+
+        Returns:
+            df_test (dataframe):        Test set
+            df_pseudotest (dataframe):  Hold-out set
+            df_train (dataframe):       Training set
+            df_val (dataframe):         Validation set
+    """
+
+    # hold out test sets
+    inds_test_a = (df['sample_time'].dt.month >= 11)
+    inds_test_b = (df['sample_time']>=datetime(2020,1,1))
+    
+    # select test set
+    if test == 'test_a':
+        inds_test = inds_test_a
+    elif test == 'test_b':
+        inds_test = inds_test_b
+    else:
+        inds_test = inds_test_a | inds_test_b
+
+    df_test = df.loc[inds_test,:]
+    df_full = df.loc[~inds_test,:]
+
+    # select pseudotest/hold-out set
+    if test == 'test_a':
+        inds_pseudotest = ((df_full['sample_time'].dt.month==10)&(df_full['sample_time'].dt.day>26)) | ((df_full['sample_time'].dt.month==1)&(df_full['sample_time'].dt.day<6))
+    elif test == 'test_b':
+        inds_pseudotest = (df['sample_time']>=datetime(2019,12,26))
+    else:
+        inds_pseudotest = (df_full['sample_time'].dt.month==10) | ((df_full['sample_time'].dt.month==9)&(df_full['sample_time'].dt.day>15))
+    # inds_pseudotest = (df['sample_time']<datetime(1996,1,1)) | ((df_full['sample_time'].dt.month==10)&(df_full['sample_time'].dt.day>26)) | ((df_full['sample_time'].dt.month==1)&(df_full['sample_time'].dt.day<6))
+    df_pseudotest = df_full.loc[inds_pseudotest,:]
+
+    # split training and validation
+    df_train = df_full.loc[~inds_pseudotest,:]
+    df_train = df_train.reset_index(drop=True)
+    n_val = int(np.floor(len(df_train)/5))
+    df_val = df_train.iloc[val_split*n_val:(val_split+1)*n_val,:]
+    df_train = df_train.drop(df_val.index)
+
+    return df_test,df_pseudotest,df_train,df_val
 class TilesDataset(Dataset):
     """
         Pytorch dataset for handling magnetogram tile data 
@@ -100,12 +153,15 @@ class TilesDataModule(pl.LightningDataModule):
     Datamodule for self supervision on tiles dataset
     """
 
-    def __init__(self,data_path:str,batch:int=128,augmentation:str='double',filetype:str='npy',dim:int=128):
+    def __init__(self,data_path:str,batch:int=128,augmentation:str='double',
+                 filetype:str='npy',dim:int=128,val_split:int=0,test:str=''):
         super().__init__()
         self.data_path = data_path
         self.batch_size = batch
         self.augmentation = augmentation
         self.filetype = filetype
+        self.val_split = val_split
+        self.test = test
 
         # define data transforms - augmentation for training
         self.transform = transforms.Compose([
@@ -124,15 +180,18 @@ class TilesDataModule(pl.LightningDataModule):
 
     def prepare_data(self):
         self.image_files = glob.glob(self.data_path + "/**/*."+self.filetype, recursive=True)
-
+        self.df = pd.DataFrame({'filename':self.image_files})
+        self.df['sample_time'] = self.df['filename'].str.split('/').str[-3].str.rsplit('_',n=1).str[0]
+        self.df['sample_time'] = pd.to_datetime(self.df['sample_time'],format='%Y%m%d_%H%M%S')
+        
     def setup(self,stage:str):
         # split into training and validation
-        random.shuffle(self.image_files)
-        train_files = self.image_files[:int(0.8*len(self.image_files))]
-        val_files = self.image_files[int(0.8*len(self.image_files)):]
-        self.train_set = TilesDataset(train_files,self.transform,self.augmentation)
-        self.val_set = TilesDataset(val_files,self.transform,augmentation='single')
-        self.trainval_set = TilesDataset(self.image_files,self.transform,augmentation='none')
+        df_test,df_pseudotest,df_train,df_val = split_data(self.df,self.val_split,self.test)
+        self.train_set = TilesDataset(df_train['filename'],self.transform,self.augmentation)
+        self.val_set = TilesDataset(df_val['filename'],self.transform,augmentation='single')
+        self.pseudotest_set = TilesDataset(df_pseudotest['filename'],self.transform,augmentation='none')
+        self.test_set = TilesDataset(df_test['filename'],self.transform,augmentation='none')
+        self.trainval_set = TilesDataset(pd.concat([df_train,df_val])['filename'],self.transform,augmentation='none')
 
     def train_dataloader(self):
         return DataLoader(self.train_set,batch_size=self.batch_size,num_workers=4,shuffle=True)
