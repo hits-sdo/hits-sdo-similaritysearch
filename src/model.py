@@ -7,6 +7,7 @@ from lightly.models.modules import BYOLPredictionHead, BYOLProjectionHead, SimSi
 from lightly.models.utils import deactivate_requires_grad, update_momentum
 from lightly.utils.scheduler import cosine_schedule
 import numpy as np
+from sklearn.preprocessing import normalize
 from torch import nn, optim
 import torch
 import torchvision
@@ -61,10 +62,11 @@ class BYOL(pl.LightningModule):
         deactivate_requires_grad(self.projection_head_momentum)
 
         # define loss function
-        if loss == 'contrast':
-            self.loss = NTXentLoss()
-        else:
-            self.loss = NegativeCosineSimilarity()
+        self.loss_cos = NegativeCosineSimilarity()
+        self.loss_contrast = NTXentLoss()
+        self.loss = loss
+
+        self.validation_step_outputs = []
 
         self.cosine_scheduler_start = cosine_scheduler_start
         self.cosine_scheduler_end = cosine_scheduler_end
@@ -102,10 +104,15 @@ class BYOL(pl.LightningModule):
         p1 = self.forward(x1)
         z1 = self.forward_momentum(x1)
 
-        loss = 0.5 * (self.loss(p0, z1) + self.loss(p1, z0))
-        # loss = 0.5 * (self.loss_contrast(p0, z1) + self.loss_contrast(p1, z0))
+        loss_cos = 0.5 * (self.loss_cos(p0, z1) + self.loss_cos(p1, z0))
+        loss_contrast = 0.5 * (self.loss_contrast(p0, z1) + self.loss_contrast(p1, z0))
 
-        self.log('loss', loss)
+        if self.loss == 'contrast':
+            loss = loss_contrast
+        else:
+            loss = loss_cos
+
+        self.log_dict({'loss': loss, 'loss_cos':loss_cos, 'loss_contrast':loss_contrast})
         return loss
 
     def validation_step(self,batch,batch_idx):
@@ -123,7 +130,16 @@ class BYOL(pl.LightningModule):
         p1 = self.forward(x1)
         z1 = self.forward_momentum(x1)
 
-        val_loss = 0.5*(self.loss(p0,z1)+self.loss(p1,z0))
+        self.validation_step_outputs.append(p0)
+
+        val_loss_cos = 0.5 * (self.loss_cos(p0, z1) + self.loss_cos(p1, z0))
+        val_loss_contrast = 0.5 * (self.loss_contrast(p0, z1) + self.loss_contrast(p1, z0))
+
+        if self.loss == 'contrast':
+            val_loss = val_loss_contrast
+        else:
+            val_loss = val_loss_cos
+
 
         # calculate the per-dimension standard deviation of the outputs
         # we can use this later to check whether the embeddings are collapsing
@@ -134,8 +150,23 @@ class BYOL(pl.LightningModule):
         collapse_level = max(0.0,1-np.sqrt(512)*output_std)
 
         self.log_dict({'val_loss':val_loss,
+                       'val_loss_cos':val_loss_cos, 
+                       'val_loss_contrast':val_loss_contrast,
                        'collapse_level':collapse_level},
                       on_step=False,on_epoch=True)
+        
+    def on_validation_epoch_end(self):
+        """
+        Computations performed at end of epoch
+        Calculate SVD of validation set embeddings and find point where 
+        singular values have decayed
+        """
+        embeddings = torch.stack(self.validation_step_outputs).numpy()
+        embeddings_norm = normalize(embeddings,axis=0)
+        S = np.linalg.svd(embeddings_norm,full_matrices=False,compute_uv=False)
+        svd_collapse = np.argmin(S<(0.05*(S[0]-S[100])+S[100]))
+        self.log('svd_collapse',svd_collapse)
+        self.validation_step_outputs.clear()
 
     def test_step(self,batch,batch_idx):
         """

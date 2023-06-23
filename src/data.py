@@ -187,11 +187,11 @@ class TilesDataModule(pl.LightningDataModule):
     def setup(self,stage:str):
         # split into training and validation
         df_test,df_pseudotest,df_train,df_val = split_data(self.df,self.val_split,self.test)
-        self.train_set = TilesDataset(df_train['filename'],self.transform,self.augmentation)
-        self.val_set = TilesDataset(df_val['filename'],self.transform,augmentation='single')
-        self.pseudotest_set = TilesDataset(df_pseudotest['filename'],self.transform,augmentation='none')
-        self.test_set = TilesDataset(df_test['filename'],self.transform,augmentation='none')
-        self.trainval_set = TilesDataset(pd.concat([df_train,df_val])['filename'],self.transform,augmentation='none')
+        self.train_set = TilesDataset(df_train['filename'].tolist(),self.transform,self.augmentation)
+        self.val_set = TilesDataset(df_val['filename'].tolist(),self.transform,augmentation='single')
+        self.pseudotest_set = TilesDataset(df_pseudotest['filename'].tolist(),self.transform,augmentation='none')
+        self.test_set = TilesDataset(df_test['filename'].tolist(),self.transform,augmentation='none')
+        self.trainval_set = TilesDataset(pd.concat([df_train,df_val])['filename'].tolist(),self.transform,augmentation='none')
 
     def train_dataloader(self):
         return DataLoader(self.train_set,batch_size=self.batch_size,num_workers=4,shuffle=True)

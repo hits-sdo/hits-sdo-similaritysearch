@@ -53,7 +53,7 @@ def main():
 
     # initialize wandb logger
     wandb_logger = WandbLogger(log_model='all')
-    checkpoint_callback = ModelCheckpoint(monitor='loss',
+    checkpoint_callback = ModelCheckpoint(monitor='val_loss',
                                           mode='min',
                                           save_top_k=2,
                                           save_last=True,
@@ -71,7 +71,7 @@ def main():
                          deterministic=True)
     trainer.fit(model=model,datamodule=data)
 
-    # save predictions
+    # save predictions for training
     preds_train = trainer.predict(model=model,dataloaders=data.train_dataloader())
     files_train, embeddings_train,embeddings_proj_train = save_predictions(preds_train,wandb.run.dir,'train')
 
@@ -81,13 +81,29 @@ def main():
     
     scaler = MinMaxScaler()
     embeddings_2d_train = scaler.fit_transform(embeddings_2d_train)
-    fig = get_scatter_plot_with_thumbnails(embeddings_2d_train,files_train)
-    wandb.log({"Backbone_embeddings_2D": wandb.Image(fig)})
+    fig = get_scatter_plot_with_thumbnails(embeddings_2d_train,files_train,'')
+    wandb.log({"Backbone_embeddings_2D_train": wandb.Image(fig)})
 
     scaler2 = MinMaxScaler()
     embeddings_proj_train = scaler2.fit_transform(embeddings_proj_train)
-    fig2 = get_scatter_plot_with_thumbnails(embeddings_proj_train,files_train)
-    wandb.log({"Projection_embeddings_2D": wandb.Image(fig2)})
+    fig2 = get_scatter_plot_with_thumbnails(embeddings_proj_train,files_train,'')
+    wandb.log({"Projection_embeddings_2D_train": wandb.Image(fig2)})
+
+
+    # save predictions for validation
+    preds_val = trainer.predict(model=model,dataloaders=data.val_dataloader())
+    files_val, embeddings_val,embeddings_proj_val = save_predictions(preds_val,wandb.run.dir,'val')
+
+    # normalize and project embeddings into 2D for plotting
+    embeddings_2d_val = projection.fit_transform(embeddings_val)    
+    embeddings_2d_val = scaler.fit_transform(embeddings_2d_val)
+    fig3 = get_scatter_plot_with_thumbnails(embeddings_2d_val,files_val,'')
+    wandb.log({"Backbone_embeddings_2D_val": wandb.Image(fig3)})
+
+    embeddings_proj_val = scaler2.fit_transform(embeddings_proj_val)
+    fig4 = get_scatter_plot_with_thumbnails(embeddings_proj_val,files_val,'')
+    wandb.log({"Projection_embeddings_2D_val": wandb.Image(fig4)})
+
 
     wandb.finish()
 
