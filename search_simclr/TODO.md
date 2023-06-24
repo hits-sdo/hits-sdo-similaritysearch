@@ -123,9 +123,19 @@ TODO:
 - [ ] profit 💰💰💰💰💰💰
 
 ## 6/23/23
+- [ ] Return filenames and dummy "label" to make lightly compatible
 - [ ] Port main code in dataset.py into unittest
-- [ ] pytorch lightning datamodule!!!
-- [ ] test the pytorch lightning datamodule❗
+- [X] pytorch lightning datamodule!!!
+- [x] test the pytorch lightning datamodule❗
+- [ ] merge branch to main by making PR ❗
+- [ ] create an issue for the model using lightly
+- [ ] create a branch using the issue id number and start creating model
+- [X] profit 💰💰💰💰💰💰
+
+## 6/26/23
+- [x] test the pytorch lightning datamodule❗
+- [ ] Return filenames and dummy "label" to make lightly compatible
+- [ ] Port main code in dataset.py into unittest
 - [ ] merge branch to main by making PR ❗
 - [ ] create an issue for the model using lightly
 - [ ] create a branch using the issue id number and start creating model
