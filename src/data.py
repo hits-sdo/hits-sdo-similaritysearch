@@ -193,8 +193,8 @@ class TilesDataModule(pl.LightningDataModule):
         self.test_set = TilesDataset(df_test['filename'].tolist(),self.transform,augmentation='none')
         self.trainval_set = TilesDataset(pd.concat([df_train,df_val])['filename'].tolist(),self.transform,augmentation='none')
 
-    def train_dataloader(self):
-        return DataLoader(self.train_set,batch_size=self.batch_size,num_workers=4,shuffle=True)
+    def train_dataloader(self,shuffle=True):
+        return DataLoader(self.train_set,batch_size=self.batch_size,num_workers=4,shuffle=shuffle)
     
     def val_dataloader(self):
         return DataLoader(self.val_set,batch_size=self.batch_size,num_workers=4)

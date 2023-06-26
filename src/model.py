@@ -130,8 +130,6 @@ class BYOL(pl.LightningModule):
         p1 = self.forward(x1)
         z1 = self.forward_momentum(x1)
 
-        self.validation_step_outputs.append(p0)
-
         val_loss_cos = 0.5 * (self.loss_cos(p0, z1) + self.loss_cos(p1, z0))
         val_loss_contrast = 0.5 * (self.loss_contrast(p0, z1) + self.loss_contrast(p1, z0))
 
@@ -144,6 +142,8 @@ class BYOL(pl.LightningModule):
         # calculate the per-dimension standard deviation of the outputs
         # we can use this later to check whether the embeddings are collapsing
         output = self.embed(x0)
+        self.validation_step_outputs.append(output)
+
         output = F.normalize(output, dim=1)
         output_std = output.std(dim=0)
         output_std = output_std.mean()
@@ -161,11 +161,12 @@ class BYOL(pl.LightningModule):
         Calculate SVD of validation set embeddings and find point where 
         singular values have decayed
         """
-        embeddings = torch.stack(self.validation_step_outputs).numpy()
+        embeddings = torch.cat(self.validation_step_outputs,0).detach().cpu().numpy()
+        # embeddings = embeddings.view(-1,embeddings.shape[-1])
         embeddings_norm = normalize(embeddings,axis=0)
         S = np.linalg.svd(embeddings_norm,full_matrices=False,compute_uv=False)
-        svd_collapse = np.argmin(S<(0.05*(S[0]-S[100])+S[100]))
-        self.log('svd_collapse',svd_collapse)
+        svd_collapse = np.argmax(S<(0.05*(S[0]-S[100])+S[100]))
+        self.log('svd_collapse',svd_collapse.astype(np.float32))
         self.validation_step_outputs.clear()
 
     def test_step(self,batch,batch_idx):
@@ -187,7 +188,7 @@ class BYOL(pl.LightningModule):
         """
         # optimizer = optim.Adam(self.model.parameters(),lr=self.lr,weight_decay=self.weight_decay)
         optimizer = optim.SGD(self.parameters(), lr=self.lr)
-        scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer,T_max=self.epochs)
+        scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer,eta_min=1e-5,T_max=self.epochs)
         
         return [optimizer],[scheduler]
 
