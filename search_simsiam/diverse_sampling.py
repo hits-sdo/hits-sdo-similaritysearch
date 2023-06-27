@@ -86,10 +86,12 @@ def main():
           diverse_subset_points_array]
     c_ = [colors, colors_random, colors_diverse]
 
-    _, axs = plt.subplots(1, 3, figsize=(9, 3))
+    _, axs = plt.subplots(1, 3, figsize=(20, 6))
     for t, a, c, ax in zip(title, ar, c_, axs):
         ax.scatter(a[:, 0], a[:, 1], s=10, c=c)
-        ax.set_title(t)
+        red = c.count('r')
+        green = c.count('g')
+        ax.set_title(f'{t}\n red:{red} green:{green}')
         ax.axis('off')
     plt.savefig('/home/schatterjee/Desktop/diverse_sampling.png')
     plt.show()
