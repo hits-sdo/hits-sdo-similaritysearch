@@ -148,7 +148,7 @@ def stitch_adj_imgs(data_dir, file_name,
         else:
             removed_coords.append((i, j))
 
-    print(len(remove_coords))
+    print(len(removed_coords))
     
     if len(removed_coords)>0 and iterative==True:
         l = []
