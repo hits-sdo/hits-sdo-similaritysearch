@@ -148,21 +148,21 @@ def stitch_adj_imgs(data_dir, file_name,
         else:
             removed_coords.append((i, j))
 
-    print(len(removed_coords))
+    # print(len(removed_coords))
     
     if len(removed_coords)>0 and iterative==True:
         l = []
-        for k in range(20):
-            s0 = superImage.copy()
-            count = 0      
+        for k in range(5):
+            # s0 = superImage.copy()
+            # count = 0      
             for loc in removed_coords:               
                 superImage = interpolate_superimage(superImage, loc)
-                count += 1
-            s1 = superImage
-            delta = 100*np.sum((s1-s0)**2)/np.sum(s0**2)
-            l.append(delta)
-            if delta<10**-4:
-                break
+                # count += 1
+            # s1 = superImage
+            # delta = 100*np.sum((s1-s0)**2)/np.sum(s0**2)
+            # l.append(delta)
+            # if delta<10**-4:
+            #     break
 
 
     return superImage
