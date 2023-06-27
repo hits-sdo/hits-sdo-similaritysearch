@@ -51,10 +51,6 @@ def interpolate_superimage(img, loc):
         for j in range(img.shape[1]//3):
             y = image_top_left[0] + i
             x = image_top_left[1] + j
-            # d1 = (y_upper - y)
-            # d2 = (y - y_lower)
-            # d3 = (x_upper - x)
-            # d4 = (x - x_lower)
             d1 = 1/(0.001 + y - y_lower)**n
             d2 = 1/(0.001 + y_upper - y)**n
             d3 = 1/(0.001 + x - x_lower)**n
@@ -70,7 +66,11 @@ def interpolate_superimage(img, loc):
     
 
 
-def stitch_adj_imgs(data_dir, file_name, EXISTING_FILES, multi_wl=False, iterative = False):
+def stitch_adj_imgs(data_dir, file_name,
+                    EXISTING_FILES,
+                    multi_wl=False,
+                    iterative=False,
+                    remove_coords=False):
     '''
     Stitches surrounding 8 images to inputted image in 
     order to not have unfilled edges 
@@ -86,6 +86,8 @@ def stitch_adj_imgs(data_dir, file_name, EXISTING_FILES, multi_wl=False, iterati
             set as True when multi-wavelength images are used
         iterative (bin):
             set as True to iteratively fill blank spaces in superimage
+        remove_coords (bin):
+            set as True to artificially create blank space in superimage
 
 
     Returns:
@@ -114,22 +116,18 @@ def stitch_adj_imgs(data_dir, file_name, EXISTING_FILES, multi_wl=False, iterati
 
     list_info_constant = '_'.join(list_info[:-2])
 
-    # coordinates = [(1,1)]
-    # removed_coords = [(0, 0), (0, 1), (0, 2), (1, 0), (1, 2), (2, 0), (2, 1), (2, 2)]
+    coordinates = [(0, 0), (0, 1), (0, 2), (1, 0), (1, 1), (1, 2), (2, 0), (2, 1), (2, 2)]
 
-    # coordinates = [(0, 0), (1, 1), (1, 2), (2, 0), (2, 1), (2, 2)]
+    if remove_coords is True:
+        removed_coords = [(1, 0), (0, 1), (0, 2)]
+        for i in removed_coords:
+            coordinates.remove(i)
+    else:
+        removed_coords = []
 
-    # removed_coords = [(1,0), (0, 1), (0, 2)]
-
-    coordinates = [(0, 0), (0, 1), (0, 2), (1,0), (1, 1), (1, 2), (2, 0), (2, 1), (2, 2)]
     source_image = read_image(data_dir + file_name, file_format)
     image_len = source_image.shape[0]
     superImage = np.zeros((3*image_len, 3*image_len, 3))
-    # superImage = np.pad(source_image, ((image_len, image_len),
-    #                                    (image_len, image_len), (0, 0)),
-    #                                    'edge')
-
-    removed_coords = []
 
     for i, j in coordinates:
         i_s = iStart - image_len + i * image_len
@@ -155,18 +153,7 @@ def stitch_adj_imgs(data_dir, file_name, EXISTING_FILES, multi_wl=False, iterati
         for k in range(20):
             s0 = superImage.copy()
             count = 0      
-            for loc in removed_coords:
-                plt.imshow(superImage)
-                plt.title(f'iteration {k+1}')
-                plt.savefig('/home/schatterjee/Desktop/superImage_animation/padding_'+str(k).zfill(2)+'_'+
-                            str(count)+'.png')
-                # y0 = image_len*loc[0]
-                # y1 = image_len*(1+loc[0])
-                # x0 = image_len*loc[1]
-                # x1 = image_len*(1+loc[1])
-                # blurred = cv2.blur(superImage,(32,32))
-                # superImage[y0:y1, x0:x1] = blurred[y0:y1, x0:x1]
-                
+            for loc in removed_coords:               
                 superImage = interpolate_superimage(superImage, loc)
                 count += 1
             s1 = superImage
@@ -194,7 +181,9 @@ if __name__ == '__main__':
     super_image = stitch_adj_imgs(data_dir=file_dir,
                                   file_name=file_name,
                                   EXISTING_FILES=file_names,
-                                  multi_wl = False)
+                                  multi_wl = False,
+                                  iterative=True,
+                                  remove_coords=True)
     
     a = Augmentations(super_image,dct={'translate':(30,30),'rotate':15})
     img_t, _ = a.perform_augmentations()
@@ -207,12 +196,8 @@ if __name__ == '__main__':
                     edgecolor='green',
                     facecolor='none',
                     lw=2))
-    plt.title('Padding 7')
+    plt.title('Padding')
     plt.subplot(1,3,3)
     plt.imshow(img_t[128:256,128:256])
     plt.title('Augmented')
-
-    # plt.plot(l)
-    # plt.yscale('log')
-    # print(np.max(l))
     plt.show()
