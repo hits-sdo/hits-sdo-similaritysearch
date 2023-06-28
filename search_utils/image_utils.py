@@ -6,6 +6,7 @@ import glob
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
 from sdo_augmentation.augmentation import Augmentations
+import time
 import cv2
 
 
@@ -40,27 +41,62 @@ def read_image(image_loc, image_format):
 def interpolate_superimage(img, loc):
     image_top_left = (img.shape[0]*loc[0]//3, img.shape[1]*loc[1]//3)
     image_bottom_right = (img.shape[0]*(loc[0] +1)//3, img.shape[1]*(loc[1] +1)//3)
+    tile_y, tile_x = img.shape[0]//3, img.shape[1]//3
 
-    y_lower = 0 if image_top_left[0]-1<0 else image_top_left[0] - 1
-    x_lower = 0 if image_top_left[1]-1<0 else image_top_left[1] - 1
-    y_upper = img.shape[0] -1 if image_bottom_right[0]==img.shape[0] else image_bottom_right[0] + 1
-    x_upper = img.shape[1] -1 if image_bottom_right[1]==img.shape[1] else image_bottom_right[1] + 1
-    m = np.median(img[128:256,128:256],axis=(0,1))
+    y_lower = 0 if image_top_left[0] - 1 < 0 else image_top_left[0] - 1
+    x_lower = 0 if image_top_left[1] - 1 < 0 else image_top_left[1] - 1
+    y_upper = img.shape[0] - 1 if image_bottom_right[0] == img.shape[0] else image_bottom_right[0] + 1
+    x_upper = img.shape[1] - 1 if image_bottom_right[1] == img.shape[1] else image_bottom_right[1] + 1
+
+    m = np.median(img[tile_y:2*tile_y, tile_x:2*tile_x],
+                  axis=(0, 1))*np.ones((tile_y, tile_x, 3))
     n = 1.0
-    for i in range(img.shape[0]//3):
-        for j in range(img.shape[1]//3):
-            y = image_top_left[0] + i
-            x = image_top_left[1] + j
-            d1 = 1/(0.001 + y - y_lower)**n
-            d2 = 1/(0.001 + y_upper - y)**n
-            d3 = 1/(0.001 + x - x_lower)**n
-            d4 = 1/(0.001 + x_upper - x)**n
-            I1 = img[y_lower, x] if y_lower != 0 else m
-            I2 = img[y_upper, x] if y_upper != img.shape[0] -1 else m 
-            I3 = img[y, x_lower] if x_lower != 0 else m
-            I4 = img[y, x_upper] if x_upper != img.shape[1] -1 else m
+    i = np.linspace(0, tile_y-1, tile_y)
+    j = np.linspace(0, tile_x-1, tile_x)
+    x, y = np.meshgrid(j, i)
+    x = image_top_left[1] + x
+    y = image_top_left[0] + y
 
-            img[y,x] = (I1*d1 + I2*d2 + I3*d3 + I4*d4)/(d1 + d2 + d3 + d4)
+    d1 = 1/(0.001 + y - y_lower)**n
+    d2 = 1/(0.001 + y_upper - y)**n
+    d3 = 1/(0.001 + x - x_lower)**n
+    d4 = 1/(0.001 + x_upper - x)**n
+
+    d1 = np.repeat(d1[:, :, np.newaxis], 3, axis=2)
+    d2 = np.repeat(d2[:, :, np.newaxis], 3, axis=2)
+    d3 = np.repeat(d3[:, :, np.newaxis], 3, axis=2)
+    d4 = np.repeat(d4[:, :, np.newaxis], 3, axis=2)
+
+    if y_lower == 0:
+        I1 = m
+    else:
+        I1 = np.zeros((tile_y, tile_x, 3))
+        for k in range(3):
+            I1[:, :, k] = np.repeat(img[y_lower, x[0, :].astype('int'), k].reshape(1, tile_x), repeats=tile_y, axis=0)
+    
+    if y_upper == img.shape[0] - 1:
+        I2 = m
+    else:
+        I2 = np.zeros((tile_y, tile_x, 3))
+        for k in range(3):
+            I2[:, :, k] = np.repeat(img[y_upper, x[0, :].astype('int'), k].reshape(1, tile_x), repeats=tile_y, axis=0)
+
+    if x_lower == 0:
+        I3 = m
+    else:
+        I3 = np.zeros((tile_y, tile_x, 3))
+        for k in range(3):
+            I3[:, :, k] = np.repeat(img[y[:, 0].astype('int'), x_lower, k].reshape(1, tile_y), repeats=tile_x, axis=0).T
+    
+    if x_upper == img.shape[1] - 1:
+        I4 = m
+    else:
+        I4 = np.zeros((tile_y, tile_x, 3))
+        for k in range(3):
+            I4[:, :, k] = np.repeat(img[y[:, 0].astype('int'), x_upper, k].reshape(1, tile_y), repeats=tile_x, axis=0).T
+
+    img[image_top_left[0]:image_top_left[0]+tile_y,
+        image_top_left[1]:image_top_left[1]+tile_x, :] = (I1*d1 + I2*d2 + I3*d3 + I4*d4)/(d1 + d2 + d3 + d4)
     
     return img
     
@@ -152,22 +188,15 @@ def stitch_adj_imgs(data_dir, file_name,
     
     if len(removed_coords)>0 and iterative==True:
         l = []
-        for k in range(5):
-            # s0 = superImage.copy()
-            # count = 0      
+        for k in range(20):     
             for loc in removed_coords:               
                 superImage = interpolate_superimage(superImage, loc)
-                # count += 1
-            # s1 = superImage
-            # delta = 100*np.sum((s1-s0)**2)/np.sum(s0**2)
-            # l.append(delta)
-            # if delta<10**-4:
-            #     break
 
 
     return superImage
 
 if __name__ == '__main__':
+    start = time.time()
     idx = 10
     path_to_data = '/home/schatterjee/Documents/hits/aia_171_color_1perMonth'
     dataset = LightlyDataset(input_dir=path_to_data)
@@ -189,6 +218,8 @@ if __name__ == '__main__':
     
     a = Augmentations(super_image,dct={'translate':(30,30),'rotate':15})
     img_t, _ = a.perform_augmentations()
+    end = time.time()
+    print(f"Runtime of the program is {end - start}")
     plt.subplot(1,3,1)
     plt.imshow(source_image)
     plt.title('Original')
