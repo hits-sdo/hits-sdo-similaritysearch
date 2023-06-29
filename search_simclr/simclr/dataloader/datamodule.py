@@ -1,4 +1,3 @@
-from dataset_aug import Transforms_SimCLR
 import pytorch_lightning as pl
 from torch.utils.data import DataLoader
 from torchvision import transforms
@@ -10,9 +9,9 @@ utils_dir = root/'search_utils'
 
 import sys
 sys.path.append(str(root))
-from dataset import SdoDataset
+from search_simclr.simclr.dataloader.dataset import SdoDataset
 from search_utils import image_utils  # TODO needed?
-from search_simclr.simclr.dataloader import dataset_aug
+from search_simclr.simclr.dataloader.dataset_aug import Transforms_SimCLR
 
 
 class SimCLRDataModule(pl.LightningDataModule):
@@ -27,7 +26,7 @@ class SimCLRDataModule(pl.LightningDataModule):
         self.val_dir = val_dir
         self.test_dir = test_dir
         self.batch_size = batch_size
-        self.transform = dataset_aug.Transforms_SimCLR(blur=(1,1), 
+        self.transform = Transforms_SimCLR(blur=(1,1), 
                                               brighten=1.0, 
                                               translate=(1, 1), 
                                               zoom=1.0, 
@@ -82,8 +81,8 @@ def main():
     simclr_dm = SimCLRDataModule()
     simclr_dm.setup("train")
 
-    for batch_idx, (img1, img2) in enumerate(simclr_dm.train_dataloader()):
-        print (batch_idx, img1.shape, img2.shape)
+    for batch_idx, (img1, img2, fname, _) in enumerate(simclr_dm.train_dataloader()):
+        print (batch_idx, img1.shape, img2.shape, fname)
         break
 
 

@@ -21,6 +21,7 @@ class SdoDataset(Dataset):
         # self.data = data
         #self.labels = labels
         self.tile_dir = os.path.normpath(tile_dir)
+        # ALL TILES MUST BE IN SAME DIRECTORY!!
         self.file_list = os.listdir(tile_dir)
         self.transform = transform # reserve transform for PyTorch transform
         # self.path = os.path.normpath(path) #/data/miniset/AIA171/monochrome/tile_20230206_000634_1024_0171_0896_0640.p 
@@ -33,18 +34,19 @@ class SdoDataset(Dataset):
     def __getitem__(self, idx):
         # Returns two images at given index
         image_fullpath = os.path.join(self.tile_dir, self.file_list[idx])
-        
-        print("Full Path: "+image_fullpath)
         image = image_utils.read_image(image_fullpath, 'p')
         if (self.transform):
             # Transform images by augmentations
             image1, image2 = self.transform(image)
-            return image1, image2
+            #lightly data set requires label, add in label later in needed
+            return image1, image2, image_fullpath, image_fullpath
             
            
         else:
-            image = image_utils.read_image(image_fullpath, 'p')
-            return image, image
+            # image = image_utils.read_image(image_fullpath, 'p')
+            #lightly data set requires label, add in label later in needed
+            
+            return image, image, image_fullpath, image_fullpath
         
 
     ################################################################################################################### 

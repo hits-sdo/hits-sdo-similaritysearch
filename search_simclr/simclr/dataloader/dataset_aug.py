@@ -88,7 +88,6 @@ class AddNoise(object):
 
     def __call__(self, img):
         self.std = random.uniform(0, self.std_lim)
-        print(self.std)
         noise = np.random.normal(self.mean, self.std, img.shape)
         img = img + noise
         img = np.clip(img, 0, 1)
@@ -285,8 +284,6 @@ class ToTensor(object):
     """Convert ndarrays in sample to Tensors."""
 
     def __call__(self, img):
-        print(f'Image Shape = {img.shape}')
-        
         # If the image is grayscale, expand its dimensions to have a third axis
         if len(img.shape) == 2:
             img = np.expand_dims(img, axis=-1)
@@ -327,8 +324,7 @@ class Transforms_SimCLR(object):
             transforms.RandomApply([Zoom(zoom)], p=0.5),
             transforms.RandomApply([Blur(blur)], p=0.5),
             transforms.RandomApply([AddNoise(noise_mean, noise_std)], p=0.5),
-            # transforms.RandomApply([Cutout(cutout_holes, cutout_size)], p=1),
-            
+            # transforms.RandomApply([Cutout(cutout_holes, cutout_size)], p=1), 
         ToTensor()])
         
         
@@ -336,8 +332,9 @@ class Transforms_SimCLR(object):
         self.test_transform = transforms.ToTensor()
     
     def __call__(self, img):
-        transformed_image1 = np.float32(self.train_transform(img))
-        transformed_image2 = np.float32(self.train_transform(img))
+        # Why are we doing this?
+        transformed_image1 = self.train_transform(img)
+        transformed_image2 = self.train_transform(img)
         return transformed_image1, transformed_image2
     
 

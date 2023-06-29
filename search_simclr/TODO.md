@@ -132,11 +132,13 @@ TODO:
 - [ ] create a branch using the issue id number and start creating model
 - [X] profit 💰💰💰💰💰💰
 
-## 6/26/23
+## 6/28/23
 - [x] test the pytorch lightning datamodule❗
-- [ ] Return filenames and dummy "label" to make lightly compatible
-- [ ] Port main code in dataset.py into unittest
+- [X] clean up extra print statements that are not in main.
+- [X] Return filenames and dummy "label" to make lightly compatible
+- [X] Port main code in dataset.py into unittest
 - [ ] merge branch to main by making PR ❗
 - [ ] create an issue for the model using lightly
+- [ ] introduction to weights and biases
 - [ ] create a branch using the issue id number and start creating model
 - [ ] profit 💰💰💰💰💰💰
