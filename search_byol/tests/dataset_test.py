@@ -37,7 +37,7 @@ class DataloaderTest(unittest.TestCase):
 
     def test_item_exists(self):
         '''
-            Tests that __getitem__() exits
+            Tests that __getitem__() exists
         '''
         self.assertIsNotNone(self.sdo_database[0])
 
@@ -85,7 +85,7 @@ class DataloaderTest(unittest.TestCase):
 
     def test_dimensions(self):
         '''
-            Tests that the dimensions are valid
+            Tests that the dimensions are valid and in the position that pytorch expects
         '''
         image_tuple = self.sdo_database[0]
         print(f'Image size: {image_tuple[0].shape}')
