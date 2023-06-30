@@ -1,13 +1,21 @@
 name: search-ssl
 channels:
   - conda-forge
+  - pytorch
+  - nvidia
   - bioconda
 dependencies:
   - python=3.10
   - snakemake
   - wandb
   - ipywidgets
+  - umap-learn
+  - hdbscan
   - opencv
+  - pytorch
+  - torchvision
+  - torchaudio
+  - pytorch-cuda=11.8
   - pip
   - pip:
     - lightning
@@ -15,6 +23,6 @@ dependencies:
     - sunpy
     - pandas
     - wandb
-    - opencv-python
     - matplotlib
+    - seaborn
     - git+https://github.com/hits-sdo/hits-sdo-packager.git@pip_nodata
