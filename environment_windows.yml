@@ -10,7 +10,6 @@ dependencies:
   - wandb
   - ipywidgets
   - umap-learn
-  - hdbscan
   - opencv
   - pytorch
   - torchvision
@@ -24,6 +23,7 @@ dependencies:
     - pandas
     - wandb
     - matplotlib
+    - hdbscan
     - seaborn
     - git+https://github.com/hits-sdo/hits-sdo-packager.git@pip_nodata
 

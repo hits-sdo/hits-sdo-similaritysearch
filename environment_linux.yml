@@ -10,7 +10,6 @@ dependencies:
   - wandb
   - ipywidgets
   - umap-learn
-  - hdbscan
   - opencv
   - pytorch
   - torchvision
@@ -22,6 +21,7 @@ dependencies:
     - lightly
     - sunpy
     - pandas
+    - hdbscan
     - wandb
     - matplotlib
     - seaborn
