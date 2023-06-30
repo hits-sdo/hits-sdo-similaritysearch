@@ -1,0 +1,24 @@
+name: sunflower_cpu
+channels:
+  - pytorch
+  - conda-forge
+  - defaults
+dependencies:
+  - python
+  - pip
+  - cpuonly
+  - pytorch
+  - torchvision
+  - pip:
+    - pytorch-lightning
+    - wandb
+    - tabulate
+    - tqdm
+    - pillow
+    - notebook
+    - jupyterlab
+    - matplotlib
+    - ipywidgets
+    - pyprojroot
+    - scikit-learn
+    - opencv-python
