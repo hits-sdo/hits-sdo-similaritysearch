@@ -137,8 +137,25 @@ TODO:
 - [X] clean up extra print statements that are not in main.
 - [X] Return filenames and dummy "label" to make lightly compatible
 - [X] Port main code in dataset.py into unittest
-- [ ] merge branch to main by making PR ❗
-- [ ] create an issue for the model using lightly
+- [X] merge branch to main by making PR ❗
+- [X] create an issue for the model about lightly
 - [ ] introduction to weights and biases
-- [ ] create a branch using the issue id number and start creating model
+- [X] create a branch using the issue id number and start creating model
+- [ ] profit 💰💰💰💰💰💰
+
+## 6/30/23
+- [X] Port SimCLR LightningModule code
+- [ ] Configure SimCLR Lightly code to use pre-trained model
+- [ ] Train using NTXentLoss()
+- [ ] Configure with Weights & Biases logging
+- [ ] Evaluate results using a subset or validation set of data
+- [ ] Plot TSNE 2D representation of latent space
+- [X] profit 💰💰💰💰💰💰
+
+## 7/3/23
+- [ ] Configure SimCLR Lightly code to use pre-trained model
+- [ ] Train using NTXentLoss()
+- [ ] Configure with Weights & Biases logging
+- [ ] Evaluate results using a subset or validation set of data
+- [ ] Plot TSNE 2D representation of latent space
 - [ ] profit 💰💰💰💰💰💰

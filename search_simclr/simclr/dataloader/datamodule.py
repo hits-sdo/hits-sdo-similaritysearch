@@ -26,6 +26,8 @@ class SimCLRDataModule(pl.LightningDataModule):
         self.val_dir = val_dir
         self.test_dir = test_dir
         self.batch_size = batch_size
+
+        #TODO: want to make this a variable to pass in instead of hardcoding
         self.transform = Transforms_SimCLR(blur=(1,1), 
                                               brighten=1.0, 
                                               translate=(1, 1), 
