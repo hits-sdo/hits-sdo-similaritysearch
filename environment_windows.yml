@@ -9,12 +9,12 @@ dependencies:
   - snakemake-minimal
   - wandb
   - ipywidgets
-  - umap-learn
   - opencv
   - pytorch
   - torchvision
   - torchaudio
   - pytorch-cuda=11.8
+  - scikit-learn=1.2.2
   - pip
   - pip:
     - lightning
@@ -24,6 +24,7 @@ dependencies:
     - wandb
     - matplotlib
     - hdbscan
+    - umap-learn
     - seaborn
     - git+https://github.com/hits-sdo/hits-sdo-packager.git@pip_nodata
 

@@ -15,6 +15,7 @@ dependencies:
   - torchvision
   - torchaudio
   - pytorch-cuda=11.8
+  - scikit-learn=1.2.2
   - pip
   - pip:
     - lightning
