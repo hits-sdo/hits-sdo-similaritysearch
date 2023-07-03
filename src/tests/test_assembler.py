@@ -22,13 +22,13 @@ class AssemblerTest(unittest.TestCase):
         '''
             Setup the test environment.
         '''
-        run = 'l0gz0vw6'
+        self.run = 'l0gz0vw6'
         self.embedding_dim = 16
-        self.tile_files = np.array(pd.read_csv(sorted(glob.glob('wandb/*'+run+'/files/filenamestrain.csv'))[-1])['filename'])
-        self.embeddings = np.load(sorted(glob.glob('wandb/*'+run+'/files/embeddingstrain.npy'))[-1])
+        self.tile_files = np.array(pd.read_csv(sorted(glob.glob('wandb/*'+self.run+'/files/filenamestrain.csv'))[-1])['filename'])
+        self.embeddings = np.load(sorted(glob.glob('wandb/*'+self.run+'/files/embeddingstrain.npy'))[-1])
         self.data_path = 'data/test_assemble'
         self.assembler = Assembler(embedding_dim=self.embedding_dim,
-                                   run=run,data_path=self.data_path)
+                                   run=self.run,data_path=self.data_path)
         
 
     def test_assemblerExists(self):
@@ -61,6 +61,15 @@ class AssemblerTest(unittest.TestCase):
         self.assertEqual(np.shape(assembled_file),(16,16,self.embedding_dim))
         self.assertGreater(np.sum(abs(assembled_file[:])),0)
         self.assertEqual(len(os.listdir(self.data_path)),2*len(pd.unique(self.assembler.df['parent'])))
+        self.assertGreater(len(self.assembler.df),len(self.assembler.embeddings)/self.assembler.tile_dim/self.assembler.tile_dim)
+
+    def test_saveDf(self):
+        self.assembler.create_df()
+        self.assembler.assemble_all()    
+        self.assembler.save_df('data','assembled')
+        df = pd.read_csv('data'+os.sep+'index_'+self.run+'_assembled.csv')
+        self.assertIsInstance(df,pd.DataFrame)
+        print(df.head())
 
 if __name__ == "__main__":
     unittest.main()

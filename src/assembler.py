@@ -136,3 +136,10 @@ class Assembler():
         print('Assembled',len(self.df),'tiles')
         self.df = self.df.drop_duplicates(subset='parent')
         print('Into',len(self.df),'embedded parent files')
+
+    def save_df(self,dir,filename:str=''):
+        """
+        Save dataframe to file
+        """
+        self.df.sort_values('sample_time',inplace=True)
+        self.df.to_csv(dir+os.sep+'index_'+self.run+'_'+filename+'.csv',index=False)
