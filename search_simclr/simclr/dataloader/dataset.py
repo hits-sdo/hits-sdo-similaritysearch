@@ -1,5 +1,5 @@
 # Hello this is a data set class
-
+import os, random, shutil
 import torch
 import numpy as np
 import matplotlib.pyplot as plt
@@ -17,12 +17,12 @@ from search_simclr.simclr.dataloader import dataset_aug
 # augmentations: "brighten": 1, "translate": (0, 0), "zoom": 1, "rotate": 0, "h_flip": False, "v_flip": False, 'blur': (1, 1), "p_flip": False
 
 class SdoDataset(Dataset):
-    def __init__(self, tile_dir, transform=None, ):  #WHAT ARE WE USING PATH FOR?
+    def __init__(self, tile_dir, file_list, transform=None, ):  #WHAT ARE WE USING PATH FOR?
         # self.data = data
         #self.labels = labels
         self.tile_dir = os.path.normpath(tile_dir)
         # ALL TILES MUST BE IN SAME DIRECTORY!!
-        self.file_list = os.listdir(tile_dir)
+        self.file_list = file_list # os.listdir(tile_dir)
         self.transform = transform # reserve transform for PyTorch transform
         # self.path = os.path.normpath(path) #/data/miniset/AIA171/monochrome/tile_20230206_000634_1024_0171_0896_0640.p 
         # full_path = f'{tile_dir}/{fname}'
@@ -69,10 +69,40 @@ def fill_voids(tile_dir, file_list, image_fullpath, idx):
     
     return image
 
+def partition_tile_dir_train_val(train_dest_dir, 
+                                 val_dest_dir, 
+                                 tot_file_list, 
+                                 train_percent):
+    # function to return list of directories 
+    os.makedirs(train_dest_dir)
+    os.makedirs(val_dest_dir)
+    os.system(f'rm -rf {train_dest_dir}/*')
+    os.system(f'rm -rf {val_dest_dir}/*')
+    # # Delete the directory and all its contents
+    # shutil.rmtree(directory)
+    train_percentage = train_percent
+    total_file_count = len(tot_file_list)
+    train_file_count = int(train_percentage * total_file_count)
+
+    train_file_list = random.sample(tot_file_list, train_file_count)
+    
+    for fname in train_file_list:
+        srcpath = os.path.join(tile_dir, fname)
+        shutil.copyfile(srcpath, train_dest_dir)
+
+    # should return the list of file paths for 'train' and 'val'
+    raise NotImplementedError
+
 def main():
     print(root)
     print("hi mom")
     tile_dir = root / 'data' / 'miniset' / 'AIA171' / 'monochrome'
+    tot_file_list = os.listdir(tile_dir)
+    train_dest_dir = tile_dir /'simclr_train'
+    val_dest_dir = tile_dir / 'simclr_val'
+
+
+    
     
     # Define transforms
     transform = dataset_aug.Transforms_SimCLR(blur=(1,1), 
@@ -88,7 +118,7 @@ def main():
                                             #   file_name="tile_20230206_000634_1024_0171_0896_0640.p",
                                             #   file_list=os.listdir(tile_dir)
                                               )
-    train_dataset = SdoDataset(tile_dir, transform=transform)
+    train_dataset = SdoDataset(tile_dir, file_list, transform=transform)
     # augmented_image1, augmented_image2 = train_dataset.__getitem__(1)
     # define a dataloader
     train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=1, shuffle=True)

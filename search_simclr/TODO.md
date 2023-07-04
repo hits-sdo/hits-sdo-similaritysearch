@@ -153,9 +153,20 @@ TODO:
 - [X] profit 💰💰💰💰💰💰
 
 ## 7/3/23
+- [ ] Check what code was lost
+- [ ] Reincorporate fillVoids and stitchAdjacentImgs (Subhamoy has code)     TBD
 - [ ] Configure SimCLR Lightly code to use pre-trained model
 - [ ] Train using NTXentLoss()
 - [ ] Configure with Weights & Biases logging
 - [ ] Evaluate results using a subset or validation set of data
 - [ ] Plot TSNE 2D representation of latent space
 - [ ] profit 💰💰💰💰💰💰
+
+## 7/5/23
+- [ ] Complete `partition_tile_dir_train_val()` to return list of file paths for 'train and val
+- [ ] Run dataset.py to verify that changes were successful
+- [ ] Adapt unit tests (specifically the Setup method)
+- [ ] Adapt source code for datamodule.py `setup()` member function to new dataset requirements
+- [ ] Adapt unit tests for datamodule.py 
+- [ ] Continue with main function for SimCLR
+- [ ] PRO-FIT :moneybag: :moneybag: :moneybag: :moneybag: :moneybag: :moneybag: :moneybag:

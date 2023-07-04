@@ -27,7 +27,8 @@ class SimCLRDataModule(pl.LightningDataModule):
         self.test_dir = test_dir
         self.batch_size = batch_size
 
-        #TODO: want to make this a variable to pass in instead of hardcoding
+        # TODO: want to make this a variable to pass in instead of hardcoding
+        # another note: want truly random values to be passed into these?
         self.transform = Transforms_SimCLR(blur=(1,1), 
                                               brighten=1.0, 
                                               translate=(1, 1), 
