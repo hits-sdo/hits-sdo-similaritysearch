@@ -1,3 +1,6 @@
+# Ignore miniset
+data/miniset/*
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

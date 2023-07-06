@@ -163,10 +163,27 @@ TODO:
 - [ ] profit 💰💰💰💰💰💰
 
 ## 7/5/23
-- [ ] Complete `partition_tile_dir_train_val()` to return list of file paths for 'train and val
+- [X] Complete `partition_tile_dir_train_val()` to return list of file paths for 'train and val
 - [ ] Run dataset.py to verify that changes were successful
 - [ ] Adapt unit tests (specifically the Setup method)
 - [ ] Adapt source code for datamodule.py `setup()` member function to new dataset requirements
 - [ ] Adapt unit tests for datamodule.py 
 - [ ] Continue with main function for SimCLR
+- [ ] PRO-FIT :moneybag: :moneybag: :moneybag: :moneybag: :moneybag: :moneybag: :moneybag:
+
+## 7/7/23
+### Reflections from 7/5/23:
+- The miniset is no longer in the repository, it has been moved to the shared google folder
+- Two design options: `simclr/dataloader/datamodule.py` `prepare_data` 
+    - Download from google drive OR 
+    - Download directly from team Red repo
+- [ ] Open pickle file successfuly and plot image
+    - The problem could be check file paths again 
+    - Check if pickle files are corrupted
+- [ ] Run dataset.py to verify that changes were successful
+- [ ] Adapt unit tests (specifically the Setup method)
+- [ ] Adapt source code for datamodule.py `setup()` member function to new dataset requirements
+- [ ] Adapt unit tests for datamodule.py 
+- [ ] Continue with main function for SimCLR
+- [ ] Configure github actions with tests to run on push
 - [ ] PRO-FIT :moneybag: :moneybag: :moneybag: :moneybag: :moneybag: :moneybag: :moneybag:

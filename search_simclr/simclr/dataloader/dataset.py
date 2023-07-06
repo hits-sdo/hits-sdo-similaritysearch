@@ -3,6 +3,7 @@ import os, random, shutil
 import torch
 import numpy as np
 import matplotlib.pyplot as plt
+from typing import List
 from torch.utils.data import Dataset
 from torch.utils.data import Dataset
 import os.path
@@ -34,6 +35,7 @@ class SdoDataset(Dataset):
     def __getitem__(self, idx):
         # Returns two images at given index
         image_fullpath = os.path.join(self.tile_dir, self.file_list[idx])
+        print("image fullpath: " + image_fullpath) #/data/miniset/AIA171/monochrome/tile_20230206_000634_1024_0171_0384_0512.p
         image = image_utils.read_image(image_fullpath, 'p')
         if (self.transform):
             # Transform images by augmentations
@@ -69,41 +71,49 @@ def fill_voids(tile_dir, file_list, image_fullpath, idx):
     
     return image
 
-def partition_tile_dir_train_val(train_dest_dir, 
-                                 val_dest_dir, 
-                                 tot_file_list, 
-                                 train_percent):
-    # function to return list of directories 
-    os.makedirs(train_dest_dir)
-    os.makedirs(val_dest_dir)
-    os.system(f'rm -rf {train_dest_dir}/*')
-    os.system(f'rm -rf {val_dest_dir}/*')
-    # # Delete the directory and all its contents
-    # shutil.rmtree(directory)
+def partition_tile_dir_train_val(tot_file_list: List[str], 
+                                 train_percent: float) -> tuple:
+    '''
+    Takes a list of file names and partitions the list into a
+    train and validation file list
+    Args: 
+        tot_file_list (List(str)): Total files present in sample files directory
+        train_percent (float): Percentage of data used for training model
+    return: 
+        list of file paths for 'train' and 'val' (tuple of lists)
+    '''
     train_percentage = train_percent
     total_file_count = len(tot_file_list)
     train_file_count = int(train_percentage * total_file_count)
-
     train_file_list = random.sample(tot_file_list, train_file_count)
-    
-    for fname in train_file_list:
-        srcpath = os.path.join(tile_dir, fname)
-        shutil.copyfile(srcpath, train_dest_dir)
-
-    # should return the list of file paths for 'train' and 'val'
-    raise NotImplementedError
+    val_file_list = [item for item in tot_file_list if item not in train_file_list]
+    return train_file_list, val_file_list
 
 def main():
     print(root)
     print("hi mom")
-    tile_dir = root / 'data' / 'miniset' / 'AIA171' / 'monochrome'
+
+    test_file = os.path.join(root, 'data', 'miniset', 'AIA171', 'monochrome', 'tile_20230206_000634_1024_0171_0128_0192.p')
+    image = image_utils.read_image(test_file, 'p')
+    plt.imshow(image)
+    plt.show()
+    """  """
+
+    tile_dir = os.path.join(root , 'data' , 'miniset' , 'AIA171' , 'monochrome')
+    #tile_dir.replace(os.sep, "/")
+    train_val_dir = os.path.join(root , 'data' , 'miniset' , 'AIA171' , 'train_val_simclr')
+    #train_val_dir.replace(os.sep, "/")
     tot_file_list = os.listdir(tile_dir)
-    train_dest_dir = tile_dir /'simclr_train'
-    val_dest_dir = tile_dir / 'simclr_val'
+    train_file_list, val_file_list = partition_tile_dir_train_val(tot_file_list, 0.8)
+    # save lists
+    with open(os.path.join(train_val_dir,'train_file_list.txt'), 'w') as f:
+        for item in train_file_list:
+            f.write("%s\n" % item)
+    with open(os.path.join(train_val_dir,'val_file_list.txt'), 'w') as f:
+        for item in val_file_list:
+            f.write("%s\n" % item)
 
 
-    
-    
     # Define transforms
     transform = dataset_aug.Transforms_SimCLR(blur=(1,1), 
                                               brighten=1.0, 
@@ -118,7 +128,7 @@ def main():
                                             #   file_name="tile_20230206_000634_1024_0171_0896_0640.p",
                                             #   file_list=os.listdir(tile_dir)
                                               )
-    train_dataset = SdoDataset(tile_dir, file_list, transform=transform)
+    train_dataset = SdoDataset(tile_dir, train_file_list, transform=transform)
     # augmented_image1, augmented_image2 = train_dataset.__getitem__(1)
     # define a dataloader
     train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=1, shuffle=True)
@@ -139,6 +149,7 @@ def main():
     plt.imshow(augmented_image2[0,0,:,:].numpy())
     plt.title("image2")
     plt.show()
+
 if __name__ == "__main__":
     main()
 # os.listdir(path)
