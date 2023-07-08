@@ -14,6 +14,7 @@ class EmbeddingUtils:
         self.num_workers = num_workers
 
     def embedder(self):
+        device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         embeddings = []
         filenames = []
 
@@ -33,7 +34,7 @@ class EmbeddingUtils:
                 for x, _, fnames in dataloader:
                     # move the images to the gpu
                     # embed the images with the pre-trained backbone
-                    y = self.model.backbone(x).flatten(start_dim=1)
+                    y = self.model.backbone(x.to(device)).flatten(start_dim=1)
                     # store the embeddings and filenames in lists
                     embeddings.append(y)
                     filenames = filenames + list(fnames)
