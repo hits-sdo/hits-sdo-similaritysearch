@@ -177,13 +177,26 @@ TODO:
 - Two design options: `simclr/dataloader/datamodule.py` `prepare_data` 
     - Download from google drive OR 
     - Download directly from team Red repo
-- [ ] Open pickle file successfuly and plot image
+- [X] Open pickle file successfuly and plot image
     - The problem could be check file paths again 
     - Check if pickle files are corrupted
-- [ ] Run dataset.py to verify that changes were successful
-- [ ] Adapt unit tests (specifically the Setup method)
+- [X] Run dataset.py to verify that changes were successful
+- [X] Adapt unit tests (specifically the Setup method)
 - [ ] Adapt source code for datamodule.py `setup()` member function to new dataset requirements
 - [ ] Adapt unit tests for datamodule.py 
 - [ ] Continue with main function for SimCLR
 - [ ] Configure github actions with tests to run on push
 - [ ] PRO-FIT :moneybag: :moneybag: :moneybag: :moneybag: :moneybag: :moneybag: :moneybag:
+
+## 7/10/23
+
+- [ ] Adapt and run datamodule unit test `test_data_module.py` (adapt source code)
+- [ ] FINISH FILL VOIDS and stitch adjacent image `simclr/dataloader/dataset_aug.py`(get an update on what is happening with this)
+    - [ ] Update corresponding test cases `simclr/tests/test_augementations.py`
+- [ ] Finish main function for `simclr/model/simCLR.py` with updated datamodule invocation
+# if time permits...
+- [ ] Configure github actions with tests to run on push
+- [ ] Train model
+- [ ] Validate model using `val_file_list.txt` created and stored in miniset
+- [ ] Create visualizations using clustering in the embedding space to analyze results
+- [ ] Profit :moneybag: :moneybag: :moneybag: :moneybag: :moneybag: :moneybag: :moneybag: :moneybag:

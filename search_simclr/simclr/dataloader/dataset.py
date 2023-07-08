@@ -91,12 +91,11 @@ def partition_tile_dir_train_val(tot_file_list: List[str],
 
 def main():
     print(root)
-    print("hi mom")
 
-    test_file = os.path.join(root, 'data', 'miniset', 'AIA171', 'monochrome', 'tile_20230206_000634_1024_0171_0128_0192.p')
-    image = image_utils.read_image(test_file, 'p')
-    plt.imshow(image)
-    plt.show()
+    # test_file = os.path.join(root, 'data', 'miniset', 'AIA171', 'monochrome', 'tile_20230206_000634_1024_0171_0128_0192.p')
+    # image = image_utils.read_image(test_file, 'p')
+    # plt.imshow(image)
+    # plt.show()
     """  """
 
     tile_dir = os.path.join(root , 'data' , 'miniset' , 'AIA171' , 'monochrome')
@@ -133,9 +132,10 @@ def main():
     # define a dataloader
     train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=1, shuffle=True)
     # retrieve one batch of data
-    for i, (augmented_image1, augmented_image2) in enumerate(train_loader):
+    for i, (augmented_image1, augmented_image2, fname, _) in enumerate(train_loader):
         print(augmented_image1.shape)
         print(augmented_image2.shape)
+        print(fname)
         print(i)
         break
     

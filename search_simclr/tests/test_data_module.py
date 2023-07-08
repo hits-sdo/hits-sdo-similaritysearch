@@ -1,4 +1,5 @@
-import unittest
+\import unittest
+import os
 #import dataset_aug
 import numpy as np
 import pyprojroot
@@ -15,7 +16,7 @@ class test_data_module(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         # Create a datamodule instance
-        cls.train_dir = root / 'data/miniset/AIA171/monochrome'
+        cls.train_dir = os.path.join( root, 'data', 'miniset', 'AIA171', 'monochrome')
         cls.simclr_dm = SimCLRDataModule()
 
         # Call the setup() method
