@@ -190,8 +190,24 @@ TODO:
 
 ## 7/10/23
 
-- [ ] Adapt and run datamodule unit test `test_data_module.py` (adapt source code)
+- [X] Adapt and run datamodule unit test `test_data_module.py` (adapt source code)
 - [ ] FINISH FILL VOIDS and stitch adjacent image `simclr/dataloader/dataset_aug.py`(get an update on what is happening with this)
+    - [ ] Update corresponding test cases `simclr/tests/test_augementations.py`
+- [ ] Finish main function for `simclr/model/simCLR.py` with updated datamodule invocation
+# if time permits...
+- [ ] Configure github actions with tests to run on push
+- [ ] Train model
+- [ ] Validate model using `val_file_list.txt` created and stored in miniset
+- [ ] Create visualizations using clustering in the embedding space to analyze results
+- [ ] Profit :moneybag: :moneybag: :moneybag: :moneybag: :moneybag: :moneybag: :moneybag: :moneybag:
+
+## 7/12/23
+
+- [ ] FINISH FILL VOIDS and stitch adjacent image `simclr/dataloader/dataset_aug.py`:
+    - [ ] [subhammoys interpolate_superimage()] (https://drive.google.com/drive/folders/1taMZDT_PGk9W3evThwx1xwzeuh4KnXvp)
+    - [ ] Adapt `interpolate_superimage()` from `search_utils/image_utils.py` to find nearest neighbor tiles from 
+        `train_file_list` variable, account for this using `loc` variable in case `loc` is position (seems like it is dawg) 
+    - [ ] Add `FillVoids` and `StitchAdjacentImagesVer2` class calls to `Compose` function in pyTorch transforms
     - [ ] Update corresponding test cases `simclr/tests/test_augementations.py`
 - [ ] Finish main function for `simclr/model/simCLR.py` with updated datamodule invocation
 # if time permits...

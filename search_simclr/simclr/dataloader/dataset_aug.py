@@ -7,7 +7,7 @@ sys.path.append(str(root))
 import search_utils.augmentation_list
 from search_utils.augmentation_list import AugmentationList
 from search_utils.augmentation import Augmentations
-from search_utils.image_utils import read_image
+from search_utils.image_utils import read_image, interpolate_superimage, stitch_adj_imgs
 import cv2 as cv
 import numpy as np
 import torch
@@ -120,47 +120,33 @@ class AddNoise(object):
 
 #         return filled_image
         
-# class StitchAdjacentImagesVer2(object): 
+class StitchAdjacentImagesVer2(object): 
     
-#     """ 
-#         do stitch adj images before fill voids (Fill voids uses center tile 
-#         interpolation and you would want to take average of all tiles if 
-#         that info is available)
-#     """
+    """ 
+        do stitch adj images before fill voids (Fill voids uses center tile 
+        interpolation and you would want to take average of all tiles if 
+        that info is available)
+    """
 
-#     def __init__(self, data_dir, file_name, file_list) -> None:
-#         self.data_dir = data_dir
-#         self.file_name = file_name
-#         self.file_list = file_list
+    def __init__(self, data_dir, file_name, file_list) -> None:
+        self.data_dir = data_dir
+        self.file_name = file_name
+        self.file_list = file_list
 
-#     def __call__(self, superImage):
-#         """
-#         stitches adjacent images to return a superimage
-#         """
-#         len_ = len(self.file_name)-len('0000_0000.p')
-#         iStart = int(self.file_name[-11:-7])
-#         jStart = int(self.file_name[-6:-2])
-#         # coordinates of surrounding tiles
-#         coordinates = [
-#             (0, 0), (0, 1), (0, 2), (1, 0), (1, 1), (1, 2), (2, 0), (2, 1), (2, 2)]
-
-#         image_len = read_image(os.path.join(self.data_dir, self.file_name), 'p').shape[0]
-#         # replace np.zeros w/ the interpolated image from fill_voids
-#         superImage = np.zeros((3*image_len, 3*image_len))
+    def __call__(self, superImage):
         
+        """
+        stitches adjacent images to return a superimage
+        """
+        superImage = stitch_adj_imgs(self.data_dir, 
+                        self.file_name,
+                        EXISTING_FILES=file_list,
+                        multi_wl=False,
+                        iterative=False,
+                        remove_coords=False)
+       
 
-#         for i, j in coordinates:
-#             i_s = iStart - image_len + i * image_len
-#             j_s = jStart - image_len + j * image_len
-
-#             tile_name = \
-#                 f"{self.file_name[0:len_]}{str(i_s).zfill(4)}_{str(j_s).zfill(4)}.p"
-#             if tile_name in self.file_list:
-#                 im = read_image(os.path.join(self.data_dir, tile_name), 'p')
-#                 superImage[i*image_len: (i+1)*image_len, j*image_len:
-#                         (j+1)*image_len] = im
-
-#         return superImage
+        return superImage
 
 # class Cutout(object):
 #     def __init__(self, n_holes, length):
