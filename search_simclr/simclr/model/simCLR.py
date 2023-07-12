@@ -33,8 +33,8 @@ from lightly.models.modules.heads import SimCLRProjectionHead
 class SDOConfig:
     """ Configuration options for HITS-SDO Dataset"""
 
-    train_dir: str = root/"data/miniset/AIA171/monochrome",
-    val_dir: str = None,
+    train_dir: str = root/"data/miniset/AIA171/monochrome", # ❗want train_list?
+    val_dir: str = None, # ❗want val_list instead?
     test_dir: str = None
     num_workers: int = 8
     batch_size: int = 256
@@ -107,6 +107,7 @@ def generate_embeddings(model, dataloader):
 def main():
     config = SDOConfig()
     pl.seed_everything(config.seed)
+    # ❗ problem: datamodule now takes in lists 
     sdo_datamodule = SimCLRDataModule(batch_size=config.batch_size, train_dir=config.train_dir,val_dir=config.val_dir,test_dir=config.test_dir)
     sdo_datamodule.setup(stage=config.stage)
     # 

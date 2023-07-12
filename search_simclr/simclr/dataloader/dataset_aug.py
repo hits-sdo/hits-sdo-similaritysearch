@@ -26,16 +26,6 @@ import os.path
 
 #TODO: let's figure out how to get our augmentations class imported (local probably?)
 
-
-def random_augment_image(img):
-    # Make random augmentation dictionary
-    augment_list = AugmentationList(instrument = "euv")  # or mag
-    rand_dict = augment_list.randomize()
-        
-    # Preform Augmentations
-    augments = Augmentations(img, rand_dict)
-    augmented_img, title = augments.perform_augmentations()
-    return augmented_img
     
 class Blur(object):
     def __init__(self, value):
@@ -44,13 +34,13 @@ class Blur(object):
         assert isinstance(value[0], int)
         assert isinstance(value[1], int)      
         
-    def __call__(self, img):
+    def __call__(self, sample):
         """
         Blurs the image by the amount by blur (default = (1, 1))
         Blurring is performed as an average blurring
         with kernel size defined by blur
     """
-        image = cv.blur(img, (self.blur[0], self.blur[1]), 0)
+        image = cv.blur(sample["image"], (self.blur[0], self.blur[1]), 0)
         return image
 
 class AddNoise(object):
@@ -86,7 +76,8 @@ class AddNoise(object):
         self.std_lim = std_lim
         
 
-    def __call__(self, img):
+    def __call__(self, sample):
+        img = sample["image"]
         self.std = random.uniform(0, self.std_lim)
         noise = np.random.normal(self.mean, self.std, img.shape)
         img = img + noise
@@ -130,17 +121,18 @@ class StitchAdjacentImagesVer2(object):
 
     def __init__(self, data_dir, file_name, file_list) -> None:
         self.data_dir = data_dir
-        self.file_name = file_name
+        #self.file_name = file_name
         self.file_list = file_list
 
-    def __call__(self, superImage):
+    def __call__(self, sample):
         
         """
         stitches adjacent images to return a superimage
         """
         superImage = stitch_adj_imgs(self.data_dir, 
-                        self.file_name,
-                        EXISTING_FILES=file_list,
+                        #self.file_name,
+                        sample["filename"],
+                        EXISTING_FILES=self.file_list,
                         multi_wl=False,
                         iterative=False,
                         remove_coords=False)
@@ -178,30 +170,30 @@ class H_Flip(object):
     def __init__(self):
         pass
         
-    def __call__(self, img):
-        return cv.flip(img, 1)
+    def __call__(self, sample):
+        return cv.flip(sample["image"], 1)
         
 class V_Flip(object):
     def __init__(self):
         pass
         
-    def __call__(self, img):
-        return cv.flip(img, 0)
+    def __call__(self, sample):
+        return cv.flip(sample["image"], 0)
     
 class P_Flip(object):
     def __init__(self):
         ...
         
-    def __call__(self, img):
-        return (1-img)
+    def __call__(self, sample):
+        return (1-sample["image"])
     
 class Brighten(object):
     def __init__(self, value) -> None:
         self.brighten = value
         assert isinstance(value, float)
 
-    def __call__(self, img):
-        return np.abs(img)**self.brighten
+    def __call__(self, sample):
+        return np.abs(sample["image"])**self.brighten
     
 class Translate(object):
     def __init__(self, value):
@@ -211,7 +203,8 @@ class Translate(object):
         assert isinstance(value[1], int)
 
     
-    def __call__(self, img):
+    def __call__(self, sample):
+        img = sample["image"]
         s = img.shape
         m = np.float32([[1, 0, self.translate[0]], [0, 1, self.translate[1]]])
         # Affine transformation to translate the image and output size
@@ -223,7 +216,8 @@ class Zoom(object):
         self.zoom = value
         assert isinstance(value, float)
     
-    def __call__(self, img):
+    def __call__(self, sample):
+        img = sample["image"]
         s = img.shape
         s1 = (int(self.zoom*s[0]), int(self.zoom*s[1]))
         img_zeros = np.zeros(s)
@@ -245,7 +239,8 @@ class Rotate(object):
         self.rotate = value
         assert isinstance(value, float)
 
-    def __call__(self, img):
+    def __call__(self, sample):
+        img = sample["image"]
         s = img.shape
         cy = (s[0]-1)/2  # y center : float
         cx = (s[1]-1)/2  # x center : float
@@ -256,7 +251,8 @@ class Rotate(object):
     
 class Crop(object):
     """Crop image prior to ToTensor step"""
-    def __call__(self, img):
+    def __call__(self, sample):
+        img = sample["image"]
          # Crop middle part of image1
         shape1 = img.shape[-2:]
         h1 = shape1[0] // 3
@@ -269,7 +265,8 @@ class Crop(object):
 class ToTensor(object):
     """Convert ndarrays in sample to Tensors."""
 
-    def __call__(self, img):
+    def __call__(self, sample):
+        img = sample["image"]
         # If the image is grayscale, expand its dimensions to have a third axis
         if len(img.shape) == 2:
             img = np.expand_dims(img, axis=-1)
@@ -291,15 +288,14 @@ class Transforms_SimCLR(object):
                  noise_std, 
                 #  cutout_holes, 
                 #  cutout_size, 
-                #  data_dir, 
-                #  file_name, 
-                #  file_list
+                data_dir,
+                file_list
                 ):
         #print(translate)
         
         self.train_transform = transforms.Compose([
             # Stitch image should happen before the fill voids
-            # StitchAdjacentImagesVer2(data_dir, file_name, file_list),
+            StitchAdjacentImagesVer2(data_dir, file_list),
             # FillVoids(), 
             transforms.RandomApply([H_Flip()], p=0.5),
             transforms.RandomApply([V_Flip()], p=0.5),
@@ -317,10 +313,10 @@ class Transforms_SimCLR(object):
 
         self.test_transform = transforms.ToTensor()
     
-    def __call__(self, img):
+    def __call__(self, sample):
         # Why are we doing this?
-        transformed_image1 = self.train_transform(img)
-        transformed_image2 = self.train_transform(img)
+        transformed_image1 = self.train_transform(sample)
+        transformed_image2 = self.train_transform(sample)
         return transformed_image1, transformed_image2
     
 
