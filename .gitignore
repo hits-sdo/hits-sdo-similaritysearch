@@ -162,5 +162,6 @@ cython_debug/
 *.npy
 *.ckpt
 *.pt
+*.json
 
 wandb/
