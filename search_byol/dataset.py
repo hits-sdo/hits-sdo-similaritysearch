@@ -85,10 +85,9 @@ class SDOTilesDataset(Dataset):
             image = np.moveaxis(image, [0, 1, 2], [1, 2, 0]).astype(self.datatype)           
             image2 = np.moveaxis(image2, [0, 1, 2], [1, 2, 0]).astype(self.datatype)           
 
-            return image, image2
+            return image, image2, self.image_files[idx]
 
         else:
 
             image = np.moveaxis(image, [0, 1, 2], [1, 2, 0]).astype(self.datatype)           
-            return image, 0
-
+            return image, self.image_files[idx]
