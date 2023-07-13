@@ -36,7 +36,7 @@ class SdoDataset(Dataset):
         # Returns two images at given index
         image_fullpath = os.path.join(self.tile_dir, self.file_list[idx])
         print("image fullpath: " + image_fullpath) #/data/miniset/AIA171/monochrome/tile_20230206_000634_1024_0171_0384_0512.p
-        image = image_utils.read_image(image_fullpath, 'p')
+        image = image_utils.read_image(image_fullpath, 'jpg')
         sample = {"image": image, "filename": self.file_list[idx] }
         if (self.transform):
             # Transform images by augmentations

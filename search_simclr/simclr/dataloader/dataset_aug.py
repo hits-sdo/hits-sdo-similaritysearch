@@ -119,7 +119,7 @@ class StitchAdjacentImagesVer2(object):
         that info is available)
     """
 
-    def __init__(self, data_dir, file_name, file_list) -> None:
+    def __init__(self, data_dir, file_list) -> None:
         self.data_dir = data_dir
         #self.file_name = file_name
         self.file_list = file_list

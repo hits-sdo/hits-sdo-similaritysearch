@@ -29,9 +29,14 @@ def main():
     #tile_dir.replace(os.sep, "/")
     train_val_dir = os.path.join(root , 'data' , 'miniset' , 'AIA171' , 'train_val_simclr')
     #train_val_dir.replace(os.sep, "/")
+    # Todo: FIXME !!!! Make tot_file_list a list of file full paths, not just file names
+    # Todo: Use get_file_list_from_dir_recrusive() from search_utils/file_utils.py
     tot_file_list = os.listdir(tile_dir)
     train_file_list, val_file_list = partition_tile_dir_train_val(tot_file_list, 0.8)
     # save lists
+    print(train_file_list)
+    print(val_file_list)
+
     with open(os.path.join(train_val_dir,'train_file_list.txt'), 'w') as f:
         for item in train_file_list:
             f.write("%s\n" % item)
