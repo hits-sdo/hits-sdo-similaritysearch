@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import random
 from sklearn.utils import shuffle
 import torch
+import time
 
 
 
@@ -67,10 +68,11 @@ class EmbeddingUtils:
         distances = [1000000] * len(features_)
         
         for _ in range(n):
+            dist = np.sum((features_ - result[-1])**2, axis=1)**0.5
             for i in range(features_.shape[0]):
-                dist = np.linalg.norm(features_[i] - result[-1])
-                if distances[i] > dist:
-                    distances[i] = dist
+                #dist = np.linalg.norm(features_[i] - result[-1])
+                if distances[i] > dist[i]:
+                    distances[i] = dist[i]
             idx = distances.index(max(distances))
             result.append(features_[idx])
             filenames_results.append(filenames_[idx])
@@ -83,7 +85,7 @@ class EmbeddingUtils:
 
 
 
-    def circles_test_dataset(self):
+    def circles_test_dataset(self, pts):
         '''
         Returns:
             x, y coordinates of 4500 points creating 10 concentric circles
@@ -93,11 +95,11 @@ class EmbeddingUtils:
         numb_points_per_circle = []
         for i in range(10):
             if i % 2 != 1:
-                numb_points_per_circle.append(100)
-                colors += ['r']*100
+                numb_points_per_circle.append(pts)
+                colors += ['r']*pts
             else:
-                numb_points_per_circle.append(800)
-                colors += ['g']*800
+                numb_points_per_circle.append(8*pts)
+                colors += ['g']*8*pts
             
         points = []
         for i in range(10):
@@ -116,18 +118,18 @@ class EmbeddingUtils:
 
 
 def main():
-    
+    start = time.time()
     testEmbeddingUtils = EmbeddingUtils()
-    points_array, colors = testEmbeddingUtils.circles_test_dataset()
+    points_array, colors = testEmbeddingUtils.circles_test_dataset(1000)
 
 
     file_name_list = [f'file{i}' for i in range(len(points_array))]
 
     points_array, colors = shuffle(points_array, colors)
-    random_subset_points_array = points_array[:500]
-    colors_random = colors[:500]
+    random_subset_points_array = points_array[:5000]
+    colors_random = colors[:5000]
     # diverse_subset_points_array = diverse_sampler(embedder, points_array, 500)
-    diverse_filename, diverse_subset_points_array = testEmbeddingUtils.diverse_sampler(file_name_list, points_array, 500)
+    diverse_filename, diverse_subset_points_array = testEmbeddingUtils.diverse_sampler(file_name_list, points_array, 5000)
 
     print(len(diverse_filename))
     print(len(diverse_subset_points_array))
@@ -135,7 +137,8 @@ def main():
     idx = file_name_list.index(diverse_filename[0])
     print(points_array[idx], diverse_subset_points_array[0])
 
-
+    end = time.time()
+    print(f"Runtime of the program is {end - start}")
     colors_diverse = [colors[np.where(np.all(points_array == i,
                                              axis=1))[0][0]]
                       for i in list(diverse_subset_points_array)]
