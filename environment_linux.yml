@@ -3,6 +3,7 @@ channels:
   - conda-forge
   - pytorch
   - nvidia
+  - rapidsai
   - bioconda
 dependencies:
   - python=3.10
@@ -17,6 +18,7 @@ dependencies:
   - pytorch-cuda=11.8
   - scikit-learn=1.2.2
   - plotly
+  - cuml
   - pip
   - pip:
     - lightning
