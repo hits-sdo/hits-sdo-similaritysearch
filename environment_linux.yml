@@ -19,14 +19,14 @@ dependencies:
   - scikit-learn=1.2.2
   - plotly
   - cuml
+  - sunpy
+  - pandas
+  - hdbscan
+  - wandb
+  - matplotlib
+  - seaborn
   - pip
   - pip:
     - lightning
     - lightly
-    - sunpy
-    - pandas
-    - hdbscan
-    - wandb
-    - matplotlib
-    - seaborn
     - git+https://github.com/hits-sdo/hits-sdo-packager.git@pip_nodata
