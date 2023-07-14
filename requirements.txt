@@ -15,5 +15,5 @@ scikit-learn==1.2.2
 umap-learn
 hdbscan
 seaborn
-cudf-cu12 --extra-index-url=https://pypi.nvidia.com
+cudf-cu12 --install-option="--extra-index-url=https://pypi.nvidia.com"
 git+https://github.com/hits-sdo/hits-sdo-packager.git@pip_nodata
