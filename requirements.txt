@@ -3,6 +3,7 @@
 #   conda activate search-ssl
 # and then
 #   pip install -r requirements.txt
+--extra-index-url=https://pypi.nvidia.com
 lightning
 lightly
 sunpy
@@ -15,5 +16,5 @@ scikit-learn==1.2.2
 umap-learn
 hdbscan
 seaborn
-cudf-cu12 --install-option="--extra-index-url=https://pypi.nvidia.com"
+cudf-cu12 
 git+https://github.com/hits-sdo/hits-sdo-packager.git@pip_nodata
