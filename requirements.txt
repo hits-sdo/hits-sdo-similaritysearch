@@ -16,6 +16,6 @@ scikit-learn==1.2.2
 umap-learn
 hdbscan
 seaborn
-cudf-cu12
-cuml-cu12
+cudf-cu11
+cuml-cu11
 git+https://github.com/hits-sdo/hits-sdo-packager.git@pip_nodata
