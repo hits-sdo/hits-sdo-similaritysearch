@@ -1,7 +1,7 @@
 name: search-ssl
 channels:
-  - conda-forge
   - pytorch
+  - conda-forge
   - nvidia
   - bioconda
 dependencies:
