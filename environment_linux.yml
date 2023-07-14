@@ -12,10 +12,10 @@ dependencies:
   - ipywidgets
   - umap-learn
   - opencv
-  - pytorch
-  - torchvision
-  - torchaudio
-  - pytorch-cuda=11.8
+  - pytorch::pytorch
+  - pytorch::torchvision
+  - pytorch::torchaudio
+  - pytorch::pytorch-cuda=11.8
   - scikit-learn=1.2.2
   - plotly
   - cuml
