@@ -218,13 +218,33 @@ TODO:
 - [ ] Profit :moneybag: :moneybag: :moneybag: :moneybag: :moneybag: :moneybag: :moneybag: :moneybag:
 
 ## 7/14/23
-- [ ] `search_utils/file_utils.py` Add utility functions to transverse new file tree of jpgs from `aia_171_color_1perMonth.tar.gz` 
-    - [ ] `get_file_list()`
-    - [ ] `get_file_list_from_dir()`
-    - [ ] `get_file_list_from_dir_recursive()`
+- [ ] ~~`search_utils/file_utils.py` Add utility functions to transverse new file tree of jpgs from `aia_171_color_1perMonth.tar.gz`~~ 
+    - [ ] ~~`get_file_list()`~~
+    - [ ] ~~`get_file_list_from_dir()`~~
+    - [ ] ~~`get_file_list_from_dir_recursive()`~~
 - [ ] `simclr/dataloader/dataset.py` Adapt `partition_tile_dir_train_val()` to use tot_file_list as a list of paths instead of a list of files (We can keep partition_tile_dir) as is 
 - [ ] `search_simclr/simclr/scripts/train_val_split.py` Make tot_file_list a list of file full paths, not just file names
-    - [ ] Use `get_file_list_from_dir_recursive()` from `search_utils/file_utils.py`
+    - [ ] ~~Use `get_file_list_from_dir_recursive()` from `search_utils/file_utils.py`~~
+- [ ] Update `get_item` in `readimages` to handle jpg file 
+- [ ] Rerun `search_simclr/simclr/scripts/train_val_split.py` to verify that changes were successful
+- [ ] Confirm that the Fill Voids and Stitch Adjacent Images are working properly
+- [ ] Profit :moneybag: :moneybag: :moneybag: :moneybag: :moneybag: :moneybag: :moneybag: :moneybag:
+
+# if time permits...
+- [ ] Finish main function for `simclr/model/simCLR.py` with updated datamodule invocation
+- [ ] Configure github actions with tests to run on push
+- [ ] Train model
+- [ ] Validate model using `val_file_list.txt` created and stored in miniset
+- [ ] Create visualizations using clustering in the embedding space to analyze results
+
+## 7/17/2023
+- [ ] Finish `search_simclr\simclr\scripts\download_tiles.sh`
+    - [ ] Mkdir `data/train_val_simclr`
+    - [ ] Add retrieve jpg files with paths from `data/AIA211_193_171_Miniset` to `data/train_val_simclr/tot_file_list.txt`
+    - [ ] Fix Line 36 of `scripts/train_val_split.py` to use `data/train_val_simclr/tot_file_list.txt` instead of `os.listdir(tile_dir)`
+    - [ ] Run `scripts/train_val_split.py` to create `data/train_val_simclr/train_file_list.txt` and `data/train_val_simclr/val_file_list.txt`
+- [ ] `simclr/dataloader/dataset.py` Adapt `partition_tile_dir_train_val()` to use tot_file_list as a list of paths instead of a list of files (We can keep partition_tile_dir) as is 
+- [ ] `search_simclr/simclr/scripts/train_val_split.py` Make tot_file_list a list of file full paths, not just file names
 - [ ] Update `get_item` in `readimages` to handle jpg file 
 - [ ] Rerun `search_simclr/simclr/scripts/train_val_split.py` to verify that changes were successful
 - [ ] Confirm that the Fill Voids and Stitch Adjacent Images are working properly

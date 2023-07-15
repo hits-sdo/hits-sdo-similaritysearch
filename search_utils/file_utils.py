@@ -1,5 +1,11 @@
 import os
 import pyprojroot
+"""
+- [ ] `search_utils/file_utils.py` Add utility functions to transverse new file tree of jpgs from `aia_171_color_1perMonth.tar.gz` 
+    - [ ] `get_file_list()`
+    - [ ] `get_file_list_from_dir()`
+    - [ ] `get_file_list_from_dir_recursive()`
+"""
 
 def get_file_list(file_list_txt: str) -> list:
     ''' 

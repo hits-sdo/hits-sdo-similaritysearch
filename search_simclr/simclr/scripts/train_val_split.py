@@ -21,9 +21,11 @@ def main():
 
     # test_file = os.path.join(root, 'data', 'miniset', 'AIA171', 'monochrome', 'tile_20230206_000634_1024_0171_0128_0192.p')
     # image = image_utils.read_image(test_file, 'p')
-    # plt.imshow(image)
-    # plt.show()
+    # plt.imshow(plt.show()
     """  """
+    # 
+    
+    # data\AIA211_193_171_Miniset\20100601_000008_aia_211_193_171\tiles
 
     tile_dir = os.path.join(root , 'data' , 'miniset' , 'AIA171' , 'monochrome')
     #tile_dir.replace(os.sep, "/")
