@@ -6,5 +6,6 @@
 --extra-index-url=https://pypi.nvidia.com
 pyarrow
 pandas-gbq
+cupy-cuda11x
 cudf-cu11
 cuml-cu11
