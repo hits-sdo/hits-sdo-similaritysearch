@@ -6,3 +6,4 @@
 --extra-index-url=https://pypi.nvidia.com
 cudf-cu11
 cuml-cu11
+pyarrow<10.0dev,>=3.0.0
