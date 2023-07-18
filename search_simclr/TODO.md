@@ -248,7 +248,7 @@ TODO:
 - [ ] Update `get_item` in `readimages` to handle jpg file 
 - [ ] Rerun `search_simclr/simclr/scripts/train_val_split.py` to verify that changes were successful
 - [ ] Confirm that the Fill Voids and Stitch Adjacent Images are working properly
-- [ ] Profit :moneybag: :moneybag: :moneybag: :moneybag: :moneybag: :moneybag: :moneybag: :moneybag:
+- [x] Profit :moneybag: :moneybag: :moneybag: :moneybag: :moneybag: :moneybag: :moneybag: :moneybag:
 
 # if time permits...
 - [ ] Finish main function for `simclr/model/simCLR.py` with updated datamodule invocation
