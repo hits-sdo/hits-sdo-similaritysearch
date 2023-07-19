@@ -14,6 +14,7 @@ sys.path.append(str(root))
 from search_utils import image_utils
 from search_simclr.simclr.dataloader import dataset_aug
 from search_simclr.simclr.dataloader.dataset import SdoDataset, partition_tile_dir_train_val
+from search_utils.file_utils import get_file_list
 
 def main():
 
@@ -27,13 +28,13 @@ def main():
     
     # data\AIA211_193_171_Miniset\20100601_000008_aia_211_193_171\tiles
 
-    tile_dir = os.path.join(root , 'data' , 'miniset' , 'AIA171' , 'monochrome')
+    tot_fpath_wfname = os.path.join(root , 'data' , 'train_val_simclr', 'tot_full_path_files.txt')
     #tile_dir.replace(os.sep, "/")
-    train_val_dir = os.path.join(root , 'data' , 'miniset' , 'AIA171' , 'train_val_simclr')
+    train_val_dir = os.path.join(root , 'data', 'train_val_simclr')
     #train_val_dir.replace(os.sep, "/")
     # Todo: FIXME !!!! Make tot_file_list a list of file full paths, not just file names
     # Todo: Use get_file_list_from_dir_recrusive() from search_utils/file_utils.py
-    tot_file_list = os.listdir(tile_dir)
+    tot_file_list = get_file_list(tot_fpath_wfname)
     train_file_list, val_file_list = partition_tile_dir_train_val(tot_file_list, 0.8)
     # save lists
     print(train_file_list)
