@@ -9,9 +9,17 @@ from search_utils.image_utils import stitch_adj_imgs
 from sdo_augmentation.augmentation_list import AugmentationList
 from sdo_augmentation.augmentation import Augmentations
 
-def sunbirdCollate(fill_type='SuperImage', image_size=(128,128), path_to_data = None, multi_wl = False):
+
+def sunbirdCollate(fill_type='SuperImage',
+                   iterative=False,
+                   image_size=(128, 128),
+                   path_to_data=None,
+                   multi_wl=False):
 
     fill_type = fill_type
+    iterative = iterative
+    if fill_type == 'Nearest':
+        iterative = False
 
     def sunbird_collate(source_tuple):
         '''
@@ -19,7 +27,8 @@ def sunbirdCollate(fill_type='SuperImage', image_size=(128,128), path_to_data = 
         RET:    img_t0 & img_t1   : tuple   ( both are altered img )
                 label             : int
                 filename          : str
-        DESC: Applies random augmentation to the images then returns them for comparsion
+        DESC:   Applies random augmentation to the images
+                then returns them for comparison
         '''
 
         imgs_t0, imgs_t1, file_names, labels = [], [], [], []
@@ -27,10 +36,8 @@ def sunbirdCollate(fill_type='SuperImage', image_size=(128,128), path_to_data = 
         A = AugmentationList(instrument="euv")
 
         for item in source_tuple:
-            
             file_names.append(item[2])
             labels.append(item[1])
-            
             source_image = np.array(item[0]).astype(float)/255
 
             dict0 = A.randomize()
@@ -39,15 +46,16 @@ def sunbirdCollate(fill_type='SuperImage', image_size=(128,128), path_to_data = 
             if fill_type == 'SuperImage':
 
                 path_list = item[2].split('/')
-                file_dir = path_to_data+'/'+'/'.join(path_list[:2]) +'/'
-                files_list = glob.glob(file_dir+"/*.jpg", recursive = True)
+                file_dir = path_to_data+'/'+'/'.join(path_list[:2]) + '/'
+                files_list = glob.glob(file_dir+"/*.jpg", recursive=True)
                 file_names = [x[len(file_dir):] for x in files_list]
                 file_name = path_list[2]
 
                 super_image = stitch_adj_imgs(data_dir=file_dir,
-                                                file_name=file_name,
-                                                EXISTING_FILES=file_names,
-                                                multi_wl = multi_wl)
+                                              file_name=file_name,
+                                              EXISTING_FILES=file_names,
+                                              multi_wl=multi_wl,
+                                              iterative=iterative)
 
                 as1 = Augmentations(super_image, dict0)
                 as2 = Augmentations(super_image, dict1)
@@ -62,7 +70,8 @@ def sunbirdCollate(fill_type='SuperImage', image_size=(128,128), path_to_data = 
                 sup_img_h, sup_img_w = super_image.shape[:2]
 
                 # grab center of parent/super image
-                center_sup_img_y, center_sup_img_x = (sup_img_h // 2, sup_img_w // 2)
+                center_sup_img_y, center_sup_img_x = (sup_img_h // 2,
+                                                      sup_img_w // 2)
 
                 # grab center of tile
                 center_img_y, center_img_x = (img_h // 2, img_w // 2)
@@ -91,21 +100,25 @@ def sunbirdCollate(fill_type='SuperImage', image_size=(128,128), path_to_data = 
             imgs_t0.append(img_t0)
             imgs_t1.append(img_t1)
 
-        imgs_t0 = torch.from_numpy(np.array(imgs_t0)).permute(0, 3, 1, 2)
-        imgs_t1 = torch.from_numpy(np.array(imgs_t1)).permute(0, 3, 1, 2)
+        imgs_t0 = torch.from_numpy(np.array(imgs_t0).
+                                   astype(np.float32)).permute(0, 3, 1, 2)
+        imgs_t1 = torch.from_numpy(np.array(imgs_t1).
+                                   astype(np.float32)).permute(0, 3, 1, 2)
 
         labels = torch.tensor(labels)
 
         return (imgs_t0, imgs_t1), labels, file_names
     return sunbird_collate
 
+
 if __name__ == '__main__':
     path_to_data = '/home/schatterjee/Documents/hits/aia_171_color_1perMonth'
     dataset = LightlyDataset(input_dir=path_to_data)
-    fill_type = 'Nearest'
+    fill_type = 'SuperImage'
     collate_fn = sunbirdCollate(fill_type=fill_type,
                                 image_size=(128, 128),
-                                path_to_data=path_to_data)
+                                path_to_data=path_to_data,
+                                iterative=True)
     (img_t0, img_t1), label, file_name = collate_fn([dataset[10]])
 
     plt.figure(figsize=(10, 5))
