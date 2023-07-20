@@ -133,7 +133,7 @@ class StitchAdjacentImagesVer2(object):
                         #self.file_name,
                         sample["filename"],
                         EXISTING_FILES=self.file_list,
-                        multi_wl=False,
+                        multi_wl=True,
                         iterative=False,
                         remove_coords=False)
        
@@ -171,6 +171,7 @@ class H_Flip(object):
         pass
         
     def __call__(self, sample):
+        print(sample.keys())
         return cv.flip(sample["image"], 1)
         
 class V_Flip(object):
@@ -297,7 +298,7 @@ class Transforms_SimCLR(object):
             # Stitch image should happen before the fill voids
             StitchAdjacentImagesVer2(data_dir, file_list),
             # FillVoids(), 
-            transforms.RandomApply([H_Flip()], p=0.5),
+            transforms.RandomApply([H_Flip()], p=1),
             transforms.RandomApply([V_Flip()], p=0.5),
             transforms.RandomApply([P_Flip()], p=0.5), 
             transforms.RandomApply([Rotate(rotate)], p=0.5),

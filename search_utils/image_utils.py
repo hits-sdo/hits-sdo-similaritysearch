@@ -1,6 +1,7 @@
 import pickle
 from PIL import Image
 import numpy as np
+import os
 
 
 def read_image(image_loc, image_format):
@@ -153,7 +154,7 @@ def stitch_adj_imgs(data_dir, file_name,
     else:
         removed_coords = []
 
-    source_image = read_image(data_dir + file_name, file_format)
+    source_image = read_image(os.path.join(data_dir, file_name), file_format)
     image_len = source_image.shape[0]
     superImage = np.zeros((3*image_len, 3*image_len, 3))
 
@@ -170,7 +171,7 @@ def stitch_adj_imgs(data_dir, file_name,
                                   file_format])
                    
         if tile_name in EXISTING_FILES:
-            im = read_image(data_dir + tile_name, file_format)
+            im = read_image(os.path.join(data_dir, tile_name), file_format)
             superImage[i*image_len: (i+1)*image_len, j*image_len:
                        (j+1)*image_len] = im
         else:

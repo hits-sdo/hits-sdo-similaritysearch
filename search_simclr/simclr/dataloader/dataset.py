@@ -38,6 +38,7 @@ class SdoDataset(Dataset):
         print("image fullpath: " + image_fullpath) #/data/miniset/AIA171/monochrome/tile_20230206_000634_1024_0171_0384_0512.p
         image = image_utils.read_image(image_fullpath, 'jpg')
         sample = {"image": image, "filename": self.file_list[idx] }
+        print("from dataset.py: " , sample)
         if (self.transform):
             # Transform images by augmentations
             image1, image2 = self.transform(sample)
@@ -55,22 +56,22 @@ class SdoDataset(Dataset):
     ################################################################################################################### 
 
 
-def fill_voids(tile_dir, file_list, image_fullpath, idx):
-    # Fill voids
-    image = image_utils.read_image(image_fullpath, 'p')
-    v, h = image.shape[0]//2, image.shape[1]//2
-    if len(image.shape) == 3:
-        image = np.pad(image, ((v, v), (h, h), (0, 0)), 'edge')
-    else:
-        image = np.pad(image, ((v, v), (h, h)), 'edge')
+# def fill_voids(tile_dir, file_list, image_fullpath, idx):
+#     # Fill voids
+#     image = image_utils.read_image(image_fullpath, 'p')
+#     v, h = image.shape[0]//2, image.shape[1]//2
+#     if len(image.shape) == 3:
+#         image = np.pad(image, ((v, v), (h, h), (0, 0)), 'edge')
+#     else:
+#         image = np.pad(image, ((v, v), (h, h)), 'edge')
         
-    # Stitch images
-    #image2 = image_utils.stitch_adj_imgs(tile_dir + '/', file_list[idx], file_list)
+#     # Stitch images
+#     #image2 = image_utils.stitch_adj_imgs(tile_dir + '/', file_list[idx], file_list)
     
-    # Append image (Overlay the stitched img ontop of the padded filled void image)
+#     # Append image (Overlay the stitched img ontop of the padded filled void image)
  
     
-    return image
+#     return image
 
 def partition_tile_dir_train_val(tot_file_list: List[str], 
                                  train_percent: float) -> tuple:
