@@ -129,16 +129,17 @@ class StitchAdjacentImagesVer2(object):
         """
         stitches adjacent images to return a superimage
         """
+        image, fname = sample["image"], sample["filename"]
         superImage = stitch_adj_imgs(self.data_dir, 
                         #self.file_name,
-                        sample["filename"],
+                        fname,
                         EXISTING_FILES=self.file_list,
                         multi_wl=True,
                         iterative=False,
                         remove_coords=False)
        
 
-        return superImage
+        return {"image": superImage, "filename": fname}
 
 # class Cutout(object):
 #     def __init__(self, n_holes, length):
@@ -171,22 +172,25 @@ class H_Flip(object):
         pass
         
     def __call__(self, sample):
-        print(sample.keys())
-        return cv.flip(sample["image"], 1)
+        image, fname = sample["image"], sample["filename"]
+        print(f"sample from H_Flip: {sample}")
+        return {"image": cv.flip(image, 1), "filename": fname}
         
 class V_Flip(object):
     def __init__(self):
         pass
         
     def __call__(self, sample):
-        return cv.flip(sample["image"], 0)
+        image, fname = sample["image"], sample["filename"]
+        return {"image": cv.flip(image, 0), "filename": fname}
     
 class P_Flip(object):
     def __init__(self):
         ...
         
     def __call__(self, sample):
-        return (1-sample["image"])
+        image, fname = sample["image"], sample["filename"]
+        return {"image": (1-image), "filename": fname}
     
 class Brighten(object):
     def __init__(self, value) -> None:
@@ -194,7 +198,8 @@ class Brighten(object):
         assert isinstance(value, float)
 
     def __call__(self, sample):
-        return np.abs(sample["image"])**self.brighten
+        image, fname = sample["image"], sample["filename"]
+        return {"image": np.abs(image)**self.brighten, "filename": fname}
     
 class Translate(object):
     def __init__(self, value):
@@ -205,12 +210,12 @@ class Translate(object):
 
     
     def __call__(self, sample):
-        img = sample["image"]
-        s = img.shape
+        image, fname = sample["image"], sample["filename"]
+        s = image.shape
         m = np.float32([[1, 0, self.translate[0]], [0, 1, self.translate[1]]])
         # Affine transformation to translate the image and output size
-        img = cv.warpAffine(img, m, (s[1], s[0]))
-        return img
+        image = cv.warpAffine(img, m, (s[1], s[0]))
+        return {"image": image, "filename": fname}
     
 class Zoom(object):
     def __init__(self, value):
@@ -218,12 +223,12 @@ class Zoom(object):
         assert isinstance(value, float)
     
     def __call__(self, sample):
-        img = sample["image"]
-        s = img.shape
+        image, fname = sample["image"], sample["filename"]
+        s = image.shape
         s1 = (int(self.zoom*s[0]), int(self.zoom*s[1]))
         img_zeros = np.zeros(s)
 
-        image_resize = cv.resize(img, (s1[1], s1[0]), interpolation=cv.INTER_AREA)
+        image_resize = cv.resize(image, (s1[1], s1[0]), interpolation=cv.INTER_AREA)
         # Resize the image using zoom as scaling factor with area interpolation
         if self.zoom < 1:
             y1 = s[0]//2 - s1[0]//2
@@ -231,9 +236,9 @@ class Zoom(object):
             x1 = s[1]//2 - s1[1]//2
             x2 = s[1]//2 + s1[1] - s1[1]//2
             img_zeros[y1:y2, x1:x2] = image_resize
-            return img_zeros
+            return {"image": img_zeros, "filename": fname}
         else:
-            return image_resize
+            return {"image": image_resize, "filename": fname}
 
 class Rotate(object):
     def __init__(self, value):
@@ -241,42 +246,42 @@ class Rotate(object):
         assert isinstance(value, float)
 
     def __call__(self, sample):
-        img = sample["image"]
-        s = img.shape
+        image, fname = sample["image"], sample["filename"]
+        s = image.shape
         cy = (s[0]-1)/2  # y center : float
         cx = (s[1]-1)/2  # x center : float
         M = cv.getRotationMatrix2D((cx, cy), self.rotate, 1)  # rotation matrix
     
         # Affine transformation to rotate the image and output size s[1],s[0]
-        return cv.warpAffine(img, M, (s[1], s[0]))
+        return {"image": cv.warpAffine(image, M, (s[1], s[0])), "filename": fname}
     
 class Crop(object):
     """Crop image prior to ToTensor step"""
     def __call__(self, sample):
-        img = sample["image"]
+        image, fname = sample["image"], sample["filename"]
          # Crop middle part of image1
         shape1 = img.shape[-2:]
         h1 = shape1[0] // 3
         h2 = shape1[0] // 3 * 2
         w1 = shape1[1] // 3
         w2 = shape1[1] // 3 * 2
-        cropped_image = img[:,h1:h2,w1:w2] # channels,height,width
-        return cropped_image
+        cropped_image = image[:,h1:h2,w1:w2] # channels,height,width
+        return {"image": cropped_image, "filename": fname}
                 
 class ToTensor(object):
     """Convert ndarrays in sample to Tensors."""
 
     def __call__(self, sample):
-        img = sample["image"]
+        image, fname = sample["image"], sample["filename"]
         # If the image is grayscale, expand its dimensions to have a third axis
-        if len(img.shape) == 2:
-            img = np.expand_dims(img, axis=-1)
+        if len(image.shape) == 2:
+            image = np.expand_dims(image, axis=-1)
             
         # swap color axis because
         # numpy image: H x W x C
         # torch image: C x H x W
-        img = img.transpose((2, 0, 1))
-        return torch.from_numpy(img)
+        image = image.transpose((2, 0, 1))
+        return {"image": torch.from_numpy(image), "filename": fname}
     
 class Transforms_SimCLR(object):
     def __init__(self, 
@@ -315,7 +320,7 @@ class Transforms_SimCLR(object):
         self.test_transform = transforms.ToTensor()
     
     def __call__(self, sample):
-        # Why are we doing this?
+        print(f"from Transforms_SimCLR: {sample}")
         transformed_image1 = self.train_transform(sample)
         transformed_image2 = self.train_transform(sample)
         return transformed_image1, transformed_image2

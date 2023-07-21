@@ -43,14 +43,14 @@ class SdoDataset(Dataset):
             # Transform images by augmentations
             image1, image2 = self.transform(sample)
             #lightly data set requires label, add in label later in needed
-            return image1, image2, image_fullpath, image_fullpath
+            return image1, image2, sample["filename"], sample["filename"]#image_fullpath, image_fullpath
             
            
         else:
             # image = image_utils.read_image(image_fullpath, 'p')
             #lightly data set requires label, add in label later in needed
             
-            return image, image, image_fullpath, image_fullpath
+            return image, image, sample["filename"], sample["filename"]#image_fullpath, image_fullpath
         
 
     ################################################################################################################### 
