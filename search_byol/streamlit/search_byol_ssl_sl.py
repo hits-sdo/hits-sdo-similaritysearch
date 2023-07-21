@@ -6,6 +6,8 @@ from streamlit_cropper import st_cropper
 import numpy as np
 # pull request to main for packager 
 
+from models.byol_model import BYOL
+
 def main():
     st.title("HITS SDO Selector")
     
@@ -53,6 +55,26 @@ def main():
         # print(value)
         # st.write(value)
  
+
+def load_byol_model(checkpoint_path='/mnt/c/Users/jacob/Downloads/MT-ds1_bs64_lr0.1_doubleaug_ss0.1_se1.0_pjs16_pds16_contrast_.pt'):
+    """
+        Function to load the BYOL pretrained model 
+        parameters: 
+            path: string
+                path pointing at the location of the model 
+            
+        returns:
+            model: pytorch model
+                model initialized with pretrained weights 
+    """
+
+    model = BYOL(lr=learning_rate, projection_size=projection_size, prediction_size=prediction_size, cosine_scheduler_start=cosine_scheduler_start, cosine_scheduler_end=cosine_scheduler_end, loss=loss)
+    model.load_state_dict(torch.load(checkpoint_path))
+    model.eval()
+
+    pass
+
+
 
 if __name__ == "__main__":
     main()
