@@ -19,4 +19,6 @@ seaborn
 streamlit
 cudf-cu11
 cuml-cu11
+streamlit-image-coordinates
+streamlit-drawable-canvas
 git+https://github.com/hits-sdo/hits-sdo-packager.git@pip_nodata
