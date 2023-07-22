@@ -10,6 +10,8 @@
 # * euclidean vs cosine distance best image retrieval
 # download similar images from the dataset and corresponding metadata
 # [ ] set images to constant 1:1 and 128x128
+# [ ] add option to select neighbor tiles and download with metadata (how does plotting images with pyplot affect ease of building selection)
+# [ ] generate crop of query image for sim search
 """
 
 import streamlit as st
@@ -18,6 +20,9 @@ from nearest_neighbour_search import fetch_n_neighbor_filenames
 import torchvision
 from PIL import Image
 import pickle
+import math
+import matplotlib.pyplot as plt
+import cv2
 
 if 'fnames' not in st.session_state:
     st.session_state['fnames'] = []
@@ -75,14 +80,48 @@ def show_nearest_neighbours(wavelength,
     #     col2.image(data_path + fname)
 
 
-st.sidebar.button('Perform Similarity Search',
-                  on_click=show_nearest_neighbours,
-                  args=([171, 9, 128, 'cosine']), key='search')
+with st.sidebar:
+    st.selectbox(
+        'Wavelength',
+        ('211 193 171', '211 193 171'),
+        key='wavelength')
+
+    st.selectbox(
+        'Distance metric',
+        ('Euclidean', 'Cosine'),
+        key='dist')
+
+    st.sidebar.slider('Number of Neighbours',
+                      min_value=2,
+                      max_value=50,
+                      step=1,
+                      value=26,
+                      key='neighbors')
+
+    st.sidebar.button('Perform Similarity Search',
+                      on_click=show_nearest_neighbours,
+                      args=([st.session_state['wavelength'],
+                             st.session_state['neighbors'],
+                             128,
+                             st.session_state['dist']]),
+                      key='search')
+
 
 if st.session_state['search'] is True:
     col2.write('Retrieved Images')
-    for f in st.session_state['fnames']:
-        col2.image(data_path + f)
+    dim = math.ceil(math.sqrt(st.session_state['neighbors']))
+    fig, ax = plt.subplots(dim, dim, figsize=(10, 10))
+    ax = ax.ravel()
+    plt.subplots_adjust(wspace=0.1, hspace=0.1)
+
+    for a in ax:
+        a.axis('off')
+
+    for i, f in enumerate(st.session_state['fnames']):
+        img = cv2.imread(data_path + f)
+        ax[i].imshow(img[:, :, ::-1])
+
+    col2.pyplot(fig)
 
     idx = embeddings_dict()['filenames'].index(st.session_state['fnames'][0])
     print('N:', embeddings_dict()['embeddings'][idx, :5])
