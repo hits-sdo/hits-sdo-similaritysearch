@@ -295,3 +295,22 @@ IndexError: only integers, slices (`:`), ellipsis (`...`), numpy.newaxis (`None`
 - [ ] Train model
 - [ ] Validate model using `val_file_list.txt` created and stored in miniset
 - [ ] Create visualizations using clustering in the embedding space to analyze results
+
+
+## 7/26/2023
+- [ ] Continue testing the augmentations in `dataset_aug.py` 
+    - [ ] `P_Flip()`
+    - [ ] `Rotate()`
+        - [ ] Make the rotations random, and not just 90 clockwhise
+    - [ ] `Brighten()`
+    - [ ] `Translate()`
+    - [ ] `Zoom()`
+    - [ ] `Blur()`
+    - [ ] `AddNoise()`
+# if time permits...
+    - [ ] `Cutout()`
+    - [ ] Make the transformations random for `brighten`, `translate`, `zoom`, `blur`, `noise_mean`, `noise_std`
+- [ ] Train model
+- [ ] Validate model using `val_file_list.txt` created and stored in miniset
+- [ ] Create visualizations using clustering in the embedding space to analyze results
+

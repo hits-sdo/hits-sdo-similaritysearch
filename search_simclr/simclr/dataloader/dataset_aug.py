@@ -40,8 +40,9 @@ class Blur(object):
         Blurring is performed as an average blurring
         with kernel size defined by blur
     """
-        image = cv.blur(sample["image"], (self.blur[0], self.blur[1]), 0)
-        return image
+        image, fname = sample["image"], sample["filename"]
+        blur_image = cv.blur(image, (self.blur[0], self.blur[1]), 0)
+        return {"image": blur_image, "filename": fname}
 
 class AddNoise(object):
     """
@@ -77,12 +78,12 @@ class AddNoise(object):
         
 
     def __call__(self, sample):
-        img = sample["image"]
+        img, fname = sample["image"], sample["filename"]
         self.std = random.uniform(0, self.std_lim)
         noise = np.random.normal(self.mean, self.std, img.shape)
         img = img + noise
         img = np.clip(img, 0, 1)
-        return img
+        return {"image": img, "filename": fname}
     
 # class FillVoids(object):
 #     """
@@ -135,7 +136,7 @@ class StitchAdjacentImagesVer2(object):
                         fname,
                         EXISTING_FILES=self.file_list,
                         multi_wl=True,
-                        iterative=False,
+                        iterative=True,
                         remove_coords=False)
        
 
@@ -173,7 +174,6 @@ class H_Flip(object):
         
     def __call__(self, sample):
         image, fname = sample["image"], sample["filename"]
-        print(f"sample from H_Flip: {sample}")
         return {"image": cv.flip(image, 1), "filename": fname}
         
 class V_Flip(object):
@@ -214,7 +214,7 @@ class Translate(object):
         s = image.shape
         m = np.float32([[1, 0, self.translate[0]], [0, 1, self.translate[1]]])
         # Affine transformation to translate the image and output size
-        image = cv.warpAffine(img, m, (s[1], s[0]))
+        image = cv.warpAffine(image, m, (s[1], s[0]))
         return {"image": image, "filename": fname}
     
 class Zoom(object):
@@ -260,12 +260,14 @@ class Crop(object):
     def __call__(self, sample):
         image, fname = sample["image"], sample["filename"]
          # Crop middle part of image1
-        shape1 = img.shape[-2:]
+        print(f"crop.shape: {image.shape}")  ##temp test
+        shape1 = image.shape[:2]
+        print(f"shape1: {shape1}")  ##temp test
         h1 = shape1[0] // 3
         h2 = shape1[0] // 3 * 2
         w1 = shape1[1] // 3
         w2 = shape1[1] // 3 * 2
-        cropped_image = image[:,h1:h2,w1:w2] # channels,height,width
+        cropped_image = image[w1:w2,h1:h2,:] #width, height, channels
         return {"image": cropped_image, "filename": fname}
                 
 class ToTensor(object):
@@ -303,16 +305,17 @@ class Transforms_SimCLR(object):
             # Stitch image should happen before the fill voids
             StitchAdjacentImagesVer2(data_dir, file_list),
             # FillVoids(), 
-            transforms.RandomApply([H_Flip()], p=1),
-            transforms.RandomApply([V_Flip()], p=0.5),
-            transforms.RandomApply([P_Flip()], p=0.5), 
+            # transforms.RandomApply([H_Flip()], p=1),
+            # transforms.RandomApply([V_Flip()], p=0.5),
+            # transforms.RandomApply([P_Flip()], p=0.5), 
             transforms.RandomApply([Rotate(rotate)], p=0.5),
-            transforms.RandomApply([Brighten(brighten)], p=0.5),
-            transforms.RandomApply([Translate(translate)], p=0.5),
-            transforms.RandomApply([Zoom(zoom)], p=0.5),
-            transforms.RandomApply([Blur(blur)], p=0.5),
-            transforms.RandomApply([AddNoise(noise_mean, noise_std)], p=0.5),
-            # transforms.RandomApply([Cutout(cutout_holes, cutout_size)], p=1), 
+            # transforms.RandomApply([Brighten(brighten)], p=0.5),
+            # transforms.RandomApply([Translate(translate)], p=0.5),
+            # transforms.RandomApply([Zoom(zoom)], p=0.5),
+            # transforms.RandomApply([Blur(blur)], p=0.5),
+            # transforms.RandomApply([AddNoise(noise_mean, noise_std)], p=1),
+            # transforms.RandomApply([Cutout(cutout_holes, cutout_size)], p=1),
+            Crop(),
         ToTensor()])
         
         
@@ -320,10 +323,9 @@ class Transforms_SimCLR(object):
         self.test_transform = transforms.ToTensor()
     
     def __call__(self, sample):
-        print(f"from Transforms_SimCLR: {sample}")
-        transformed_image1 = self.train_transform(sample)
-        transformed_image2 = self.train_transform(sample)
-        return transformed_image1, transformed_image2
+        transformed_sample1 = self.train_transform(sample)
+        transformed_sample2 = self.train_transform(sample)
+        return transformed_sample1, transformed_sample2
     
 
     

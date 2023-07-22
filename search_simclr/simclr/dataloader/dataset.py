@@ -38,12 +38,12 @@ class SdoDataset(Dataset):
         print("image fullpath: " + image_fullpath) #/data/miniset/AIA171/monochrome/tile_20230206_000634_1024_0171_0384_0512.p
         image = image_utils.read_image(image_fullpath, 'jpg')
         sample = {"image": image, "filename": self.file_list[idx] }
-        print("from dataset.py: " , sample)
+        print("image from dataset.py: " , image.shape)
         if (self.transform):
             # Transform images by augmentations
-            image1, image2 = self.transform(sample)
+            sample1, sample2 = self.transform(sample)
             #lightly data set requires label, add in label later in needed
-            return image1, image2, sample["filename"], sample["filename"]#image_fullpath, image_fullpath
+            return sample1["image"], sample2["image"], sample1["filename"], sample2["filename"]#image_fullpath, image_fullpath
             
            
         else:

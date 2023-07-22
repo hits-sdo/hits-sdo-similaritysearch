@@ -37,8 +37,6 @@ def main():
     tot_file_list = get_file_list(tot_fpath_wfname)
     train_file_list, val_file_list = partition_tile_dir_train_val(tot_file_list[:50], 0.8)
     # save lists
-    print(train_file_list)
-    print(val_file_list)
 
     with open(os.path.join(train_val_dir,'train_file_list.txt'), 'w') as f:
         for item in train_file_list:
