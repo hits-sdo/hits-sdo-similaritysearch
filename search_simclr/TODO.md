@@ -297,13 +297,13 @@ IndexError: only integers, slices (`:`), ellipsis (`...`), numpy.newaxis (`None`
 - [ ] Create visualizations using clustering in the embedding space to analyze results
 
 
-## 7/26/2023
+## 7/24/2023
 - [ ] Continue testing the augmentations in `dataset_aug.py` 
-    - [ ] `P_Flip()`
-    - [ ] `Rotate()`
+    - [x] `P_Flip()`
+    - [x] `Rotate()`
         - [ ] Make the rotations random, and not just 90 clockwhise
-    - [ ] `Brighten()`
-    - [ ] `Translate()`
+    - [x] `Brighten()`
+    - [x] `Translate()`
     - [ ] `Zoom()`
     - [ ] `Blur()`
     - [ ] `AddNoise()`
@@ -314,3 +314,14 @@ IndexError: only integers, slices (`:`), ellipsis (`...`), numpy.newaxis (`None`
 - [ ] Validate model using `val_file_list.txt` created and stored in miniset
 - [ ] Create visualizations using clustering in the embedding space to analyze results
 
+## 7/26/2023
+-[ ] `Zoom()` in `dataset_aug.py` line numbers 238-255 check s (transformed image dimension and original image dimension) against test cases written by team yellow (pasted in line 257)
+https://github.com/hits-sdo/hits-sdo-packager/tree/main/sdo_augmentation
+notes: in unittests, zoom range is 0 < x < 1 but in the GUI backend
+it's 0.5 < x < 5
+- [ ] `Blur()`
+- [ ] `AddNoise()`
+- [ ] `Cutout()`
+- [ ] Make the transformations random for `brighten`, `translate`, `zoom`, `blur`, `noise_mean`, `noise_std`
+- [ ] Train model
+- profitttt

@@ -138,6 +138,7 @@ class StitchAdjacentImagesVer2(object):
                         multi_wl=True,
                         iterative=True,
                         remove_coords=False)
+        print(f'superImage shape: {superImage.shape}')
        
 
         return {"image": superImage, "filename": fname}
@@ -216,7 +217,7 @@ class Translate(object):
         # Affine transformation to translate the image and output size
         image = cv.warpAffine(image, m, (s[1], s[0]))
         return {"image": image, "filename": fname}
-    
+
 class Zoom(object):
     def __init__(self, value):
         self.zoom = value
@@ -229,17 +230,51 @@ class Zoom(object):
         img_zeros = np.zeros(s)
 
         image_resize = cv.resize(image, (s1[1], s1[0]), interpolation=cv.INTER_AREA)
+
+        # image_returnsize = 
+
         # Resize the image using zoom as scaling factor with area interpolation
+        # if zoom = < 1, zooming out. Else zooming in
         if self.zoom < 1:
             y1 = s[0]//2 - s1[0]//2
             y2 = s[0]//2 + s1[0] - s1[0]//2
             x1 = s[1]//2 - s1[1]//2
             x2 = s[1]//2 + s1[1] - s1[1]//2
             img_zeros[y1:y2, x1:x2] = image_resize
+            print(f'zoom_shape{img_zeros.shape}')
             return {"image": img_zeros, "filename": fname}
         else:
-            return {"image": image_resize, "filename": fname}
+            h1 = s1[0] // self.zoom
+            h2 = s1[0] // self.zoom * 2
+            w1 = s1[1] // self.zoom
+            w2 = s1[1] // self.zoom * 2
+            print(f'w1, w2, h1, h2: {w1}, {w2}, {h1}, {h2}')
 
+            cropped_image = image_resize[w1:w2, h1:h2,:]
+            print(f'zoom_shape{cropped_image.shape}')
+            return {"image": cropped_image, "filename": fname}
+
+'''    def test_zoom(self):
+        """visually check zooming in and out"""
+        z = 2
+        image_tr = self.augmentations.zoom(self.image, zoom=z)
+        s_tr = image_tr.shape
+        s_old = self.image.shape
+        y1 = s_tr[0]//2 - s_old[0]//2
+        y2 = s_tr[0]//2 + s_old[0]//2
+        x1 = s_tr[1]//2 - s_old[1]//2
+        x2 = s_tr[1]//2 + s_old[1]//2
+        image_tr = image_tr[y1:y2, x1:x2]
+        plt.subplot(1, 2, 1)
+        plt.imshow(self.image, vmin=0, vmax=1)
+        plt.title('original image')
+        plt.subplot(1, 2, 2)
+        plt.imshow(image_tr, vmin=0, vmax=1)
+        if z < 1:
+            plt.title('zoomed out image')
+        else:
+            plt.title('zoomed in image')
+        plt.show()'''
 class Rotate(object):
     def __init__(self, value):
         self.rotate = value
@@ -269,7 +304,17 @@ class Crop(object):
         w2 = shape1[1] // 3 * 2
         cropped_image = image[w1:w2,h1:h2,:] #width, height, channels
         return {"image": cropped_image, "filename": fname}
-                
+
+class ReSize(object):
+    def __init__(self, resize_height: int, resize_width: int ) -> None:
+        self.resize_height = resize_height
+        self.resize_width = resize_width
+
+    def __call__(self, sample):
+        image, fname = sample["image"], sample["filename"]
+        resized_image = cv.resize(image, (self.resize_width, self.resize_height))
+        return {"image": resized_image, "filename": fname}
+
 class ToTensor(object):
     """Convert ndarrays in sample to Tensors."""
 
@@ -307,11 +352,12 @@ class Transforms_SimCLR(object):
             # FillVoids(), 
             # transforms.RandomApply([H_Flip()], p=1),
             # transforms.RandomApply([V_Flip()], p=0.5),
-            # transforms.RandomApply([P_Flip()], p=0.5), 
-            transforms.RandomApply([Rotate(rotate)], p=0.5),
+            # transforms.RandomApply([P_Flip()], p=1), 
+            # transforms.RandomApply([Rotate(rotate)], p=0.5),
             # transforms.RandomApply([Brighten(brighten)], p=0.5),
             # transforms.RandomApply([Translate(translate)], p=0.5),
-            # transforms.RandomApply([Zoom(zoom)], p=0.5),
+            # transforms.RandomApply([transforms.Compose([Zoom(zoom), ReSize(height, width)])], p=1),
+            transforms.RandomApply([Zoom(zoom)], p=0.5),
             # transforms.RandomApply([Blur(blur)], p=0.5),
             # transforms.RandomApply([AddNoise(noise_mean, noise_std)], p=1),
             # transforms.RandomApply([Cutout(cutout_holes, cutout_size)], p=1),

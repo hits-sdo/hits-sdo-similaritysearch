@@ -49,8 +49,8 @@ def main():
     # Define transforms
     transform = dataset_aug.Transforms_SimCLR(blur=(1,1), 
                                               brighten=1.0, 
-                                              translate=(1, 1), 
-                                              zoom=1.0, 
+                                              translate=(1, 3), 
+                                              zoom=3.0, 
                                               rotate=45.0, 
                                               noise_mean=0.0, 
                                               noise_std=0.05, 
