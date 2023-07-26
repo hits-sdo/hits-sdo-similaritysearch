@@ -224,35 +224,27 @@ class Zoom(object):
         assert isinstance(value, float)
     
     def __call__(self, sample):
-        image, fname = sample["image"], sample["filename"]
-        s = image.shape
-        s1 = (int(self.zoom*s[0]), int(self.zoom*s[1]))
-        img_zeros = np.zeros(s)
+        image, fname = sample["image"], sample["filename"] #Unpack the dictionary
+        original_image_shape = image.shape
+        zoomed_immage_shape = (int(self.zoom*original_image_shape[0]), int(self.zoom*original_image_shape[1]))
+        img_zeros = np.zeros(original_image_shape) #temporary empty canvas the sizer of the original image
 
-        image_resize = cv.resize(image, (s1[1], s1[0]), interpolation=cv.INTER_AREA)
-
-        # image_returnsize = 
-
+        image_resize = cv.resize(image, (zoomed_immage_shape[1], zoomed_immage_shape[0]), interpolation=cv.INTER_CUBIC)
         # Resize the image using zoom as scaling factor with area interpolation
-        # if zoom = < 1, zooming out. Else zooming in
         if self.zoom < 1:
-            y1 = s[0]//2 - s1[0]//2
-            y2 = s[0]//2 + s1[0] - s1[0]//2
-            x1 = s[1]//2 - s1[1]//2
-            x2 = s[1]//2 + s1[1] - s1[1]//2
-            img_zeros[y1:y2, x1:x2] = image_resize
-            print(f'zoom_shape{img_zeros.shape}')
-            return {"image": img_zeros, "filename": fname}
+            y1 = original_image_shape[0]//2 - zoomed_immage_shape[0]//2 #center of originall image - half of zoomed image
+            y2 = original_image_shape[0]//2 + zoomed_immage_shape[0]//2 #center of originall image + half of zoomed image
+            x1 = original_image_shape[1]//2 - zoomed_immage_shape[1]//2
+            x2 = original_image_shape[1]//2 + zoomed_immage_shape[1]//2
+            img_zeros[y1:y2, x1:x2] = image_resize #inlay the "ZOOMED OUT" - Actually just shrunk immage inside the zeros 
         else:
-            h1 = s1[0] // self.zoom
-            h2 = s1[0] // self.zoom * 2
-            w1 = s1[1] // self.zoom
-            w2 = s1[1] // self.zoom * 2
-            print(f'w1, w2, h1, h2: {w1}, {w2}, {h1}, {h2}')
-
-            cropped_image = image_resize[w1:w2, h1:h2,:]
-            print(f'zoom_shape{cropped_image.shape}')
-            return {"image": cropped_image, "filename": fname}
+            y1 = zoomed_immage_shape[0]//2 - original_image_shape[0]//2 #Center of zoomed image - half of original image
+            y2 = zoomed_immage_shape[0]//2 + original_image_shape[0]//2 #Center of zoomed image + half of original image
+            x1 = zoomed_immage_shape[1]//2 - original_image_shape[1]//2
+            x2 = zoomed_immage_shape[1]//2 + original_image_shape[1]//2
+            img_zeros = image_resize[x1:x2, y1:y2,:] #the zeroes immage now gets the cutout of the "ZOOMED IN" immage - Actually just expanded immage
+            
+        return {"image": img_zeros, "filename": fname} #Repac and return the dictionary
 
 '''    def test_zoom(self):
         """visually check zooming in and out"""
@@ -275,6 +267,7 @@ class Zoom(object):
         else:
             plt.title('zoomed in image')
         plt.show()'''
+        
 class Rotate(object):
     def __init__(self, value):
         self.rotate = value
