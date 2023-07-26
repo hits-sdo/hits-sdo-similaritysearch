@@ -143,31 +143,37 @@ class StitchAdjacentImagesVer2(object):
 
         return {"image": superImage, "filename": fname}
 
-# class Cutout(object):
-#     def __init__(self, n_holes, length):
-#         assert isinstance(n_holes, int)
-#         assert isinstance(length, int)
-#         self.n_holes = n_holes
-#         self.length = length
+class Cutout(object):
+    def __init__(self, cutout_holes, cutout_size):
+        self.cutout_holes = cutout_holes
+        self.cutout_size = cutout_size
+        assert isinstance(cutout_holes, int)
+        assert isinstance(cutout_size, float)
         
 
-#     def __call__(self, img):
-#         h, w = img.shape[:2]
-#         mask = np.ones((h, w), np.float32)
+    def __call__(self, sample):
+        cutout_image, fname = sample["image"], sample["filename"]
+        super_image_height, super_image_width = (cutout_image.shape[:2])
+        
+        image_height, image_width = (super_image_height // 3, super_image_width // 3)
+        
+        nholes = random.randint(1, self.cutout_holes)
+        
+        for _ in range(nholes):
+            hole_height = random.randint(int(image_height * self.cutout_size/10.0), int(image_height * self.cutout_size))
+            hole_width = random.randint(int(image_height * self.cutout_size/10.0), int(image_width * self.cutout_size))
+        
+            random_coordinate = (random.randint(image_height, 2*image_height-hole_height), random.randint(image_width, 2*image_width-hole_width))
+        
+            mask = np.ones_like(cutout_image)
 
-#         for n in range(self.n_holes):
-#             y = np.random.randint(h)
-#             x = np.random.randint(w)
+            # Set the region of the hole in the mask to 0
+            mask[random_coordinate[0]:random_coordinate[0]+hole_height, random_coordinate[1]:random_coordinate[1]+hole_width] = 0
 
-#             y1 = np.clip(y - self.length // 2, 0, h)
-#             y2 = np.clip(y + self.length // 2, 0, h)
-#             x1 = np.clip(x - self.length // 2, 0, w)
-#             x2 = np.clip(x + self.length // 2, 0, w)
+            # Apply the mask to the image
+            cutout_image = cutout_image * mask
 
-#             mask[y1:y2, x1:x2] = 0
-
-#         img = img * mask[..., np.newaxis]
-#         return img
+        return {"image": cutout_image, "filename": fname}
 
 class H_Flip(object):
     def __init__(self):
@@ -224,35 +230,27 @@ class Zoom(object):
         assert isinstance(value, float)
     
     def __call__(self, sample):
-        image, fname = sample["image"], sample["filename"]
-        s = image.shape
-        s1 = (int(self.zoom*s[0]), int(self.zoom*s[1]))
-        img_zeros = np.zeros(s)
+        image, fname = sample["image"], sample["filename"] #Unpack the dictionary
+        original_image_shape = image.shape
+        zoomed_immage_shape = (int(self.zoom*original_image_shape[0]), int(self.zoom*original_image_shape[1]))
+        img_zeros = np.zeros(original_image_shape) #temporary empty canvas the sizer of the original image
 
-        image_resize = cv.resize(image, (s1[1], s1[0]), interpolation=cv.INTER_AREA)
-
-        # image_returnsize = 
-
+        image_resize = cv.resize(image, (zoomed_immage_shape[1], zoomed_immage_shape[0]), interpolation=cv.INTER_CUBIC)
         # Resize the image using zoom as scaling factor with area interpolation
-        # if zoom = < 1, zooming out. Else zooming in
         if self.zoom < 1:
-            y1 = s[0]//2 - s1[0]//2
-            y2 = s[0]//2 + s1[0] - s1[0]//2
-            x1 = s[1]//2 - s1[1]//2
-            x2 = s[1]//2 + s1[1] - s1[1]//2
-            img_zeros[y1:y2, x1:x2] = image_resize
-            print(f'zoom_shape{img_zeros.shape}')
-            return {"image": img_zeros, "filename": fname}
+            y1 = original_image_shape[0]//2 - zoomed_immage_shape[0]//2 #center of originall image - half of zoomed image
+            y2 = original_image_shape[0]//2 + zoomed_immage_shape[0]//2 #center of originall image + half of zoomed image
+            x1 = original_image_shape[1]//2 - zoomed_immage_shape[1]//2
+            x2 = original_image_shape[1]//2 + zoomed_immage_shape[1]//2
+            img_zeros[y1:y2, x1:x2] = image_resize #inlay the "ZOOMED OUT" - Actually just shrunk immage inside the zeros 
         else:
-            h1 = s1[0] // self.zoom
-            h2 = s1[0] // self.zoom * 2
-            w1 = s1[1] // self.zoom
-            w2 = s1[1] // self.zoom * 2
-            print(f'w1, w2, h1, h2: {w1}, {w2}, {h1}, {h2}')
-
-            cropped_image = image_resize[w1:w2, h1:h2,:]
-            print(f'zoom_shape{cropped_image.shape}')
-            return {"image": cropped_image, "filename": fname}
+            y1 = zoomed_immage_shape[0]//2 - original_image_shape[0]//2 #Center of zoomed image - half of original image
+            y2 = zoomed_immage_shape[0]//2 + original_image_shape[0]//2 #Center of zoomed image + half of original image
+            x1 = zoomed_immage_shape[1]//2 - original_image_shape[1]//2
+            x2 = zoomed_immage_shape[1]//2 + original_image_shape[1]//2
+            img_zeros = image_resize[x1:x2, y1:y2,:] #the zeroes immage now gets the cutout of the "ZOOMED IN" immage - Actually just expanded immage
+            
+        return {"image": img_zeros, "filename": fname} #Repac and return the dictionary
 
 '''    def test_zoom(self):
         """visually check zooming in and out"""
@@ -275,6 +273,7 @@ class Zoom(object):
         else:
             plt.title('zoomed in image')
         plt.show()'''
+        
 class Rotate(object):
     def __init__(self, value):
         self.rotate = value
@@ -339,8 +338,8 @@ class Transforms_SimCLR(object):
                  rotate, 
                  noise_mean, 
                  noise_std, 
-                #  cutout_holes, 
-                #  cutout_size, 
+                cutout_holes, 
+                cutout_size, 
                 data_dir,
                 file_list
                 ):
@@ -349,7 +348,6 @@ class Transforms_SimCLR(object):
         self.train_transform = transforms.Compose([
             # Stitch image should happen before the fill voids
             StitchAdjacentImagesVer2(data_dir, file_list),
-            # FillVoids(), 
             # transforms.RandomApply([H_Flip()], p=1),
             # transforms.RandomApply([V_Flip()], p=0.5),
             # transforms.RandomApply([P_Flip()], p=1), 
@@ -357,10 +355,10 @@ class Transforms_SimCLR(object):
             # transforms.RandomApply([Brighten(brighten)], p=0.5),
             # transforms.RandomApply([Translate(translate)], p=0.5),
             # transforms.RandomApply([transforms.Compose([Zoom(zoom), ReSize(height, width)])], p=1),
-            transforms.RandomApply([Zoom(zoom)], p=0.5),
+            # transforms.RandomApply([Zoom(zoom)], p=0.5),
+            transforms.RandomApply([Cutout(cutout_holes, cutout_size)], p=1),
             # transforms.RandomApply([Blur(blur)], p=0.5),
             # transforms.RandomApply([AddNoise(noise_mean, noise_std)], p=1),
-            # transforms.RandomApply([Cutout(cutout_holes, cutout_size)], p=1),
             Crop(),
         ToTensor()])
         
