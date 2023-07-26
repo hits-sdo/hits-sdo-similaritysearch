@@ -54,8 +54,8 @@ def main():
                                               rotate=45.0, 
                                               noise_mean=0.0, 
                                               noise_std=0.05, 
-                                            #   cutout_holes=0, 
-                                            #   cutout_size=0,
+                                               cutout_holes=3, 
+                                               cutout_size=0.3,
                                                 data_dir=tile_dir,
                                             #   file_name="tile_20230206_000634_1024_0171_0896_0640.p",
                                                 file_list=train_file_list

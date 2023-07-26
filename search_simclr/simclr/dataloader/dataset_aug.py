@@ -143,31 +143,37 @@ class StitchAdjacentImagesVer2(object):
 
         return {"image": superImage, "filename": fname}
 
-# class Cutout(object):
-#     def __init__(self, n_holes, length):
-#         assert isinstance(n_holes, int)
-#         assert isinstance(length, int)
-#         self.n_holes = n_holes
-#         self.length = length
+class Cutout(object):
+    def __init__(self, cutout_holes, cutout_size):
+        self.cutout_holes = cutout_holes
+        self.cutout_size = cutout_size
+        assert isinstance(cutout_holes, int)
+        assert isinstance(cutout_size, float)
         
 
-#     def __call__(self, img):
-#         h, w = img.shape[:2]
-#         mask = np.ones((h, w), np.float32)
+    def __call__(self, sample):
+        cutout_image, fname = sample["image"], sample["filename"]
+        super_image_height, super_image_width = (cutout_image.shape[:2])
+        
+        image_height, image_width = (super_image_height // 3, super_image_width // 3)
+        
+        nholes = random.randint(1, self.cutout_holes)
+        
+        for _ in range(nholes):
+            hole_height = random.randint(int(image_height * self.cutout_size/10.0), int(image_height * self.cutout_size))
+            hole_width = random.randint(int(image_height * self.cutout_size/10.0), int(image_width * self.cutout_size))
+        
+            random_coordinate = (random.randint(image_height, 2*image_height-hole_height), random.randint(image_width, 2*image_width-hole_width))
+        
+            mask = np.ones_like(cutout_image)
 
-#         for n in range(self.n_holes):
-#             y = np.random.randint(h)
-#             x = np.random.randint(w)
+            # Set the region of the hole in the mask to 0
+            mask[random_coordinate[0]:random_coordinate[0]+hole_height, random_coordinate[1]:random_coordinate[1]+hole_width] = 0
 
-#             y1 = np.clip(y - self.length // 2, 0, h)
-#             y2 = np.clip(y + self.length // 2, 0, h)
-#             x1 = np.clip(x - self.length // 2, 0, w)
-#             x2 = np.clip(x + self.length // 2, 0, w)
+            # Apply the mask to the image
+            cutout_image = cutout_image * mask
 
-#             mask[y1:y2, x1:x2] = 0
-
-#         img = img * mask[..., np.newaxis]
-#         return img
+        return {"image": cutout_image, "filename": fname}
 
 class H_Flip(object):
     def __init__(self):
@@ -332,8 +338,8 @@ class Transforms_SimCLR(object):
                  rotate, 
                  noise_mean, 
                  noise_std, 
-                #  cutout_holes, 
-                #  cutout_size, 
+                cutout_holes, 
+                cutout_size, 
                 data_dir,
                 file_list
                 ):
@@ -342,7 +348,6 @@ class Transforms_SimCLR(object):
         self.train_transform = transforms.Compose([
             # Stitch image should happen before the fill voids
             StitchAdjacentImagesVer2(data_dir, file_list),
-            # FillVoids(), 
             # transforms.RandomApply([H_Flip()], p=1),
             # transforms.RandomApply([V_Flip()], p=0.5),
             # transforms.RandomApply([P_Flip()], p=1), 
@@ -350,10 +355,10 @@ class Transforms_SimCLR(object):
             # transforms.RandomApply([Brighten(brighten)], p=0.5),
             # transforms.RandomApply([Translate(translate)], p=0.5),
             # transforms.RandomApply([transforms.Compose([Zoom(zoom), ReSize(height, width)])], p=1),
-            transforms.RandomApply([Zoom(zoom)], p=0.5),
+            # transforms.RandomApply([Zoom(zoom)], p=0.5),
+            transforms.RandomApply([Cutout(cutout_holes, cutout_size)], p=1),
             # transforms.RandomApply([Blur(blur)], p=0.5),
             # transforms.RandomApply([AddNoise(noise_mean, noise_std)], p=1),
-            # transforms.RandomApply([Cutout(cutout_holes, cutout_size)], p=1),
             Crop(),
         ToTensor()])
         
