@@ -47,14 +47,14 @@ def main():
 
 
     # Define transforms
-    transform = dataset_aug.Transforms_SimCLR(blur=(1,1), 
+    transform = dataset_aug.Transforms_SimCLR(blur=(5,5), 
                                               brighten=1.0, 
                                               translate=(1, 3), 
-                                              zoom=3.0, 
+                                              zoom=1.5, 
                                               rotate=45.0, 
                                               noise_mean=0.0, 
                                               noise_std=0.05, 
-                                               cutout_holes=3, 
+                                               cutout_holes=1, 
                                                cutout_size=0.3,
                                                 data_dir=tile_dir,
                                             #   file_name="tile_20230206_000634_1024_0171_0896_0640.p",

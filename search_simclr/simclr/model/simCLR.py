@@ -9,7 +9,6 @@ sys.path.append(str(root))
 from search_simclr.simclr.dataloader.dataset import SdoDataset
 from search_utils import image_utils  # TODO needed?
 from search_simclr.simclr.dataloader.dataset_aug import Transforms_SimCLR
-# from search_simclr.simclr.dataloader import dataset_aug
 from search_simclr.simclr.dataloader.datamodule import SimCLRDataModule
 
 import matplotlib.pyplot as plt
@@ -22,37 +21,18 @@ from PIL import Image
 from sklearn.neighbors import NearestNeighbors
 from sklearn.preprocessing import normalize
 import wandb
-# 
-# from lightly.data import LightlyDataset
-# from lightly.transforms import SimCLRTransform, utils
+
 
 from lightly.loss import NTXentLoss
 from lightly.models.modules.heads import SimCLRProjectionHead
 
-@dataclass
-class SDOConfig:
-    """ Configuration options for HITS-SDO Dataset"""
 
-    train_dir: str = root/"data/miniset/AIA171/monochrome", # ❗want train_list?
-    val_dir: str = None, # ❗want val_list instead?
-    test_dir: str = None
-    num_workers: int = 8
-    batch_size: int = 256
-    seed: int = 1
-    max_epochs: int = 20
-    input_size: int = 128 # input resolution
-    num_ftrs: int = 32
-    accelerator: str = "cuda" if torch.cuda.is_available() else "cpu"
-    devices: bool = 1
-    stage: str = "train"
-'''
 # set the seed
 pl.seed_everything(seed)
 
 accelerator = "gpu" if torch.cuda.is_available() else "cpu"
 
 trainer = pl.Trainer(max_epochs=10, devices=1, accelerator=accelerator)
-'''
 
 class SimCLR(pl.LightningModule):
     def __init__(self):
@@ -101,6 +81,39 @@ def generate_embeddings(model, dataloader):
     embeddings = torch.cat(embeddings, 0)
     embeddings = normalize(embeddings)
     return embeddings, filenames
+
+
+def get_image_as_np_array(filename: str):
+    """Returns an image as an numpy array"""
+    img = Image.open(filename)
+    return np.asarray(img)
+
+
+def plot_knn_examples(embeddings, filenames, n_neighbors=3, num_examples=6):
+    """Plots multiple rows of random images with their nearest neighbors"""
+    # lets look at the nearest neighbors for some samples
+    # we use the sklearn library
+    nbrs = NearestNeighbors(n_neighbors=n_neighbors).fit(embeddings)
+    distances, indices = nbrs.kneighbors(embeddings)
+
+    # get 5 random samples
+    samples_idx = np.random.choice(len(indices), size=num_examples, replace=False)
+
+    # loop through our randomly picked samples
+    for idx in samples_idx:
+        fig = plt.figure()
+        # loop through their nearest neighbors
+        for plot_x_offset, neighbor_idx in enumerate(indices[idx]):
+            # add the subplot
+            ax = fig.add_subplot(1, len(indices[idx]), plot_x_offset + 1)
+            # get the correponding filename for the current index
+            fname = os.path.join(path_to_data, filenames[neighbor_idx])
+            # plot the image
+            plt.imshow(get_image_as_np_array(fname))
+            # set the title to the distance of the neighbor
+            ax.set_title(f"d={distances[idx][plot_x_offset]:.3f}")
+            # let's disable the axis
+            plt.axis("off")
 
 
 # move this main function code to a script

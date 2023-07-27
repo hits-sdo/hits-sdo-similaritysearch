@@ -315,13 +315,30 @@ IndexError: only integers, slices (`:`), ellipsis (`...`), numpy.newaxis (`None`
 - [ ] Create visualizations using clustering in the embedding space to analyze results
 
 ## 7/26/2023
--[ ] `Zoom()` in `dataset_aug.py` line numbers 238-255 check s (transformed image dimension and original image dimension) against test cases written by team yellow (pasted in line 257)
+-[X] `Zoom()` in `dataset_aug.py` line numbers 238-255 check s (transformed image dimension and original image dimension) against test cases written by team yellow (pasted in line 257)
 https://github.com/hits-sdo/hits-sdo-packager/tree/main/sdo_augmentation
 notes: in unittests, zoom range is 0 < x < 1 but in the GUI backend
 it's 0.5 < x < 5
-- [ ] `Blur()`
-- [ ] `AddNoise()`
-- [ ] `Cutout()`
+- [X] `Blur()`
+- [X] `AddNoise()`
+- [X] `Cutout()`
 - [ ] Make the transformations random for `brighten`, `translate`, `zoom`, `blur`, `noise_mean`, `noise_std`
 - [ ] Train model
+  - [ ] Configure model backbone to utilize pre-trained of the shelf model
+  - [ ] [Tutorial reference](https://docs.lightly.ai/self-supervised-learning/tutorials/package/tutorial_pretrain_detectron2.html)
+  - [ ] Configure model from scratch
+  - [ ] set up wandb
+  - [ ] refactor code to log loss and accuracy
+- profitttt
+
+## 7/28/2023
+- [ ] Create directories at the following path `search_simclr/visualizations/simclr_knn` and `search_simclr/model_weights`
+- [ ] configure the `model_run.py` to run the model
+- [ ] fix the `Rotate` class in `dataset_aug.py` to make the rotations random
+- [ ] Train model
+  - [ ] Configure model backbone to utilize pre-trained of the shelf model
+  - [ ] [Tutorial reference](https://docs.lightly.ai/self-supervised-learning/tutorials/package/tutorial_pretrain_detectron2.html)
+  - [ ] Configure model from scratch
+  - [ ] set up wandb
+  - [ ] refactor code to log loss and accuracy
 - profitttt

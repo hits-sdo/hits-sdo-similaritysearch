@@ -32,13 +32,19 @@ class SimCLRDataModule(pl.LightningDataModule):
 
         # TODO: want to make this a variable to pass in instead of hardcoding
         # another note: want truly random values to be passed into these?
-        self.transform = Transforms_SimCLR(blur=(1,1), 
+        self.transform = Transforms_SimCLR(blur=(5,5), 
                                               brighten=1.0, 
-                                              translate=(1, 1), 
-                                              zoom=1.0, 
+                                              translate=(1, 3), 
+                                              zoom=1.5, 
                                               rotate=45.0, 
                                               noise_mean=0.0, 
-                                              noise_std=0.05)
+                                              noise_std=0.05, 
+                                               cutout_holes=1, 
+                                               cutout_size=0.3,
+                                                data_dir=tile_dir,
+                                            #   file_name="tile_20230206_000634_1024_0171_0896_0640.p",
+                                                file_list=train_file_list
+                                              )
     
     def prepare_data(self):
         #TODO download call team red dataloader
