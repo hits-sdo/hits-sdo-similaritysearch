@@ -1,18 +1,41 @@
 """ -- TODO LIST --
-# [X]Drag/drop an image for similarity search
-# [ ] Add button for similarity search
+# [X] Drag/drop an image for similarity search
+# [X] Add button for similarity search
 # * on click call a function which does similarity search
-# [ ] Sidebar with options
+# [X] Sidebar with options
 # * switching dataset
 # * how many nearest neighbors
 # * pick image from dataset
-# * user upload their own dataset
 # * euclidean vs cosine distance best image retrieval
 # download similar images from the dataset and corresponding metadata
 # [ ] set images to constant 1:1 and 128x128
 # [ ] add option to select neighbor tiles and download with metadata (how does plotting images with pyplot affect ease of building selection)
+# * gray border around tiles, when clicked border turns blue
+# * buttons to select/deselect all tiles
 # [ ] generate crop of query image for sim search
+# [ ] find error cause of idx = embeddings_dict()['filenames'].index(st.session_state['fnames'][0])
+# [ ] Allow user to specify custom search space
+# [ ] Incorporate switching model based on dataset
+# [ ] Incorporate date range to search from
+# [ ] add help option for sidebar parameters explaining what they do
+# [ ] add viewing metadata of similar images
+# [ ] add smoother transitions
+# [ ] download multiple images with one button
+# [ ] add option for random augmentation to validate embeddings
 """
+
+# Potential usage of clickable_images custom streamlit plugin
+# with col3:
+#     data_urls = [f'data:image/jpeg;base64,{cv2.imread(data_path + f)}' for i, f in enumerate(st.session_state['fnames'])],
+
+#     clicked = clickable_images(
+#         paths=data_urls,
+#         titles=[f"Image #{str(i)}" for i in range(len(st.session_state['fnames']))],
+#         div_style={"display": "flex", "justify-content": "center", "flex-wrap": "wrap"},
+#         img_style={"margin": "5px", "height": "200px"},
+#     )
+
+#     st.markdown(f"Image #{clicked} clicked" if clicked > -1 else "No image clicked")
 
 import streamlit as st
 from model import load_model
@@ -23,9 +46,13 @@ import pickle
 import math
 import matplotlib.pyplot as plt
 import cv2
+from st_clickable_images import clickable_images
+from io import BytesIO, BufferedReader
+
+def empty_fnames(): st.session_state['fnames'] = []
 
 if 'fnames' not in st.session_state:
-    st.session_state['fnames'] = []
+    empty_fnames()
 
 data_path = '/home/schatterjee/Documents/hits/AIA211_193_171_Miniset/'
 
@@ -38,18 +65,19 @@ def simsiam_model(wavelength):
 def embeddings_dict():
     return pickle.load(open('/home/schatterjee/Documents/hits/hits-sdo-similaritysearch/search_simsiam/embeddings_dict_new.p', 'rb'))
 
-
 # image for similarity search
 uploaded_file = st.file_uploader(
     "Choose an image...",
     type=["p", "jpg", "png"],
-    key='img')
+    key='img',
+    on_change=empty_fnames)
 
-col1, col2 = st.columns([1, 2])
+col1, col2, col3 = st.columns([1, 2, 1])
 
 if st.session_state['img'] is not None:
     col1.write('Query Image')
     col1.image(st.session_state['img'], use_column_width=True)
+
 
 
 def show_nearest_neighbours(wavelength,
@@ -107,7 +135,7 @@ with st.sidebar:
                       key='search')
 
 
-if st.session_state['search'] is True:
+if len(st.session_state['fnames']) > 0:
     col2.write('Retrieved Images')
     dim = math.ceil(math.sqrt(st.session_state['neighbors']))
     fig, ax = plt.subplots(dim, dim, figsize=(10, 10))
@@ -125,3 +153,16 @@ if st.session_state['search'] is True:
 
     idx = embeddings_dict()['filenames'].index(st.session_state['fnames'][0])
     print('N:', embeddings_dict()['embeddings'][idx, :5])
+
+    im_bgr = cv2.imread(data_path+st.session_state['fnames'][1])
+    # im_rgb = im_bgr[:, :, [2, 1, 0]] #numpy.ndarray
+    ret, img_enco = cv2.imencode(".png", im_bgr)  #numpy.ndarray
+    srt_enco = img_enco.tostring()  #bytes
+    img_BytesIO = BytesIO(srt_enco) #_io.BytesIO
+    img_BufferedReader = BufferedReader(img_BytesIO) #_io.BufferedReader
+    
+    col2.download_button('Download First Image',
+                         data=img_BufferedReader,
+                         file_name=st.session_state['fnames'][1],
+                         mime='image/png',
+                         )
