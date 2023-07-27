@@ -42,6 +42,7 @@ class SDOTilesDataset(Dataset):
         if data_stride>1:
             self.image_files = self.image_files[::data_stride]
         self.augmentation_list = AugmentationList(instrument="euv")
+        self.augmentation_list.keys.remove('brighten')
         self.datatype=datatype
         self.augmentation = augmentation
         if self.augmentation is None:

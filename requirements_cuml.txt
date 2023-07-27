@@ -3,16 +3,9 @@
 #   conda activate search-ssl
 # and then
 #   pip install -r requirements.txt
-lightning
-lightly
-sunpy
-pandas
-wandb
-ipywidgets
-plotly
-opencv-python
-scikit-learn==1.2.2
-umap-learn
-hdbscan
-seaborn
-git+https://github.com/hits-sdo/hits-sdo-packager.git@pip_nodata
+--extra-index-url=https://pypi.nvidia.com
+pyarrow
+pandas-gbq
+cupy-cuda11x
+cudf-cu11
+cuml-cu11
