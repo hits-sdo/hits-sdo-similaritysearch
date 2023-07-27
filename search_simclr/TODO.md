@@ -334,6 +334,7 @@ it's 0.5 < x < 5
 ## 7/28/2023
 - [ ] Create directories at the following path `search_simclr/visualizations/simclr_knn` and `search_simclr/model_weights`
 - [ ] configure the `model_run.py` to run the model
+    - [ ] complete `wandb.init()` function call on line 52
 - [ ] fix the `Rotate` class in `dataset_aug.py` to make the rotations random
 - [ ] Train model
   - [ ] Configure model backbone to utilize pre-trained of the shelf model
