@@ -4,13 +4,16 @@ from PIL import Image
 # from streamlit_drawable_canvas import st_canvas
 from streamlit_cropper import st_cropper
 import numpy as np
-# pull request to main for packager 
+import re
+import torch
+# pull request to main for packager
+import torchvision.transforms as transforms
 
 from models.byol_model import BYOL
 
 def main():
     st.title("HITS SDO Selector")
-    
+
     # Upload an image and set some options for demo purposes
     st.header("Cropper Demo")
     img_file = st.sidebar.file_uploader(label='Upload a file', type=['png', 'jpg'])
@@ -25,6 +28,7 @@ def main():
         "Free": None
     }
     aspect_ratio = aspect_dict[aspect_choice]
+    model = load_byol_model()
 
     if img_file:
         img = Image.open(img_file)
@@ -38,8 +42,19 @@ def main():
         st.write("Preview")
         _ = cropped_img.thumbnail((150,150))
         st.image(cropped_img)
-    
-    
+        
+    button = st.button("Run inference!")
+
+    transform = transforms.Compose([transforms.PILToTensor()])
+
+    if button:
+        inference_image = transform(cropped_img)[None,:,:,:].float()      
+        print(inference_image.shape)
+        inf_image = model.forward_momentum(inference_image)
+        print(f"We did it! The inference is: {inf_image}")
+
+# Path to index for embeddings size 16 on Jake's computer:
+# "/mnt/e/Downloads/ds1_bs64_lr0.1_doubleaug_ss0.1_se1.0_pjs16_pds16_contrast_.zip"
 
     # file = st.file_uploader("Choose a file")
     # # image_array = np.asarray(file)
@@ -54,7 +69,6 @@ def main():
         #                                     height=1024, width=1024)
         # print(value)
         # st.write(value)
- 
 
 def load_byol_model(checkpoint_path='/mnt/c/Users/jacob/Downloads/MT-ds1_bs64_lr0.1_doubleaug_ss0.1_se1.0_pjs16_pds16_contrast_.pt'):
     """
@@ -68,11 +82,13 @@ def load_byol_model(checkpoint_path='/mnt/c/Users/jacob/Downloads/MT-ds1_bs64_lr
                 model initialized with pretrained weights 
     """
 
-    model = BYOL(lr=learning_rate, projection_size=projection_size, prediction_size=prediction_size, cosine_scheduler_start=cosine_scheduler_start, cosine_scheduler_end=cosine_scheduler_end, loss=loss)
+    model = BYOL(projection_size=16, prediction_size=16)
     model.load_state_dict(torch.load(checkpoint_path))
     model.eval()
+    return model
 
-    pass
+
+
 
 
 
