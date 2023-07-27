@@ -154,11 +154,10 @@ if len(st.session_state['fnames']) > 0:
     idx = embeddings_dict()['filenames'].index(st.session_state['fnames'][0])
     print('N:', embeddings_dict()['embeddings'][idx, :5])
 
-    im_bgr = cv2.imread(data_path+st.session_state['fnames'][1])
-    # im_rgb = im_bgr[:, :, [2, 1, 0]] #numpy.ndarray
-    ret, img_enco = cv2.imencode(".png", im_bgr)  #numpy.ndarray
-    srt_enco = img_enco.tostring()  #bytes
-    img_BytesIO = BytesIO(srt_enco) #_io.BytesIO
+    im = cv2.imread(data_path+st.session_state['fnames'][1])
+    ret, img_enco = cv2.imencode(".png", im)  #numpy.ndarray
+    bytes_enco = img_enco.tobytes()  #bytes
+    img_BytesIO = BytesIO(bytes_enco) #_io.BytesIO
     img_BufferedReader = BufferedReader(img_BytesIO) #_io.BufferedReader
     
     col2.download_button('Download First Image',
