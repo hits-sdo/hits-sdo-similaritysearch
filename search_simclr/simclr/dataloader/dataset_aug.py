@@ -349,16 +349,16 @@ class Transforms_SimCLR(object):
         self.train_transform = transforms.Compose([
             # Stitch image should happen before the fill voids
             StitchAdjacentImagesVer2(data_dir, file_list),
-            # transforms.RandomApply([H_Flip()], p=0.5),
-            # transforms.RandomApply([V_Flip()], p=0.5),
-            # transforms.RandomApply([P_Flip()], p=0.5), 
-            transforms.RandomApply([Rotate(rotate)], p=1),
-            # transforms.RandomApply([Brighten(brighten)], p=0.5),
-            # transforms.RandomApply([Translate(translate)], p=0.5),
-            # transforms.RandomApply([Zoom(zoom)], p=0.5),
-            # transforms.RandomApply([Cutout(cutout_holes, cutout_size)], p=0.5),
-            # transforms.RandomApply([Blur(blur)], p=0.5),
-            # transforms.RandomApply([AddNoise(noise_mean, noise_std)], p=0.5),
+            transforms.RandomApply([H_Flip()], p=0.5),
+            transforms.RandomApply([V_Flip()], p=0.5),
+            transforms.RandomApply([P_Flip()], p=0.5), 
+            transforms.RandomApply([Rotate(rotate)], p=0.5),
+            transforms.RandomApply([Brighten(brighten)], p=0.5),
+            transforms.RandomApply([Translate(translate)], p=0.5),
+            transforms.RandomApply([Zoom(zoom)], p=0.5),
+            transforms.RandomApply([Cutout(cutout_holes, cutout_size)], p=0.5),
+            transforms.RandomApply([Blur(blur)], p=0.5),
+            transforms.RandomApply([AddNoise(noise_mean, noise_std)], p=0.5),
             Crop(),
         ToTensor()])
         
