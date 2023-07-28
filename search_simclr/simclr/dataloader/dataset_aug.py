@@ -276,7 +276,8 @@ class Zoom(object):
         
 class Rotate(object):
     def __init__(self, value=360.0):
-        self.rotate = random.uniform(0.0, value) 
+        self.rotate = value
+        print(f"rotate: {self.rotate}") 
         assert isinstance(value, float)
 
     def __call__(self, sample):
@@ -284,7 +285,7 @@ class Rotate(object):
         s = image.shape
         cy = (s[0]-1)/2  # y center : float
         cx = (s[1]-1)/2  # x center : float
-        M = cv.getRotationMatrix2D((cx, cy), self.rotate, 1)  # rotation matrix
+        M = cv.getRotationMatrix2D((cx, cy), random.uniform(0.0, self.rotate), 1)  # rotation matrix
     
         # Affine transformation to rotate the image and output size s[1],s[0]
         return {"image": cv.warpAffine(image, M, (s[1], s[0])), "filename": fname}
@@ -348,16 +349,16 @@ class Transforms_SimCLR(object):
         self.train_transform = transforms.Compose([
             # Stitch image should happen before the fill voids
             StitchAdjacentImagesVer2(data_dir, file_list),
-            transforms.RandomApply([H_Flip()], p=0.5),
-            transforms.RandomApply([V_Flip()], p=0.5),
-            transforms.RandomApply([P_Flip()], p=0.5), 
-            transforms.RandomApply([Rotate(rotate)], p=0.5),
-            transforms.RandomApply([Brighten(brighten)], p=0.5),
-            transforms.RandomApply([Translate(translate)], p=0.5),
-            transforms.RandomApply([Zoom(zoom)], p=0.5),
-            transforms.RandomApply([Cutout(cutout_holes, cutout_size)], p=0.5),
-            transforms.RandomApply([Blur(blur)], p=0.5),
-            transforms.RandomApply([AddNoise(noise_mean, noise_std)], p=0.5),
+            # transforms.RandomApply([H_Flip()], p=0.5),
+            # transforms.RandomApply([V_Flip()], p=0.5),
+            # transforms.RandomApply([P_Flip()], p=0.5), 
+            transforms.RandomApply([Rotate(rotate)], p=1),
+            # transforms.RandomApply([Brighten(brighten)], p=0.5),
+            # transforms.RandomApply([Translate(translate)], p=0.5),
+            # transforms.RandomApply([Zoom(zoom)], p=0.5),
+            # transforms.RandomApply([Cutout(cutout_holes, cutout_size)], p=0.5),
+            # transforms.RandomApply([Blur(blur)], p=0.5),
+            # transforms.RandomApply([AddNoise(noise_mean, noise_std)], p=0.5),
             Crop(),
         ToTensor()])
         
