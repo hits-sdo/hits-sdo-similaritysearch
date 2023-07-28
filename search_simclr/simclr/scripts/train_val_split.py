@@ -51,7 +51,7 @@ def main():
                                               brighten=1.0, 
                                               translate=(1, 3), 
                                               zoom=1.5, 
-                                              rotate=45.0, 
+                                              rotate=360.0, 
                                               noise_mean=0.0, 
                                               noise_std=0.05, 
                                                cutout_holes=1, 
