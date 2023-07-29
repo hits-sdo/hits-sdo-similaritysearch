@@ -9,8 +9,9 @@
 # * euclidean vs cosine distance best image retrieval
 # download similar images from the dataset and corresponding metadata
 # [ ] set images to constant 1:1 and 128x128
-# [ ] add option to select neighbor tiles and download with metadata (how does plotting images with pyplot affect ease of building selection)
-# * gray border around tiles, when clicked border turns blue
+# [X] add image selection to sidebar
+# [X] show border around selected images
+# [X] download selected images
 # * buttons to select/deselect all tiles
 # [ ] generate crop of query image for sim search
 # [ ] find error cause of idx = embeddings_dict()['filenames'].index(st.session_state['fnames'][0])
@@ -20,7 +21,6 @@
 # [ ] add help option for sidebar parameters explaining what they do
 # [ ] add viewing metadata of similar images
 # [ ] add smoother transitions
-# [ ] download multiple images with one button
 # [ ] add option for random augmentation to validate embeddings
 """
 
@@ -53,7 +53,10 @@ from st_clickable_images import clickable_images
 from io import BytesIO, BufferedReader
 from streamlit_image_select import image_select
 
-def empty_fnames(): st.session_state['fnames'] = []
+
+def empty_fnames():
+    st.session_state['fnames'] = []
+
 
 if 'fnames' not in st.session_state:
     empty_fnames()
@@ -69,6 +72,7 @@ def simsiam_model(wavelength):
 def embeddings_dict():
     return pickle.load(open('/home/schatterjee/Documents/hits/hits-sdo-similaritysearch/search_simsiam/embeddings_dict_new.p', 'rb'))
 
+
 # image for similarity search
 uploaded_file = st.file_uploader(
     "Choose an image...",
@@ -76,12 +80,11 @@ uploaded_file = st.file_uploader(
     key='img',
     on_change=empty_fnames)
 
-col1, col2, col3 = st.columns([1, 2, 1])
+col1, col2 = st.columns([1, 2])
 
 if st.session_state['img'] is not None:
     col1.write('Query Image')
     col1.image(st.session_state['img'], use_column_width=True)
-
 
 
 def show_nearest_neighbours(wavelength,
@@ -107,9 +110,6 @@ def show_nearest_neighbours(wavelength,
                                            num_images=num_images)
 
     st.session_state['fnames'] = filenames
-
-    # for fname in filenames:
-    #     col2.image(data_path + fname)
 
 
 with st.sidebar:
@@ -138,14 +138,15 @@ with st.sidebar:
                              st.session_state['dist']]),
                       key='search')
 
-    st.sidebar.multiselect('Select image index:', np.arange(st.session_state['neighbors']),
-                            key='indices')
-
-
+    st.sidebar.multiselect('Select image index:',
+                           np.arange(st.session_state['neighbors']),
+                           key='indices')
 
 
 if len(st.session_state['fnames']) > 0:
     col2.write('Retrieved Images')
+    idx = embeddings_dict()['filenames'].index(st.session_state['fnames'][0])
+    print('N:', embeddings_dict()['embeddings'][idx, :5])
 
     dim = math.ceil(math.sqrt(st.session_state['neighbors']))
     fig, ax = plt.subplots(dim, dim, figsize=(10, 10))
@@ -160,71 +161,13 @@ if len(st.session_state['fnames']) > 0:
         ax[i].imshow(img[:, :, ::-1])
 
         if i in st.session_state['indices']:
-            overlay = cv2.rectangle(img, (0,0), (127,127), (0,0,255), 10)
+            overlay = cv2.rectangle(img, (0, 0), (127, 127), (0, 0, 255), 10)
             ax[i].imshow(overlay[:, :, ::-1])
 
     col2.pyplot(fig)
 
-
-    im = cv2.imread(data_path+st.session_state['fnames'][1])
-    ret, img_enco = cv2.imencode(".png", im)  #numpy.ndarray
-    bytes_enco = img_enco.tobytes()  #bytes
-    img_BytesIO = BytesIO(bytes_enco) #_io.BytesIO
-    img_BufferedReader = BufferedReader(img_BytesIO) #_io.BufferedReader
-
-    # col2.download_button('Download Images',
-    #                     data=img_BufferedReader,
-    #                     file_name=st.session_state['fnames'][1],
-    #                     mime='image/png',
-    #                     )
-    # col2.button('')
-
-
-
-if st.button('Download Selected Images'):
-    with zipfile.ZipFile("selected_images.zip", "w") as zipf:
-        for i in st.session_state['indices']:
-            # Add each file to the ZIP archive
-            zipf.write(data_path+st.session_state['fnames'][i])
-
-
-# def download_images(image_list: list):
-#     zip_file_name = "image_collection.zip"
-#     with st.spinner("Creating zip file..."):
-#         with zipfile.ZipFile(zip_file_name, "w") as zipf:
-#             for image_path in image_list:
-#                 zipf.write(image_path, os.path.basename(image_path))
-#     st.success(f"Download link: [Click here to download]({zip_file_name})")
-
-
-
-
-    # fig = plt.figure()
-    # ax = fig.add_subplot(111)
-
-    # for axis in ['top', 'bottom', 'left', 'right']:
-
-    # ax.spines[axis].set_linewidth(2.5)  # change width
-    # ax.spines[axis].set_color('red')    # change color
-  
-
-    # idx = embeddings_dict()['filenames'].index(st.session_state['fnames'][0])
-    # print('N:', embeddings_dict()['embeddings'][idx, :5])
-
-    # img = image_select("Images", [data_path + x for x in st.session_state['fnames']])
-
-    # col2.write('File name list:')
-    # df = pd.DataFrame(st.session_state['fnames'], columns=['File Names'])
-    # st.table(df)
-
-    # selected_cell = st.table_selected_cell()
-
-    # if selected_cell:
-    #     st.write("You selected", selected_cell)
-
-
-
-    
-
-    # col2.write(img)
-    # col3.download 
+    if st.button('Download Selected Images'):
+        with zipfile.ZipFile("selected_images.zip", "w") as zipf:
+            for n in st.session_state['indices']:
+                # Add each file to the ZIP archive
+                zipf.write(data_path+st.session_state['fnames'][n])
