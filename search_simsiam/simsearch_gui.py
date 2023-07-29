@@ -38,16 +38,20 @@
 #     st.markdown(f"Image #{clicked} clicked" if clicked > -1 else "No image clicked")
 
 import streamlit as st
-from model import load_model
-from nearest_neighbour_search import fetch_n_neighbor_filenames
 import torchvision
-from PIL import Image
 import pickle
 import math
+import numpy as np
 import matplotlib.pyplot as plt
 import cv2
+import pandas as pd
+import zipfile
+from model import load_model
+from nearest_neighbour_search import fetch_n_neighbor_filenames
+from PIL import Image
 from st_clickable_images import clickable_images
 from io import BytesIO, BufferedReader
+from streamlit_image_select import image_select
 
 def empty_fnames(): st.session_state['fnames'] = []
 
@@ -134,9 +138,15 @@ with st.sidebar:
                              st.session_state['dist']]),
                       key='search')
 
+    st.sidebar.multiselect('Select image index:', np.arange(st.session_state['neighbors']),
+                            key='indices')
+
+
+
 
 if len(st.session_state['fnames']) > 0:
     col2.write('Retrieved Images')
+
     dim = math.ceil(math.sqrt(st.session_state['neighbors']))
     fig, ax = plt.subplots(dim, dim, figsize=(10, 10))
     ax = ax.ravel()
@@ -149,19 +159,72 @@ if len(st.session_state['fnames']) > 0:
         img = cv2.imread(data_path + f)
         ax[i].imshow(img[:, :, ::-1])
 
+        if i in st.session_state['indices']:
+            overlay = cv2.rectangle(img, (0,0), (127,127), (0,0,255), 10)
+            ax[i].imshow(overlay[:, :, ::-1])
+
     col2.pyplot(fig)
 
-    idx = embeddings_dict()['filenames'].index(st.session_state['fnames'][0])
-    print('N:', embeddings_dict()['embeddings'][idx, :5])
 
     im = cv2.imread(data_path+st.session_state['fnames'][1])
     ret, img_enco = cv2.imencode(".png", im)  #numpy.ndarray
     bytes_enco = img_enco.tobytes()  #bytes
     img_BytesIO = BytesIO(bytes_enco) #_io.BytesIO
     img_BufferedReader = BufferedReader(img_BytesIO) #_io.BufferedReader
+
+    # col2.download_button('Download Images',
+    #                     data=img_BufferedReader,
+    #                     file_name=st.session_state['fnames'][1],
+    #                     mime='image/png',
+    #                     )
+    # col2.button('')
+
+
+
+if st.button('Download Selected Images'):
+    with zipfile.ZipFile("selected_images.zip", "w") as zipf:
+        for i in st.session_state['indices']:
+            # Add each file to the ZIP archive
+            zipf.write(data_path+st.session_state['fnames'][i])
+
+
+# def download_images(image_list: list):
+#     zip_file_name = "image_collection.zip"
+#     with st.spinner("Creating zip file..."):
+#         with zipfile.ZipFile(zip_file_name, "w") as zipf:
+#             for image_path in image_list:
+#                 zipf.write(image_path, os.path.basename(image_path))
+#     st.success(f"Download link: [Click here to download]({zip_file_name})")
+
+
+
+
+    # fig = plt.figure()
+    # ax = fig.add_subplot(111)
+
+    # for axis in ['top', 'bottom', 'left', 'right']:
+
+    # ax.spines[axis].set_linewidth(2.5)  # change width
+    # ax.spines[axis].set_color('red')    # change color
+  
+
+    # idx = embeddings_dict()['filenames'].index(st.session_state['fnames'][0])
+    # print('N:', embeddings_dict()['embeddings'][idx, :5])
+
+    # img = image_select("Images", [data_path + x for x in st.session_state['fnames']])
+
+    # col2.write('File name list:')
+    # df = pd.DataFrame(st.session_state['fnames'], columns=['File Names'])
+    # st.table(df)
+
+    # selected_cell = st.table_selected_cell()
+
+    # if selected_cell:
+    #     st.write("You selected", selected_cell)
+
+
+
     
-    col2.download_button('Download First Image',
-                         data=img_BufferedReader,
-                         file_name=st.session_state['fnames'][1],
-                         mime='image/png',
-                         )
+
+    # col2.write(img)
+    # col3.download 
