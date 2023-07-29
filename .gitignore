@@ -1,6 +1,8 @@
 # Ignore miniset
 data/miniset/*
 data/
+search_simclr/model_weights/
+search_simclr/visualizations/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

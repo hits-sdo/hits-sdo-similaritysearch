@@ -332,10 +332,10 @@ it's 0.5 < x < 5
 - profitttt
 
 ## 7/28/2023
-- [ ] Create directories at the following path `search_simclr/visualizations/simclr_knn` and `search_simclr/model_weights`
+- [X] Create directories at the following path `search_simclr/visualizations/simclr_knn` and `search_simclr/model_weights`
 - [ ] configure the `model_run.py` to run the model
-    - [ ] complete `wandb.init()` function call on line 52
-- [ ] fix the `Rotate` class in `dataset_aug.py` to make the rotations random
+    - [X] complete `wandb.init()` function call on line 52
+- [X] fix the `Rotate` class in `dataset_aug.py` to make the rotations random
 - [ ] Train model
   - [ ] Configure model backbone to utilize pre-trained of the shelf model
   - [ ] [Tutorial reference](https://docs.lightly.ai/self-supervised-learning/tutorials/package/tutorial_pretrain_detectron2.html)
@@ -343,3 +343,24 @@ it's 0.5 < x < 5
   - [ ] set up wandb
   - [ ] refactor code to log loss and accuracy
 - profitttt
+
+## 7/31/23
+- [ ] configure the `model_run.py` to run the model
+    - [ ] wandb.login()
+-[ ] Update in 'model_run.py' in 'SDOConfig' to include file lists
+    - [ ] tile_dir
+    - [ ] train_val_dir
+    - [ ] train_file_list
+    - [ ] val_file_list
+-[ ] See 'train_val_split.py' for more information
+- [ ] Update DataModule default to include transformations
+    - [ ] Work in cutout
+    - [ ] Copy line 50 in 'train_val_split.py' 
+- [ ] Train model
+    - [ ] Add progress bars 
+  - [ ] Configure model from scratch
+        - [ ] Configure model backbone to utilize pre-trained of the shelf model
+        - [ ] [Tutorial reference](https://docs.lightly.ai/self-supervised-learning/tutorials/package/tutorial_pretrain_detectron2.html)
+  - [ ] set up wandb
+  - [ ] refactor code to log loss and accuracy
+  - [ ] biiiig profit :moneybag: :moneybag: :moneybag:
