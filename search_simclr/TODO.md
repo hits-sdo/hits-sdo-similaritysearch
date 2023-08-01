@@ -365,7 +365,7 @@ it's 0.5 < x < 5
   - [ ] refactor code to log loss and accuracy
   - [ ] biiiig profit :moneybag: :moneybag: :moneybag:
 
-  ## 8/2/23
+## 8/2/23
 - [ ] configure the `model_run.py` to run the model
     - [ ] ~~wandb.login()~~ Login use wandb.login() in the terminal and it'll prompt you to login
     - [ ] Test wandb with the example [quickstart](https://docs.wandb.ai/quickstart)
