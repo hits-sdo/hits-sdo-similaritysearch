@@ -54,11 +54,11 @@ def main():
                                               rotate=360.0, 
                                               noise_mean=0.0, 
                                               noise_std=0.05, 
-                                               cutout_holes=1, 
-                                               cutout_size=0.3,
-                                                data_dir=tile_dir,
+                                              cutout_holes=1, 
+                                              cutout_size=0.3,
+                                              data_dir=tile_dir,
                                             #   file_name="tile_20230206_000634_1024_0171_0896_0640.p",
-                                                file_list=train_file_list
+                                              file_list=train_file_list
                                               )
     train_dataset = SdoDataset(tile_dir, train_file_list, transform=transform)
     # augmented_image1, augmented_image2 = train_dataset.__getitem__(1)

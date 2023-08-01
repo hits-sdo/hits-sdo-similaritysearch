@@ -347,15 +347,15 @@ it's 0.5 < x < 5
 ## 7/31/23
 - [ ] configure the `model_run.py` to run the model
     - [ ] wandb.login()
--[ ] Update in 'model_run.py' in 'SDOConfig' to include file lists
-    - [ ] tile_dir
-    - [ ] train_val_dir
-    - [ ] train_file_list
-    - [ ] val_file_list
--[ ] See 'train_val_split.py' for more information
-- [ ] Update DataModule default to include transformations
-    - [ ] Work in cutout
-    - [ ] Copy line 50 in 'train_val_split.py' 
+- [X] Update in 'model_run.py' in 'SDOConfig' to include file lists
+    - [X] tile_dir
+    - [X] train_val_dir
+    - [X] train_file_list
+    - [X] val_file_list
+- [X] See 'train_val_split.py' for more information
+- [X] Update DataModule default to include transformations
+    - [X] Work in cutout
+    - [X] Copy line 50 in 'train_val_split.py' 
 - [ ] Train model
     - [ ] Add progress bars 
   - [ ] Configure model from scratch
@@ -364,3 +364,16 @@ it's 0.5 < x < 5
   - [ ] set up wandb
   - [ ] refactor code to log loss and accuracy
   - [ ] biiiig profit :moneybag: :moneybag: :moneybag:
+
+  ## 8/2/23
+- [ ] configure the `model_run.py` to run the model
+    - [ ] ~~wandb.login()~~ Login use wandb.login() in the terminal and it'll prompt you to login
+    - [ ] Test wandb with the example [quickstart](https://docs.wandb.ai/quickstart)
+- [ ] Train model
+    - [ ] Add progress bars 
+- [ ] Configure model from scratch
+    - [ ] Configure model backbone to utilize pre-trained of the shelf model
+    - [ ] [Tutorial reference](https://docs.lightly.ai/self-supervised-learning/tutorials/package/tutorial_pretrain_detectron2.html)
+- [ ] set up wandb
+- [ ] refactor code to log loss and accuracy
+- [ ] biiiig profit :moneybag: :moneybag: :moneybag:
