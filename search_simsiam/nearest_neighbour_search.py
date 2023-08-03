@@ -1,9 +1,10 @@
 import numpy as np
+import datetime
 from sklearn.metrics.pairwise import cosine_similarity
 
 
 def fetch_n_neighbor_filenames(query_embedding, embeddings_dict, dist_type,
-                               num_images=9):
+                               start_date=None, end_date=None, num_images=9):
     """Function to fetch filenames of nearest neighbors
 
     Args:
@@ -29,6 +30,18 @@ def fetch_n_neighbor_filenames(query_embedding, embeddings_dict, dist_type,
         distances = -1*cosine_similarity(embeddings,
                                          np.array([query_embedding]))
         distances = distances[:, 0]
+
+    # Filter by date
+    if start_date is not None and end_date is not None:
+        # start_date = datetime.datetime.strptime(start_date, '%Y-%m-%dT%H:%M:%S')    #https://github.com/hits-sdo/hits-sdo-downloader/blob/main/search_download/downloader.py
+        # end_date = datetime.datetime.strptime(end_date, '%Y-%m-%dT%H:%M:%S')
+        dates = np.array([datetime.datetime.strptime(filename.split('_')[0], '%Y%m%d').date() for filename in filenames])
+        
+        # my_datetime = datetime.datetime.combine(my_date, datetime.time(23, 59, 59))
+
+        mask = (dates >= start_date) & (dates <= end_date) 
+        distances = distances[mask]
+        filenames = np.array(filenames)[mask]
 
     nn_indices = np.argsort(distances)[:num_images]
     nearest_neighbors = [filenames[idx] for idx in nn_indices]
