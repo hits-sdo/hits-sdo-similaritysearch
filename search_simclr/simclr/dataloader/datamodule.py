@@ -13,13 +13,14 @@ from search_simclr.simclr.dataloader.dataset import SdoDataset, partition_tile_d
 from search_utils import image_utils  # TODO needed?
 from search_simclr.simclr.dataloader.dataset_aug import Transforms_SimCLR
 from search_utils.file_utils import get_file_list
+from typing import Tuple
 
 
 class SimCLRDataModule(pl.LightningDataModule):
     def __init__(self,
-                 blur: tuple(int, int) = (5,5), 
+                 blur: Tuple[int, int] = Tuple[5,5], 
                  brighten: float = 1.0, 
-                 translate: tuple(int, int) =(1, 3), 
+                 translate: Tuple[int, int] = Tuple[1, 3], 
                  zoom: float = 1.5, 
                  rotate: float = 360.0, 
                  noise_mean: float = 0.0, 
@@ -37,6 +38,7 @@ class SimCLRDataModule(pl.LightningDataModule):
                  val_flist: str = None, 
                  test_flist: str = None,
                  tot_fpath_wfname: str = None,
+                 num_workers: int = 1
                  ):
          
         super().__init__()
@@ -66,6 +68,7 @@ class SimCLRDataModule(pl.LightningDataModule):
         # self.val_flist = os.path.join(train_val_dir, 'val_file_list.txt')
         # self.train_flist = os.path.join(train_val_dir,'train_file_list.txt')
         self.test_flist = test_flist
+        self.num_workers = num_workers
         #tile_dir = os.path.join(root , 'data')
         # self.tot_fpath_wfname = os.path.join(root , 'data' , 'train_val_simclr', 'tot_full_path_files.txt')
         #tile_dir.replace(os.sep, "/")
@@ -112,7 +115,7 @@ class SimCLRDataModule(pl.LightningDataModule):
                                                 transform=transform
                                                 )
 
-            case "val":
+            case "validate":
                 transform = Transforms_SimCLR(blur=self.blur, 
                                               brighten=self.brighten, 
                                               translate=self.translate, 
@@ -153,21 +156,21 @@ class SimCLRDataModule(pl.LightningDataModule):
         return DataLoader(dataset=self.train_dataset,
                           batch_size=self.batch_size,
                           shuffle=True,
-                          num_workers=0,
+                          num_workers=self.num_workers,
                           drop_last=True)
 
     def val_dataloader(self): # Return DataLoader for Validation Data
         return DataLoader(dataset=self.val_dataset,
                           batch_size=self.batch_size,
                           shuffle=True,
-                          num_workers=0,
+                          num_workers=self.num_workers,
                           drop_last=True)
 
     def test_dataloader(self): # Return DataLoader for Testing Data
         return DataLoader(dataset=self.test_dataset,
                           batch_size=self.batch_size,
                           shuffle=True,
-                          num_workers=0,
+                          num_workers=self.num_workers,
                           drop_last=True)
 
 def main():

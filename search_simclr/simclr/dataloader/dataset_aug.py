@@ -13,6 +13,7 @@ import numpy as np
 import torch
 import random
 import os.path
+from typing import Tuple
 
 # rewrite all functions as classes and put those inside call
 # because then we can use that 
@@ -30,9 +31,9 @@ import os.path
 class Blur(object):
     def __init__(self, value):
         self.blur = value
-        assert isinstance(value, tuple)
         assert isinstance(value[0], int)
-        assert isinstance(value[1], int)      
+        assert isinstance(value[1], int)
+              
         
     def __call__(self, sample):
         """
@@ -211,10 +212,8 @@ class Brighten(object):
 class Translate(object):
     def __init__(self, value):
         self.translate = value
-        assert isinstance(value, tuple)
         assert isinstance(value[0], int)
         assert isinstance(value[1], int)
-
     
     def __call__(self, sample):
         image, fname = sample["image"], sample["filename"]

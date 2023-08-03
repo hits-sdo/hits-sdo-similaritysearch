@@ -20,6 +20,8 @@ from search_simclr.simclr.dataloader.dataset import SdoDataset, partition_tile_d
 from search_utils.file_utils import get_file_list
 from search_simclr.simclr.dataloader.datamodule import SimCLRDataModule
 from search_simclr.simclr.model.simCLR import SimCLR
+from search_simclr.simclr_utils.vis_utils import generate_embeddings, plot_knn_examples
+from typing import Tuple
 
 
 @dataclass
@@ -37,9 +39,9 @@ class SDOConfig:
     save_model_dir: str = os.path.join(root, "search_simclr", "model_weights")
     #TODO: train_flist: str = 
     tot_fpath_wfname = os.path.join(train_dir, 'tot_full_path_files.txt')
-    blur: tuple(int, int) = (5,5)
+    blur: Tuple[int, int] = (5,5)
     brighten: float = 1.0
-    translate: tuple(int, int) =(1, 3)
+    translate: Tuple[int, int] = (1,3)
     zoom: float = 1.5
     rotate: float = 360.0
     noise_mean: float = 0.0 
@@ -47,20 +49,22 @@ class SDOConfig:
     cutout_holes: int = 1 
     cutout_size: float = 0.3
 
-    num_workers: int = 8
-    batch_size: int = 256
+    num_workers: int = 20
+    batch_size: int = 5
     seed: int = 1
-    max_epochs: int = 20
+    epochs: int = 20
     input_size: int = 128 # input resolution
     num_ftrs: int = 32
     accelerator: str = "cuda" if torch.cuda.is_available() else "cpu"
     devices: bool = 1
-    stage: str = "train"
+    train_stage: str = "train"
+    val_stage: str = "validate"
 
 def main():
     config = SDOConfig()
     pl.seed_everything(config.seed)
     
+    print(f"train_flist[0] = {config.train_flist[0]}")
     
     # ❗ problem: datamodule now takes in lists 
     sdo_datamodule = SimCLRDataModule(
@@ -83,8 +87,9 @@ def main():
                  train_flist = config.train_flist, 
                  val_flist = config.val_flist, 
                  test_flist = config.test_flist,
-                 tot_fpath_wfname = config.tot_fpath_wfname)
-    sdo_datamodule.setup(stage=config.stage)
+                 tot_fpath_wfname = config.tot_fpath_wfname,
+                 num_workers = config.num_workers)
+    sdo_datamodule.setup(stage=config.train_stage)
 
     for batch_idx, (img1, img2, fname, _) in enumerate(sdo_datamodule.train_dataloader()):
         print (batch_idx, img1.shape, img2.shape, fname)
@@ -92,7 +97,7 @@ def main():
     
     #success = wandb.login()
     #print("Wandb: "+success)
-
+    
     #accelerator = "gpu" if torch.cuda.is_available() else "cpu"
     wandb.init(project="SimCLR",
                 dir=config.save_vis_dir,
@@ -100,26 +105,31 @@ def main():
                 {
                     "architecture": "SimCLR",
                     "dataset": "miniset2.0",
-                    "epochs": config.max_epochs,
+                    "epochs": config.epochs,
                 }
     )
     
     offset = random.random() / 5
 
     # simulating a training run
-    for epoch in range(2, config.epochs):
-        acc = 1 - 2 ** -epoch - random.random() / epoch - offset
-        loss = 2 ** -epoch + random.random() / epoch + offset
-        print(f"epoch={epoch}, accuracy={acc}, loss={loss}")
-        wandb.log({"accuracy": acc, "loss": loss})
-        break
+    # for epoch in range(2, config.epochs):
+    #     acc = 1 - 2 ** -epoch - random.random() / epoch - offset
+    #     loss = 2 ** -epoch + random.random() / epoch + offset
+    #     print(f"epoch={epoch}, accuracy={acc}, loss={loss}")
+    #     wandb.log({"accuracy": acc, "loss": loss})
 
-
-    # Todo: Uncomment to test our model after Wandb works
-    # model = SimCLR()
-    # trainer = pl.Trainer(max_epochs=config.max_epochs, devices=config.devices, accelerator=config.accelerator)
-    # trainer.fit(model, sdo_datamodule.train_dataloader())
     
+
+    model = SimCLR()
+    trainer = pl.Trainer(max_epochs=config.epochs, devices=config.devices, accelerator=config.accelerator)
+    trainer.fit(model, sdo_datamodule.train_dataloader())
+    
+    # Todo: Make a better way to change the variable
+    sdo_datamodule.setup(stage=config.val_stage)
+    model.eval()
+    # embeddings, filenames = generate_embeddings(model, sdo_datamodule.val_dataloader())
+    # plot_knn_examples(embeddings, filenames)
+    wandb.finish()
     # trainer.fit(model, dataloader_train_simclr)
 if __name__ == "__main__":
     main()

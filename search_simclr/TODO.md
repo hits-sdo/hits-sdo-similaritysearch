@@ -367,13 +367,32 @@ it's 0.5 < x < 5
 
 ## 8/2/23
 - [ ] configure the `model_run.py` to run the model
-    - [ ] ~~wandb.login()~~ Login use wandb.login() in the terminal and it'll prompt you to login
-    - [ ] Test wandb with the example [quickstart](https://docs.wandb.ai/quickstart)
+    - [x] ~~wandb.login()~~ Login use wandb.login() in the terminal and it'll prompt you to login
+    - [x] Test wandb with the example [quickstart](https://docs.wandb.ai/quickstart)
 - [ ] Train model
     - [ ] Add progress bars 
 - [ ] Configure model from scratch
     - [ ] Configure model backbone to utilize pre-trained of the shelf model
     - [ ] [Tutorial reference](https://docs.lightly.ai/self-supervised-learning/tutorials/package/tutorial_pretrain_detectron2.html)
-- [ ] set up wandb
+- [x] set up wandb
+- [ ] refactor code to log loss and accuracy
+- [X] biiiig profit :moneybag: :moneybag: :moneybag:
+
+## 8/4/23
+- [ ] In `model_run.py` train_flist is not the list of file names, but instead the file name of the .txt file. We need to call `get_file_list()` to get the list of file names
+- [ ] Rename `train_flist` to `train_flist_name` and `val_flist` to `val_flist_name` and `test_flist` to `test_flist_name`
+- [ ] Create `train_flist = get_file_list(train_flist_name)` and `val_flist = get_file_list(val_flist_name)` and `test_flist = get_file_list(test_flist_name)`
+- [ ] Rerun `model_run.py` to verify file paths with a breakpoint
+- [ ] Remove breakpoint
+- [ ] Configure validation step to run on the validation set
+    - [ ] Uncomment `generate_embeddings()` in `model_run.py` line 130
+    - [ ] Uncomment `plot_knn_examples()` in `model_run.py` line 131
+        - [ ] Save plots to file in `plot_knn_examples()` instead of showing to the screen
+- [ ] Test `model_run.py` to run the model with 50 examples
+- [ ] Train model
+    - [ ] Add progress bars 
+- [ ] Configure model from scratch
+    - [ ] Configure model backbone to utilize pre-trained of the shelf model
+    - [ ] [Tutorial reference](https://docs.lightly.ai/self-supervised-learning/tutorials/package/tutorial_pretrain_detectron2.html)
 - [ ] refactor code to log loss and accuracy
 - [ ] biiiig profit :moneybag: :moneybag: :moneybag:

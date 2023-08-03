@@ -29,7 +29,7 @@ from lightly.models.modules.heads import SimCLRProjectionHead
 
 class SimCLR(pl.LightningModule):
     def __init__(self):
-        super().__init()
+        super().__init__()
         resnet = torchvision.models.resnet18()
         self.backbone = nn.Sequential(*list(resnet.children())[:-1])
         hidden_dim = resnet.fc.in_features
