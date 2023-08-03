@@ -12,6 +12,7 @@
 # [X] add image selection to sidebar
 # [X] show border around selected images
 # [X] download selected images
+# [X] date range for search
 # * buttons to select/deselect all tiles
 # [ ] generate crop of query image for sim search
 # [ ] find error cause of idx = embeddings_dict()['filenames'].index(st.session_state['fnames'][0])
@@ -41,6 +42,7 @@ import streamlit as st
 import torchvision
 import pickle
 import math
+import datetime
 import numpy as np
 import matplotlib.pyplot as plt
 import cv2
@@ -90,7 +92,9 @@ if st.session_state['img'] is not None:
 def show_nearest_neighbours(wavelength,
                             num_images,
                             input_size,
-                            dist_type):
+                            dist_type,
+                            start_date=None,
+                            end_date=None):
     model = simsiam_model(wavelength)
     pil_image = Image.open(st.session_state['img'])
 
@@ -107,43 +111,86 @@ def show_nearest_neighbours(wavelength,
     filenames = fetch_n_neighbor_filenames(query_embedding,
                                            embeddings_dict(),
                                            dist_type,
-                                           num_images=num_images)
+                                           num_images=num_images,
+                                           start_date=start_date,
+                                           end_date=end_date)
 
     st.session_state['fnames'] = filenames
 
 
 with st.sidebar:
+
+    wavelength_help = "Select dataset based on target wavelegth(s). 🌊 Wavelengths are automatically mapped to RGB planes for color rendering."
+    distancemetric_help = "Choose the distance metric used for nearest neighbor search. Euclidean Distance is the L2 norm of the difference between two vectors. The Cosine distance is the dot product between the two unit vectors "
+    non_help = "Number of images retrieved in the search"
+    pss_help = "Click to retrieve similar images"
+    sii_help = "Select image index to download"
+
     st.selectbox(
         'Wavelength',
         ('211 193 171', '211 193 171'),
-        key='wavelength')
+        key='wavelength',
+        help=wavelength_help)
 
     st.selectbox(
         'Distance metric',
         ('Euclidean', 'Cosine'),
-        key='dist')
+        key='dist',
+        help=distancemetric_help)
+    
+    st.selectbox(
+        'Filter with date',
+        ('Yes', 'No'),
+        key='search_type')
 
-    st.sidebar.slider('Number of Neighbours',
-                      min_value=2,
-                      max_value=50,
-                      step=1,
-                      value=26,
-                      key='neighbors')
+    st.slider('Number of Neighbours',
+                min_value=2,
+                max_value=50,
+                step=1,
+                value=26,
+                key='neighbors',
+                help=non_help)
+        
+    if st.session_state['search_type'] == 'Yes':
+        st.subheader('Date Range')
+        st.date_input("Begining of Time Range",
+                      datetime.date(2011, 1, 1),
+                      key='start_date')
+        st.write('Begining of Time Range', st.session_state['start_date'])
 
-    st.sidebar.button('Perform Similarity Search',
-                      on_click=show_nearest_neighbours,
-                      args=([st.session_state['wavelength'],
-                             st.session_state['neighbors'],
-                             128,
-                             st.session_state['dist']]),
-                      key='search')
+        st.date_input("End of Time Range",
+                      value=st.session_state['start_date'],
+                      min_value=st.session_state['start_date'],
+                      key='end_date')
+        st.write('End of Time Range', st.session_state['end_date'])
+        st.write(st.session_state['end_date'] > st.session_state['start_date'])
 
-    st.sidebar.multiselect('Select image index:',
-                           np.arange(st.session_state['neighbors']),
-                           key='indices')
+    else:
+        st.session_state['start_date'] = None
+        st.session_state['end_date'] = None
+
+
+    st.button('Perform Similarity Search',
+              on_click=show_nearest_neighbours,
+              args=([st.session_state['wavelength'],
+                     st.session_state['neighbors'],
+                     128,
+                     st.session_state['dist'],
+                     st.session_state['start_date'],
+                     st.session_state['end_date']]),
+              key='search',
+              help=pss_help)
+
+    st.multiselect('Select image index:',
+                   np.arange(st.session_state['neighbors']),
+                   key='indices',
+                   help=sii_help)
 
 
 if len(st.session_state['fnames']) > 0:
+
+    st.write(st.session_state['fnames'][0])
+
     col2.write('Retrieved Images')
     idx = embeddings_dict()['filenames'].index(st.session_state['fnames'][0])
     print('N:', embeddings_dict()['embeddings'][idx, :5])
@@ -159,6 +206,10 @@ if len(st.session_state['fnames']) > 0:
     for i, f in enumerate(st.session_state['fnames']):
         img = cv2.imread(data_path + f)
         ax[i].imshow(img[:, :, ::-1])
+        
+        h, w, _ = img.shape
+
+        ax[i].text(10, 30, i, color='black', fontsize=(10/dim)*10)
 
         if i in st.session_state['indices']:
             overlay = cv2.rectangle(img, (0, 0), (127, 127), (0, 0, 255), 10)
