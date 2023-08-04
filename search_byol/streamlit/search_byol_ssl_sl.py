@@ -13,9 +13,12 @@ from sklearn.metrics.pairwise import cosine_similarity
 from models.byol_model import BYOL
 
 CSV_PATH = "/mnt/e/Downloads/MT-ds1_bs64_lr0.1_doubleaug_ss0.1_se1.0_pjs16_pds16_contrast_.zip"
-CSV_32_PATH = "/mnt/c/Users/jacob/Downloads/AMJ-ds1_bs64_lr0.1_doubleaug_ss0.1_se1.0_pjs32_pds32_contrast_.zip"
-MODEL_32_PATH = "/mnt/c/Users/jacob/Downloads/AMJ-ds1_bs64_lr0.1_doubleaug_ss0.1_se1.0_pjs32_pds32_contrast_.pt"
-TILES_PATH = "/mnt/e/Downloads/AIA211_193_171_256x256"
+CSV_32_PATH = "/mnt/d/Mis Documentos/AAResearch/SEARCH/best run/AMJ-ds1_bs64_lr0.1_doubleaug_ss0.1_se1.0_pjs32_pds32_contrast.zip"
+# CSV_32_PATH = "/mnt/c/Users/jacob/Downloads/AMJ-ds1_bs64_lr0.1_doubleaug_ss0.1_se1.0_pjs32_pds32_contrast_.zip"
+MODEL_32_PATH = "/mnt/d/Mis Documentos/AAResearch/SEARCH/best run/AMJ-ds1_bs64_lr0.1_doubleaug_ss0.1_se1.0_pjs32_pds32_contrast_.pt"
+# MODEL_32_PATH = "/mnt/c/Users/jacob/Downloads/AMJ-ds1_bs64_lr0.1_doubleaug_ss0.1_se1.0_pjs32_pds32_contrast_.pt"
+TILES_PATH = "/mnt/d/Mis Documentos/AAResearch/SEARCH/hits-sdo-downloader/AIA211_193_171_256x256/AIA211_193_171_256x256"
+# TILES_PATH = "/mnt/e/Downloads/AIA211_193_171_256x256"
 PROJECTION_SIZE = 32
 
 def main():
@@ -25,16 +28,16 @@ def main():
     st.header("Cropper Demo")
     img_file = st.sidebar.file_uploader(label='Upload a file', type=['png', 'jpg'])
     realtime_update = st.sidebar.checkbox(label="Update in Real Time", value=True)
-    box_color = st.sidebar.color_picker(label="Box Color", value='#0000FF')
-    aspect_choice = st.sidebar.radio(label="Aspect Ratio", options=["1:1", "16:9", "4:3", "2:3", "Free"])
-    aspect_dict = {
-        "1:1": (1, 1),
-        "16:9": (16, 9),
-        "4:3": (4, 3),
-        "2:3": (2, 3),
-        "Free": None
-    }
-    aspect_ratio = aspect_dict[aspect_choice]
+    box_color = st.sidebar.color_picker(label="Box Color", value='#FF00FF')
+    #aspect_choice = st.sidebar.radio(label="Aspect Ratio", options=["1:1", "16:9", "4:3", "2:3", "Free"])
+    # aspect_dict = {
+    #     "1:1": (1, 1),
+    #     "16:9": (16, 9),
+    #     "4:3": (4, 3),
+    #     "2:3": (2, 3),
+    #     "Free": None
+    # }
+    aspect_ratio = (1, 1)
     model = load_byol_model(MODEL_32_PATH)
     # index_df = read_CSV_from_Zip(csv_path = "/mnt/e/Downloads/ds1_bs64_lr0.1_doubleaug_ss0.1_se1.0_pjs16_pds16_contrast_.zip")
     index_df = pd.read_csv(CSV_32_PATH, compression='zip')
@@ -46,7 +49,7 @@ def main():
             st.write("Double click to save crop")
         # Get a cropped image from the frontend
         cropped_img = st_cropper(img, realtime_update=realtime_update, box_color=box_color,
-                                    aspect_ratio=aspect_ratio)
+                                    aspect_ratio=aspect_ratio, max_height=700, max_width=700)
         
         # Manipulate cropped image at will
         st.write("Preview")

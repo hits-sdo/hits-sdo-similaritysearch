@@ -27,6 +27,8 @@ dependencies:
   - seaborn
   - pip
   - pip:
+    - streamlit
     - lightning
     - lightly
     - git+https://github.com/hits-sdo/hits-sdo-packager.git@pip_nodata
+    - git+https://github.com/hits-sdo/streamlit-cropper.git
