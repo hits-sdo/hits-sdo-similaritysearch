@@ -378,7 +378,7 @@ it's 0.5 < x < 5
 - [ ] refactor code to log loss and accuracy
 - [X] biiiig profit :moneybag: :moneybag: :moneybag:
 
-## 8/4/23
+## 8/7/23
 - [ ] In `model_run.py` train_flist is not the list of file names, but instead the file name of the .txt file. We need to call `get_file_list()` to get the list of file names
 - [ ] Rename `train_flist` to `train_flist_name` and `val_flist` to `val_flist_name` and `test_flist` to `test_flist_name`
 - [ ] Create `train_flist = get_file_list(train_flist_name)` and `val_flist = get_file_list(val_flist_name)` and `test_flist = get_file_list(test_flist_name)`
