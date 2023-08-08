@@ -139,7 +139,7 @@ class StitchAdjacentImagesVer2(object):
                         multi_wl=True,
                         iterative=True,
                         remove_coords=False)
-        print(f'superImage shape: {superImage.shape}')
+        # print(f'superImage shape: {superImage.shape}')
        
 
         return {"image": superImage, "filename": fname}
@@ -276,7 +276,7 @@ class Zoom(object):
 class Rotate(object):
     def __init__(self, value=360.0):
         self.rotate = value
-        print(f"rotate: {self.rotate}") 
+        # print(f"rotate: {self.rotate}") 
         assert isinstance(value, float)
 
     def __call__(self, sample):
@@ -294,9 +294,7 @@ class Crop(object):
     def __call__(self, sample):
         image, fname = sample["image"], sample["filename"]
          # Crop middle part of image1
-        print(f"crop.shape: {image.shape}")  ##temp test
         shape1 = image.shape[:2]
-        print(f"shape1: {shape1}")  ##temp test
         h1 = shape1[0] // 3
         h2 = shape1[0] // 3 * 2
         w1 = shape1[1] // 3

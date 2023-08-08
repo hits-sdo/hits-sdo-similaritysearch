@@ -379,9 +379,9 @@ it's 0.5 < x < 5
 - [X] biiiig profit :moneybag: :moneybag: :moneybag:
 
 ## 8/7/23
-- [ ] In `model_run.py` train_flist is not the list of file names, but instead the file name of the .txt file. We need to call `get_file_list()` to get the list of file names
-- [ ] Rename `train_flist` to `train_flist_name` and `val_flist` to `val_flist_name` and `test_flist` to `test_flist_name`
-- [ ] Create `train_flist = get_file_list(train_flist_name)` and `val_flist = get_file_list(val_flist_name)` and `test_flist = get_file_list(test_flist_name)`
+- [X] In `model_run.py` train_flist is not the list of file names, but instead the file name of the .txt file. We need to call `get_file_list()` to get the list of file names
+- [X] Rename `train_flist` to `train_fpath` and `val_flist` to `val_fpath` and `test_flist` to `test_fpath`
+- [X] Create `train_flist = get_file_list(train_flist_name)` and `val_flist = get_file_list(val_flist_name)` and `test_flist = get_file_list(test_flist_name)`
 - [ ] Rerun `model_run.py` to verify file paths with a breakpoint
 - [ ] Remove breakpoint
 - [ ] Configure validation step to run on the validation set
@@ -395,4 +395,13 @@ it's 0.5 < x < 5
     - [ ] Configure model backbone to utilize pre-trained of the shelf model
     - [ ] [Tutorial reference](https://docs.lightly.ai/self-supervised-learning/tutorials/package/tutorial_pretrain_detectron2.html)
 - [ ] refactor code to log loss and accuracy
+- [x] biiiig profit :moneybag: :moneybag: :moneybag:
+
+## 8/9/23
+- [ ] Add code from `train_val_split.py` line 30-46, and move them to `model_run.py`, just before get_file_list
+- [x] in `model_run.py` `ValueError: wandb.log must be passed a dictionary`
+- [x] save the model training in `model_run.py`
+- [ ] expand the number of files in `train_val_split.py` to be larger then 50
+- [ ] Hyper-param sweep `.yml` file for different learning rates, sampling rates and batch sizes
+- [ ] Configure WandB to create `tsne` and `pca` plots
 - [ ] biiiig profit :moneybag: :moneybag: :moneybag:

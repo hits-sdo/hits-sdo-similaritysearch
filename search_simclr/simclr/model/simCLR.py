@@ -43,11 +43,11 @@ class SimCLR(pl.LightningModule):
         return z
     
     def training_step(self, batch, batch_idx):
-        (x0, x1), _, _ = batch
+        x0, x1, _, _ = batch
         z0 = self.forward(x0)
         z1 = self.forward(x1)
         loss = self.criterion(z0, z1)
-        wandb.log("train_loss_ssl", loss)
+        wandb.log({"train_loss_ssl": loss})
         return loss
 
     def configure_optimizers(self):

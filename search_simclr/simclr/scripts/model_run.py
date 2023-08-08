@@ -31,9 +31,9 @@ class SDOConfig:
     train_dir: str = os.path.join(tile_dir, 'train_val_simclr')
     val_dir: str = os.path.join(tile_dir, 'train_val_simclr')
     test_dir: str = None
-    train_flist: str = os.path.join(train_dir,'train_file_list.txt')
-    val_flist: str = os.path.join(val_dir, 'val_file_list.txt')
-    test_flist: str = None
+    train_fpath: str = os.path.join(train_dir,'train_file_list.txt')
+    val_fpath: str = os.path.join(val_dir, 'val_file_list.txt')
+    test_fpath: str = None
     
     save_vis_dir: str = os.path.join(root, "search_simclr", "visualizations", "simclr_knn")
     save_model_dir: str = os.path.join(root, "search_simclr", "model_weights")
@@ -49,7 +49,7 @@ class SDOConfig:
     cutout_holes: int = 1 
     cutout_size: float = 0.3
 
-    num_workers: int = 20
+    num_workers: int = 12
     batch_size: int = 5
     seed: int = 1
     epochs: int = 20
@@ -64,8 +64,13 @@ def main():
     config = SDOConfig()
     pl.seed_everything(config.seed)
     
-    print(f"train_flist[0] = {config.train_flist[0]}")
-    
+    # print(f"train_flist[0] = {config.train_flist[0]}")
+
+    train_flist = get_file_list(config.train_fpath)
+    val_flist = get_file_list(config.val_fpath)
+    #test_flist = get_file_list(config.test_fpath)
+
+    # print(f'train_flist: {train_flist}')
     # ❗ problem: datamodule now takes in lists 
     sdo_datamodule = SimCLRDataModule(
                  blur = config.blur, 
@@ -84,9 +89,9 @@ def main():
                  val_dir = config.val_dir,
                  test_dir = config.test_dir,
                  
-                 train_flist = config.train_flist, 
-                 val_flist = config.val_flist, 
-                 test_flist = config.test_flist,
+                 train_flist = train_flist, 
+                 val_flist = val_flist, 
+                 test_flist = None,
                  tot_fpath_wfname = config.tot_fpath_wfname,
                  num_workers = config.num_workers)
     sdo_datamodule.setup(stage=config.train_stage)
@@ -121,6 +126,7 @@ def main():
     
 
     model = SimCLR()
+    model = model.to(torch.float64)
     trainer = pl.Trainer(max_epochs=config.epochs, devices=config.devices, accelerator=config.accelerator)
     trainer.fit(model, sdo_datamodule.train_dataloader())
     
@@ -130,6 +136,10 @@ def main():
     # embeddings, filenames = generate_embeddings(model, sdo_datamodule.val_dataloader())
     # plot_knn_examples(embeddings, filenames)
     wandb.finish()
+
+    trained_backbone = model.backbone
+    state_dict = {"resnet18_parameters": trained_backbone.state_dict()}
+    torch.save(state_dict, os.path.join(config.save_model_dir, "model.pth"))
     # trainer.fit(model, dataloader_train_simclr)
 if __name__ == "__main__":
     main()

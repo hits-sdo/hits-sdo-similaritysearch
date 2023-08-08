@@ -110,7 +110,7 @@ class SimCLRDataModule(pl.LightningDataModule):
                                               data_dir=self.tile_dir,
                                               file_list=self.train_dir
                                               )
-                self.train_dataset = SdoDataset(tile_dir=self.train_dir, 
+                self.train_dataset = SdoDataset(tile_dir=self.tile_dir, 
                                                 file_list=self.train_flist,
                                                 transform=transform
                                                 )
@@ -126,9 +126,9 @@ class SimCLRDataModule(pl.LightningDataModule):
                                               cutout_holes=self.cutout_holes, 
                                               cutout_size=self.cutout_size,
                                               data_dir=self.tile_dir,
-                                              file_list=self.train_dir
+                                              file_list=self.val_dir
                                             )
-                self.val_dataset = SdoDataset(tile_dir=self.val_dir,
+                self.val_dataset = SdoDataset(tile_dir=self.tile_dir,
                                               file_list=self.val_flist,
                                               transform=transform
                     )
@@ -146,7 +146,7 @@ class SimCLRDataModule(pl.LightningDataModule):
                                               data_dir=self.tile_dir,
                                               file_list=self.test_dir
                                             )
-                self.test_dataset = SdoDataset(tile_dir=self.test_dir,
+                self.test_dataset = SdoDataset(tile_dir=self.tile_dir,
                                                file_list=self.test_flist,
                                                transform=transform
                     )

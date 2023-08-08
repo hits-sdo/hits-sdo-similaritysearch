@@ -35,10 +35,10 @@ class SdoDataset(Dataset):
     def __getitem__(self, idx):
         # Returns two images at given index
         image_fullpath = os.path.join(self.tile_dir, self.file_list[idx])
-        print("image fullpath: " + image_fullpath) #/data/miniset/AIA171/monochrome/tile_20230206_000634_1024_0171_0384_0512.p
+        # print("image fullpath: " + image_fullpath) #/data/miniset/AIA171/monochrome/tile_20230206_000634_1024_0171_0384_0512.p
         image = image_utils.read_image(image_fullpath, 'jpg')
         sample = {"image": image, "filename": self.file_list[idx] }
-        print("image from dataset.py: " , image.shape)
+        # print("image from dataset.py: " , image.shape)
         if (self.transform):
             # Transform images by augmentations
             sample1, sample2 = self.transform(sample)
