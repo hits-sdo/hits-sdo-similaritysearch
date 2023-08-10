@@ -14,15 +14,15 @@
 # [X] download selected images
 # [X] date range for search
 # * buttons to select/deselect all tiles
-# [ ] generate crop of query image for sim search
+# [ ] generate crop of query image for sim search ---
 # [ ] find error cause of idx = embeddings_dict()['filenames'].index(st.session_state['fnames'][0])
 # [ ] Allow user to specify custom search space
-# [ ] Incorporate switching model based on dataset
-# [ ] Incorporate date range to search from
-# [ ] add help option for sidebar parameters explaining what they do
-# [ ] add viewing metadata of similar images
+# [ ] Incorporate switching model based on dataset ---
+# [X] Incorporate date range to search from
+# [X] add help option for sidebar parameters explaining what they do
+# [ ] add viewing metadata of similar images ---
 # [ ] add smoother transitions
-# [ ] add option for random augmentation to validate embeddings
+# [ ] add option for random augmentation to validate embeddings ---
 """
 
 # Potential usage of clickable_images custom streamlit plugin
@@ -88,13 +88,14 @@ if st.session_state['img'] is not None:
     col1.write('Query Image')
     col1.image(st.session_state['img'], use_column_width=True)
 
-
+@st.cache_resource
 def show_nearest_neighbours(wavelength,
                             num_images,
                             input_size,
                             dist_type,
-                            start_date=None,
-                            end_date=None):
+                            start_date,
+                            end_date):
+    print("Showing the nearest neighbors")
     model = simsiam_model(wavelength)
     pil_image = Image.open(st.session_state['img'])
 
@@ -116,6 +117,11 @@ def show_nearest_neighbours(wavelength,
                                            end_date=end_date)
 
     st.session_state['fnames'] = filenames
+
+def matin(arg1,arg2,arg3,arg4,arg5,arg6):
+    print("Neighbors Slider Value: " +str(arg2))
+    print("Dates: " +str(arg4))
+    show_nearest_neighbours(arg1,arg2,arg3,arg4,arg5,arg6)
 
 
 with st.sidebar:
@@ -141,27 +147,40 @@ with st.sidebar:
     st.selectbox(
         'Filter with date',
         ('Yes', 'No'),
+        index=1,
         key='search_type')
 
-    st.slider('Number of Neighbours',
-                min_value=2,
-                max_value=50,
-                step=1,
-                value=26,
-                key='neighbors',
-                help=non_help)
-        
+    if 'neighbors' not in st.session_state:
+        st.session_state['neighbors'] = 26
+
+    st.slider(
+        'Number of Neighbours',
+        min_value=2,
+        max_value=50,
+        step=1,
+        value=st.session_state['neighbors'],
+        key='neighbors',
+        on_change=empty_fnames,
+        help=non_help)
+
+
+    # print("Current num neighbors: "+str(st.session_state['neighbors']))
+    if 'end_date' not in st.session_state:
+        st.session_state['end_date'] = None
+    if 'start_date' not in st.session_state:
+        st.session_state['start_date'] = None
+
     if st.session_state['search_type'] == 'Yes':
         st.subheader('Date Range')
-        st.date_input("Begining of Time Range",
-                      datetime.date(2011, 1, 1),
-                      key='start_date')
+        st.session_state['start_date'] = st.date_input("Begining of Time Range",
+                      value=datetime.date(2011, 1, 1))
+                    #   key='start_date')
         st.write('Begining of Time Range', st.session_state['start_date'])
 
-        st.date_input("End of Time Range",
+        st.session_state['end_date'] = st.date_input("End of Time Range",
                       value=st.session_state['start_date'],
-                      min_value=st.session_state['start_date'],
-                      key='end_date')
+                      min_value=st.session_state['start_date'])
+                    #   key='end_date')
         st.write('End of Time Range', st.session_state['end_date'])
         st.write(st.session_state['end_date'] > st.session_state['start_date'])
 
@@ -169,28 +188,27 @@ with st.sidebar:
         st.session_state['start_date'] = None
         st.session_state['end_date'] = None
 
-
     st.button('Perform Similarity Search',
               on_click=show_nearest_neighbours,
+              
               args=([st.session_state['wavelength'],
                      st.session_state['neighbors'],
                      128,
                      st.session_state['dist'],
                      st.session_state['start_date'],
                      st.session_state['end_date']]),
-              key='search',
+            #   key='search',
               help=pss_help)
 
     st.multiselect('Select image index:',
                    np.arange(st.session_state['neighbors']),
                    key='indices',
                    help=sii_help)
+    
+    print("Num neighbors: "+str(st.session_state['neighbors']))
 
 
 if len(st.session_state['fnames']) > 0:
-
-    st.write(st.session_state['fnames'][0])
-
     col2.write('Retrieved Images')
     idx = embeddings_dict()['filenames'].index(st.session_state['fnames'][0])
     print('N:', embeddings_dict()['embeddings'][idx, :5])
@@ -211,9 +229,9 @@ if len(st.session_state['fnames']) > 0:
 
         ax[i].text(10, 30, i, color='black', fontsize=(10/dim)*10)
 
-        if i in st.session_state['indices']:
+        for j in st.session_state['indices']:
             overlay = cv2.rectangle(img, (0, 0), (127, 127), (0, 0, 255), 10)
-            ax[i].imshow(overlay[:, :, ::-1])
+            ax[j].imshow(overlay[:, :, ::-1])
 
     col2.pyplot(fig)
 
