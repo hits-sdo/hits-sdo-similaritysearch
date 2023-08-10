@@ -398,10 +398,21 @@ it's 0.5 < x < 5
 - [x] biiiig profit :moneybag: :moneybag: :moneybag:
 
 ## 8/9/23
-- [ ] Add code from `train_val_split.py` line 30-46, and move them to `model_run.py`, just before get_file_list
+- [x] Add code from `train_val_split.py` line 30-46, and move them to `model_run.py`, just before get_file_list
+- [X] Add hyperparameters to `model_run.py` from [Tutorial Reference](https://github.com/spaceml-org/Self-Supervised-Learner/blob/main/train.py)
 - [x] in `model_run.py` `ValueError: wandb.log must be passed a dictionary`
 - [x] save the model training in `model_run.py`
 - [ ] expand the number of files in `train_val_split.py` to be larger then 50
 - [ ] Hyper-param sweep `.yml` file for different learning rates, sampling rates and batch sizes
-- [ ] Configure WandB to create `tsne` and `pca` plots
+    [Tutorial Reference](https://docs.wandb.ai/guides/sweeps/add-w-and-b-to-your-code)
+- [ ] Configure WandB to create `tsne` and `pca` plots https://docs.lightly.ai/self-supervised-learning/tutorials/package/tutorial_simclr_clothing.html
+- [ ] biiiig profit :moneybag: :moneybag: :moneybag:
+
+## 8/11/23
+- [ ] comment out old config and replace with new config variables
+- [ ] cutout some holes
+- [ ] Hyper-param sweep `.yml` file for different learning rates, sampling rates and batch sizes
+    [Tutorial Reference](https://docs.wandb.ai/guides/sweeps/add-w-and-b-to-your-code)
+- [ ] train with the hyperparameter sweep
+- [ ] Configure WandB to create `tsne` and `pca` plots https://docs.lightly.ai/self-supervised-learning/tutorials/package/tutorial_simclr_clothing.html
 - [ ] biiiig profit :moneybag: :moneybag: :moneybag:

@@ -17,11 +17,12 @@ from dataclasses import dataclass
 from search_utils import image_utils
 from search_simclr.simclr.dataloader import dataset_aug
 from search_simclr.simclr.dataloader.dataset import SdoDataset, partition_tile_dir_train_val
-from search_utils.file_utils import get_file_list
+from search_utils.file_utils import get_file_list, split_val_files
 from search_simclr.simclr.dataloader.datamodule import SimCLRDataModule
 from search_simclr.simclr.model.simCLR import SimCLR
 from search_simclr.simclr_utils.vis_utils import generate_embeddings, plot_knn_examples
 from typing import Tuple
+from argparse import ArgumentParser
 
 
 @dataclass
@@ -34,6 +35,8 @@ class SDOConfig:
     train_fpath: str = os.path.join(train_dir,'train_file_list.txt')
     val_fpath: str = os.path.join(val_dir, 'val_file_list.txt')
     test_fpath: str = None
+    percent_split: float = 0.8
+    num_img: int = None
     
     save_vis_dir: str = os.path.join(root, "search_simclr", "visualizations", "simclr_knn")
     save_model_dir: str = os.path.join(root, "search_simclr", "model_weights")
@@ -61,8 +64,101 @@ class SDOConfig:
     val_stage: str = "validate"
 
 def main():
+    parser = ArgumentParser()
+    parser.add_argument(
+        "--model",
+        type=str,
+        help="The model to initialize.",
+        default="simclr"
+        # Todo: add branch based on model
+    )
+    parser.add_argument(
+        "--backbone",
+        type=str,
+        help="The backbone to use in model",
+        default="resnet18"
+    )
+    parser.add_argument(
+        "--batchsize",
+        type=int,
+        help="batch size to use for training model",
+        default=50
+    )
+    parser.add_argument(
+        "--lr",
+        type=float,
+        help="The learning rate for training model",
+        default=0.001
+    )
+    parser.add_argument(
+        "--epochs",
+        type=int,
+        help="Number of epochs to train for.",
+        default=20
+    )
+    parser.add_argument(
+        "--split",
+        type=bool,
+        help="True if you want to ovveride the split files",
+        default=False
+    )
+    parser.add_argument(
+        "--percent",
+        type=float,
+        help="Percentage of the total number of files that's reserved for training",
+        default=0.8
+    )
+    parser.add_argument(
+        "--numworkers",
+        type=int,
+        help="Number of processors running at the same time",
+        default=12
+    )
+    parser.add_argument('--tile_dir', type=str, default=os.path.join(root , 'data'), help='Path to tile directory')
+    parser.add_argument('--train_dir', type=str, default=os.path.join(root, 'data', 'train_val_simclr'), help='Path to train directory')
+    parser.add_argument('--val_dir', type=str, default=os.path.join(root, 'data', 'train_val_simclr'), help='Path to validation directory') 
+    parser.add_argument('--test_dir', type=str, default=None, help='Path to test directory')
+    parser.add_argument('--train_fpath', type=str, default=os.path.join(root, 'data', 'train_val_simclr','train_file_list.txt'), help='Path to train file list')
+    parser.add_argument('--val_fpath', type=str, default=os.path.join(root, 'data', 'train_val_simclr', 'val_file_list.txt'), help='Path to validation file list')
+    parser.add_argument('--test_fpath', type=str, default=None, help='Path to test file list')
+    parser.add_argument('--percent_split', type=float, default=0.8, help='Percentage split for train/val') 
+    parser.add_argument('--num_img', type=int, default=None, help='Number of images')
+    parser.add_argument('--save_vis_dir', type=str, default=os.path.join(root, "search_simclr", "visualizations", "simclr_knn"), help='Path to save visualizations')
+    parser.add_argument('--save_model_dir', type=str, default=os.path.join(root, "search_simclr", "model_weights"), help='Path to save models')
+    parser.add_argument('--tot_fpath_wfname', type=str, default=os.path.join(root, 'data', 'train_val_simclr', 'tot_full_path_files.txt'), help='Path to total file list')
+    parser.add_argument('--blur', type=Tuple[int, int], default=(5,5), help='Blur range')
+    parser.add_argument('--brighten', type=float, default=1.0, help='Brightness level')
+    parser.add_argument('--translate', type=Tuple[int,int], default=(1,3), help='Translate range')
+    parser.add_argument('--zoom', type=float, default=1.5, help='Zoom level')
+    parser.add_argument('--rotate', type=float, default=360.0, help='Rotation angle') 
+    parser.add_argument('--noise_mean', type=float, default=0.0, help='Noise mean')
+    parser.add_argument('--noise_std', type=float, default=0.05, help='Noise standard deviation')
+    parser.add_argument('--cutout_holes', type=int, default=1, help='Number of cutout holes')
+    parser.add_argument('--cutout_size', type=float, default=0.3, help='Cutout size')
+    parser.add_argument('--num_workers', type=int, default=12, help='Number of workers')
+    parser.add_argument('--batch_size', type=int, default=5, help='Batch size')
+    parser.add_argument('--seed', type=int, default=1, help='The seed to fill the model with')
+    parser.add_argument('--epochs', type=int, default=20, help='Number of epochs')
+    parser.add_argument('--input_size', type=int, default=128, help='Input resolution') 
+    parser.add_argument('--num_ftrs', type=int, default=32, help='Number of features (for pca and tsne). Set the number of features (how many axes of an object) to compress data to')
+    parser.add_argument('--accelerator', type=str, default='cuda' if torch.cuda.is_available() else 'cpu', help='Device to run the model from (GPU or CPU)')
+    parser.add_argument('--devices', type=bool, default=1, help='Use GPUs if available')
+    parser.add_argument('--train_stage', type=str, default='train', help='Stage the model for training')
+    parser.add_argument('--val_stage', type=str, default='validate', help='Stage the model for validation')
+    
+    args, _ = parser.parse_known_args()
+    print(args)
+    # Todo: Add "model_backbone" argument
+    # Add: cpus, val split, gpus
+    
+    
+    
     config = SDOConfig()
     pl.seed_everything(config.seed)
+    
+    # Split the data into train and val
+    if args.overrideSplitFiles or not (os.path.exists(config.train_fpath) and os.path.exists(config.val_fpath)):
+        split_val_files(config.tot_fpath_wfname, config.strain_fpath, config.val_fpath, config.num_img, config.percent_split)
     
     # print(f"train_flist[0] = {config.train_flist[0]}")
 

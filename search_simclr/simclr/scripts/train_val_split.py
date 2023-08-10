@@ -20,13 +20,6 @@ def main():
 
     print(root)
 
-    # test_file = os.path.join(root, 'data', 'miniset', 'AIA171', 'monochrome', 'tile_20230206_000634_1024_0171_0128_0192.p')
-    # image = image_utils.read_image(test_file, 'p')
-    # plt.imshow(plt.show()
-    """  """
-    # 
-    
-    # data\AIA211_193_171_Miniset\20100601_000008_aia_211_193_171\tiles
     tile_dir = os.path.join(root , 'data')
     tot_fpath_wfname = os.path.join(root , 'data' , 'train_val_simclr', 'tot_full_path_files.txt')
     #tile_dir.replace(os.sep, "/")
