@@ -28,12 +28,16 @@ class SimCLRDataModule(pl.LightningDataModule):
                  cutout_holes: int = 1, 
                  cutout_size: float = 0.3,
                  batch_size: int = 32,
+                 num_images: int = None,
+                 percent: float = 0.8,
                  
                  tile_dir: str = None,
                  train_dir: str = None,
                  val_dir: str = None,
                  test_dir: str = None,
                  
+                 train_fpath: str = None,
+                 val_fpath: str = None,
                  train_flist: str = None, 
                  val_flist: str = None, 
                  test_flist: str = None,
@@ -59,10 +63,14 @@ class SimCLRDataModule(pl.LightningDataModule):
         self.train_dir = train_dir
         self.val_dir = val_dir
         self.test_dir = test_dir
+        self.train_fpath = train_fpath
+        self.val_fpath = val_fpath
         self.train_flist = train_flist
         self.val_flist = val_flist
         self.tot_fpath_wfname = tot_fpath_wfname
         self.batch_size = batch_size
+        self.num_images = num_images
+        self.percent = percent
         
         # train_val_dir = os.path.join(root , 'data', 'train_val_simclr')
         # self.val_flist = os.path.join(train_val_dir, 'val_file_list.txt')
@@ -78,22 +86,11 @@ class SimCLRDataModule(pl.LightningDataModule):
         
     
     def prepare_data(self):
-        #TODO download call team red dataloader
-        # data\AIA211_193_171_Miniset\20100601_000008_aia_211_193_171\tiles
+        if not (os.path.exists(self.train_fpath) and os.path.exists(self.val_fpath)):
+            split_val_files(self.tot_fpath_wfname, self.train_fpath, self.val_fpath, self.num_img, self.percent)
+        self.train_flist = get_file_list(self.train_fpath)
+        self.val_flist = get_file_list(self.val_fpath)       
         
-        #train_val_dir.replace(os.sep, "/")
-        # Todo: FIXME !!!! Make tot_file_list a list of file full paths, not just file names
-        # Todo: Use get_file_list_from_dir_recrusive() from search_utils/file_utils.py
-        tot_file_list = get_file_list(self.tot_fpath_wfname)
-        train_file_list, val_file_list = partition_tile_dir_train_val(tot_file_list[:50], 0.8)
-        # save lists
-
-        with open(self.train_flist, 'w') as f:
-            for item in train_file_list:
-                f.write("%s\n" % item)
-        with open(self.val_flist, 'w') as f:
-            for item in val_file_list:
-                f.write("%s\n" % item)
 
     def setup(self, stage: str):
         match stage:

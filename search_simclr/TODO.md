@@ -408,11 +408,26 @@ it's 0.5 < x < 5
 - [ ] Configure WandB to create `tsne` and `pca` plots https://docs.lightly.ai/self-supervised-learning/tutorials/package/tutorial_simclr_clothing.html
 - [ ] biiiig profit :moneybag: :moneybag: :moneybag:
 
-## 8/11/23
-- [ ] comment out old config and replace with new config variables
+## 8/14/23
+- [X] comment out old config and replace with new config variables
 - [ ] cutout some holes
 - [ ] Hyper-param sweep `.yml` file for different learning rates, sampling rates and batch sizes
     [Tutorial Reference](https://docs.wandb.ai/guides/sweeps/add-w-and-b-to-your-code)
 - [ ] train with the hyperparameter sweep
 - [ ] Configure WandB to create `tsne` and `pca` plots https://docs.lightly.ai/self-supervised-learning/tutorials/package/tutorial_simclr_clothing.html
-- [ ] biiiig profit :moneybag: :moneybag: :moneybag:
+- [x] biiiig profit :moneybag: :moneybag: :moneybag:
+
+## 8/16/23
+- [ ] complete 'prepare_data()' in 'datamodule.py' to code in 'train_val_split.py'
+    - [ ] Problem files, from 'split_val_files()' in 'file_utils.py'
+    - [ ] Add print statement to check the length of 'train_file_list' and 'val_file_list'
+    - [ ] Include train_val_split
+- [ ] Hyper-param sweep `.yml` file for different learning rates, sampling rates and batch sizes
+    [Tutorial Reference](https://docs.wandb.ai/guides/sweeps/add-w-and-b-to-your-code)
+    [Video Reference](https://www.youtube.com/watch?v=9zrmUIlScdY&ab_channel=Weights%26Biases)
+- [ ] train with the hyperparameter sweep
+- [ ] Create 'tsne' and 'pca' plots locally using 'matplotlib'
+- [ ] Configure WandB to create `tsne` and `pca` plots https://docs.lightly.ai/self-supervised-learning/tutorials/package/  tutorial_simclr_clothing.html
+- [ ] cutout some holes
+- [ ] biiiig profit :moneybag: :moneybag: :moneybag: 💰💰💰💰💰💰💰💰
+

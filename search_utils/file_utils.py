@@ -38,7 +38,7 @@ def split_val_files(tot_txt_path, train_file_list_txt_path, val_file_list_txt_pa
     tot_file_list = get_file_list(tot_txt_path)
     
     # Partition the data
-    if num_imgs is not None: 
+    if num_imgs is None: 
         train_file_list, val_file_list = partition_tile_dir_train_val(tot_file_list, percent_split)
     else:  
         train_file_list, val_file_list = partition_tile_dir_train_val(tot_file_list[:num_imgs], percent_split)

@@ -28,7 +28,7 @@ def main():
     # Todo: FIXME !!!! Make tot_file_list a list of file full paths, not just file names
     # Todo: Use get_file_list_from_dir_recrusive() from search_utils/file_utils.py
     tot_file_list = get_file_list(tot_fpath_wfname)
-    train_file_list, val_file_list = partition_tile_dir_train_val(tot_file_list[:50], 0.8)
+    train_file_list, val_file_list = partition_tile_dir_train_val(tot_file_list, 0.8)
     # save lists
 
     with open(os.path.join(train_val_dir,'train_file_list.txt'), 'w') as f:
