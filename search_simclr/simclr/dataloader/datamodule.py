@@ -12,8 +12,9 @@ sys.path.append(str(root))
 from search_simclr.simclr.dataloader.dataset import SdoDataset, partition_tile_dir_train_val
 from search_utils import image_utils  # TODO needed?
 from search_simclr.simclr.dataloader.dataset_aug import Transforms_SimCLR
-from search_utils.file_utils import get_file_list
+from search_utils.file_utils import get_file_list, split_val_files
 from typing import Tuple
+
 
 
 class SimCLRDataModule(pl.LightningDataModule):
@@ -42,6 +43,7 @@ class SimCLRDataModule(pl.LightningDataModule):
                  val_flist: str = None, 
                  test_flist: str = None,
                  tot_fpath_wfname: str = None,
+                 split: bool = False,
                  num_workers: int = 1
                  ):
          
@@ -71,6 +73,7 @@ class SimCLRDataModule(pl.LightningDataModule):
         self.batch_size = batch_size
         self.num_images = num_images
         self.percent = percent
+        self.split = split
         
         # train_val_dir = os.path.join(root , 'data', 'train_val_simclr')
         # self.val_flist = os.path.join(train_val_dir, 'val_file_list.txt')
@@ -86,10 +89,11 @@ class SimCLRDataModule(pl.LightningDataModule):
         
     
     def prepare_data(self):
-        if not (os.path.exists(self.train_fpath) and os.path.exists(self.val_fpath)):
+        if self.split or not (os.path.exists(self.train_fpath) and os.path.exists(self.val_fpath)):
             split_val_files(self.tot_fpath_wfname, self.train_fpath, self.val_fpath, self.num_img, self.percent)
         self.train_flist = get_file_list(self.train_fpath)
-        self.val_flist = get_file_list(self.val_fpath)       
+        self.val_flist = get_file_list(self.val_fpath)
+        print("in prepare_data")       
         
 
     def setup(self, stage: str):

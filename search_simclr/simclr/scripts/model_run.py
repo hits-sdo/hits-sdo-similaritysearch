@@ -36,7 +36,7 @@ class SDOConfig:
     val_fpath: str = os.path.join(val_dir, 'val_file_list.txt')
     test_fpath: str = None
     percent_split: float = 0.8
-    num_img: int = 5000
+    num_img: int = 100
     model: str = "simclr"
     backbone: str = "resnet18"
     
@@ -56,7 +56,7 @@ class SDOConfig:
 
     lr: float = 0.005
     num_workers: int = 12
-    batch_size: int = 5
+    batch_size: int = 10
     seed: int = 1
     epochs: int = 5
     input_size: int = 128 # input resolution
@@ -74,7 +74,7 @@ def main():
     parser.add_argument("--batchsize",type=int,help="batch size to use for training model",default=config.batch_size)
     parser.add_argument("--lr",type=float,help="The learning rate for training model",default=config.lr)
     parser.add_argument("--epochs",type=int,help="Number of epochs to train for.",default=config.epochs)
-    parser.add_argument("--split",type=bool,help="True if you want to ovveride the split files",default=False)
+    parser.add_argument("--split",type=bool,help="True if you want to overide the split files",default=False)
     parser.add_argument("--percent",type=float,help="Percentage of the total number of files that's reserved for training",default=config.percent_split)
     parser.add_argument("--numworkers",type=int,help="Number of processors running at the same time",default=config.num_workers)
     parser.add_argument('--tile_dir', type=str, default=config.tile_dir, help='Path to tile directory')
@@ -153,8 +153,11 @@ def main():
                  val_flist = val_flist, 
                  test_flist = None,
                  tot_fpath_wfname = args.tot_fpath_wfname,
+                 split = args.split,
                  num_workers = args.num_workers)
+    sdo_datamodule.prepare_data()
     sdo_datamodule.setup(stage=args.train_stage)
+
 
     for batch_idx, (img1, img2, fname, _) in enumerate(sdo_datamodule.train_dataloader()):
         print (batch_idx, img1.shape, img2.shape, fname)
@@ -193,8 +196,9 @@ def main():
     # Todo: Make a better way to change the variable
     sdo_datamodule.setup(stage=args.val_stage)
     model.eval()
-    # embeddings, filenames = generate_embeddings(model, sdo_datamodule.val_dataloader())
-    # plot_knn_examples(embeddings, filenames)
+    embeddings, filenames = generate_embeddings(model, sdo_datamodule.val_dataloader()) 
+    # Todo: Once when have the test dataset, replace val_dataloader with test_dataloader
+    plot_knn_examples(embeddings, filenames)
     wandb.finish()
 
     trained_backbone = model.backbone

@@ -1,0 +1,17 @@
+program: model_run.py
+project: search_simclr
+entity: search-byol
+method: bayes
+metric:
+  name: train_loss_ssl
+  goal: minimize
+parameters: 
+  wandb_run_name:
+    value: simclr_AIA_sweep
+  epochs:
+  learning_rate:
+    values: [1e-4, 1e-3, 1e-2, 1e-1]
+  batch_size: 
+    values: [8, 16, 32]
+  optimizer:
+    values: ["adam", "sgd"]

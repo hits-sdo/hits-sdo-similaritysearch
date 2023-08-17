@@ -13,7 +13,7 @@ from search_simclr.simclr.dataloader.dataset import partition_tile_dir_train_val
     - [ ] `get_file_list_from_dir_recursive()`
 """
 
-def get_file_list(file_list_txt: str) -> list:
+def get_file_list(file_list_txt: str, limit: int = None) -> list:
     ''' 
     Takes a file name as a string object and returns a list of 
     strings associated with image files.
@@ -21,6 +21,7 @@ def get_file_list(file_list_txt: str) -> list:
     Args: 
     file_list_txt(str): text file with a list of file names, 
     each file on a new line
+    limit(int): corresponds to the maximum number of files
     
     Return:
     tile_list(list): list of strings associated with fil names
@@ -28,14 +29,14 @@ def get_file_list(file_list_txt: str) -> list:
     '''
     tile_list = list[str]
     with open(file_list_txt, 'r') as file:
-        tile_list = [line.strip() for line in file.readlines()]
+        tile_list = [line.strip() for line in file.readlines()[:limit]]
 
     return tile_list
 
 
 # Splits the total file list into train and val lists
 def split_val_files(tot_txt_path, train_file_list_txt_path, val_file_list_txt_path, num_imgs=None, percent_split=0.8):
-    tot_file_list = get_file_list(tot_txt_path)
+    tot_file_list = get_file_list(tot_txt_path, num_imgs)
     
     # Partition the data
     if num_imgs is None: 
