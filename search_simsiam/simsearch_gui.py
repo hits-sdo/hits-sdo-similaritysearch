@@ -1,25 +1,12 @@
 """ -- TODO LIST --
-# [X] Drag/drop an image for similarity search
-# [X] Add button for similarity search
-# * on click call a function which does similarity search
-# [X] Sidebar with options
-# * switching dataset
-# * how many nearest neighbors
-# * pick image from dataset
-# * euclidean vs cosine distance best image retrieval
-# download similar images from the dataset and corresponding metadata
+# [ ] switching dataset
+# [ ] download similar images from the dataset with corresponding metadata
 # [ ] set images to constant 1:1 and 128x128
-# [X] add image selection to sidebar
-# [X] show border around selected images
-# [X] download selected images
-# [X] date range for search
-# * buttons to select/deselect all tiles
+# [ x ] Add option to start of "select images index" to select All
 # [ ] generate crop of query image for sim search ---
 # [ ] find error cause of idx = embeddings_dict()['filenames'].index(st.session_state['fnames'][0])
 # [ ] Allow user to specify custom search space
 # [ ] Incorporate switching model based on dataset ---
-# [X] Incorporate date range to search from
-# [X] add help option for sidebar parameters explaining what they do
 # [ ] add viewing metadata of similar images ---
 # [ ] add smoother transitions
 # [ ] add option for random augmentation to validate embeddings ---
@@ -48,8 +35,11 @@ import matplotlib.pyplot as plt
 import cv2
 import pandas as pd
 import zipfile
+import json
 from model import load_model
 from nearest_neighbour_search import fetch_n_neighbor_filenames
+from sdo_augmentation.augmentation_list import AugmentationList
+from sdo_augmentation.augmentation import Augmentations
 from PIL import Image
 from st_clickable_images import clickable_images
 from io import BytesIO, BufferedReader
@@ -65,10 +55,12 @@ if 'fnames' not in st.session_state:
 
 data_path = '/home/schatterjee/Documents/hits/AIA211_193_171_Miniset/'
 
+
 @st.cache_resource
 def simsiam_model(wavelength):
     # TODO add different model for each dataset and wavelength (and make pep8)
     return load_model('/home/schatterjee/Documents/hits/hits-sdo-similaritysearch/search_simsiam/saved_model/epoch=4-step=435.ckpt').eval()
+
 
 @st.cache_resource
 def embeddings_dict():
@@ -76,17 +68,18 @@ def embeddings_dict():
 
 
 # image for similarity search
-uploaded_file = st.file_uploader(
+st.session_state['img'] = st.file_uploader(
     "Choose an image...",
     type=["p", "jpg", "png"],
-    key='img',
     on_change=empty_fnames)
 
 col1, col2 = st.columns([1, 2])
 
 if st.session_state['img'] is not None:
-    col1.write('Query Image')
-    col1.image(st.session_state['img'], use_column_width=True)
+    img_text = col1.empty()
+    img_text.write('Query Image')
+    img_conainer = col1.empty()
+    img_conainer.image(st.session_state['img'], use_column_width=True)
 
 @st.cache_resource
 def show_nearest_neighbours(wavelength,
@@ -118,10 +111,37 @@ def show_nearest_neighbours(wavelength,
 
     st.session_state['fnames'] = filenames
 
-def matin(arg1,arg2,arg3,arg4,arg5,arg6):
-    print("Neighbors Slider Value: " +str(arg2))
-    print("Dates: " +str(arg4))
-    show_nearest_neighbours(arg1,arg2,arg3,arg4,arg5,arg6)
+
+def apply_augmentation(img):
+    '''
+    Applys the current augmentation settings to the selected image
+    checked if a user selected a region of interest -> cord_tup
+    And displays the augmented image to the user
+    '''
+    img = Image.open(img)
+    img = np.array(img)/255
+
+    aug_list = AugmentationList(instrument="euv")
+    aug_dict = aug_list.randomize()
+
+    aug_img = Augmentations(img, aug_dict)
+    fill_type = 'Nearest'
+    img, _ = aug_img.perform_augmentations(fill_void=fill_type)
+    st.session_state["img"] = img
+
+    # fig = plt.figure(figsize=(10, 10))
+    # plt.imshow(img)
+    # col1.pyplot(fig)
+
+    img_text.write('Augmented Query Image')
+    img_conainer.image(img, use_column_width=True)
+
+
+def matin(arg1, arg2, arg3, arg4, arg5, arg6):
+    """Easter egg funcion for testing"""
+    print("Neighbors Slider Value: " + str(arg2))
+    print("Dates: " + str(arg4))
+    show_nearest_neighbours(arg1, arg2, arg3, arg4, arg5, arg6)
 
 
 with st.sidebar:
@@ -190,25 +210,30 @@ with st.sidebar:
 
     st.button('Perform Similarity Search',
               on_click=show_nearest_neighbours,
-              
               args=([st.session_state['wavelength'],
                      st.session_state['neighbors'],
                      128,
                      st.session_state['dist'],
                      st.session_state['start_date'],
                      st.session_state['end_date']]),
-            #   key='search',
               help=pss_help)
 
-    st.multiselect('Select image index:',
-                   np.arange(st.session_state['neighbors']),
-                   key='indices',
-                   help=sii_help)
-    
-    print("Num neighbors: "+str(st.session_state['neighbors']))
+    option = ['All'] + [x for x in range(st.session_state['neighbors'])]
 
+    # if 'indices' not in st.session_state:
+    #     st.session_state["indices"] = [x for x in range(st.session_state['neighbors'])] 
+
+    st.session_state['indices'] = st.multiselect('Select image index:',
+                                                 options=tuple(option),
+                                                 help=sii_help)
+
+    if st.button("Perform Random Augmentation"):
+        apply_augmentation(st.session_state['img'])
 
 if len(st.session_state['fnames']) > 0:
+    if 'All' in st.session_state["indices"]:
+        st.session_state["indices"] = [x for x in range(st.session_state['neighbors'])]
+
     col2.write('Retrieved Images')
     idx = embeddings_dict()['filenames'].index(st.session_state['fnames'][0])
     print('N:', embeddings_dict()['embeddings'][idx, :5])
@@ -224,14 +249,14 @@ if len(st.session_state['fnames']) > 0:
     for i, f in enumerate(st.session_state['fnames']):
         img = cv2.imread(data_path + f)
         ax[i].imshow(img[:, :, ::-1])
-        
+
         h, w, _ = img.shape
 
         ax[i].text(10, 30, i, color='black', fontsize=(10/dim)*10)
-
-        for j in st.session_state['indices']:
+        
+        if i in st.session_state['indices']:
             overlay = cv2.rectangle(img, (0, 0), (127, 127), (0, 0, 255), 10)
-            ax[j].imshow(overlay[:, :, ::-1])
+            ax[i].imshow(overlay[:, :, ::-1])
 
     col2.pyplot(fig)
 
