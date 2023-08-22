@@ -431,11 +431,17 @@ it's 0.5 < x < 5
 - [ ] cutout some holes
 - [x] biiiig profit :moneybag: :moneybag: :moneybag: 💰💰💰💰💰💰💰💰
 
-## 8/18/23
-- [ ] Add print statement to check the length of 'train_file_list' and 'val_file_list'
+## 8/21/23
+- [X] Fix the bug with the generate_embeddings()
+- [X] Add print statement to check the length of 'train_file_list' and 'val_file_list'
 - [ ] Watch [Video Reference](https://www.youtube.com/watch?v=9zrmUIlScdY&ab_channel=Weights%26Biases)
 - [ ] train with the hyperparameter sweep
+- [ ] Save images
 - [ ] Create 'tsne' and 'pca' plots locally using 'matplotlib'
 - [ ] Configure WandB to create `tsne` and `pca` plots https://docs.lightly.ai/self-supervised-learning/tutorials/package/tutorial_simclr_clothing.html
 - [ ] cutout some holes
-- [ ] all the profit💰💰💰💰💰💰💰💰
+- [X] all the profit💰💰💰💰💰💰💰💰
+
+## 8/23/23
+- [ ] 
+- [ ] write code, get cash 💰💰💰💰💰💰💰💰

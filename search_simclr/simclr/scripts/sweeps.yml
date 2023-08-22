@@ -10,8 +10,11 @@ parameters:
     value: simclr_AIA_sweep
   epochs:
   learning_rate:
-    values: [1e-4, 1e-3, 1e-2, 1e-1]
+    values: [1e-4]
+    #values: [1e-4, 1e-3, 1e-2, 1e-1]
   batch_size: 
-    values: [8, 16, 32]
+    values: [8]
+    #values: [8, 16, 32]
   optimizer:
-    values: ["adam", "sgd"]
+    values: ["adam"]
+    #values: ["adam", "sgd"]

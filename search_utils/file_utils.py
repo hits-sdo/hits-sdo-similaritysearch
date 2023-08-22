@@ -4,6 +4,7 @@ root = pyprojroot.here()
 utils_dir = root / 'search_utils'
 import sys
 sys.path.append(str(root))
+from tqdm import tqdm
 from search_simclr.simclr.dataloader.dataset import partition_tile_dir_train_val
 
 """
@@ -29,7 +30,7 @@ def get_file_list(file_list_txt: str, limit: int = None) -> list:
     '''
     tile_list = list[str]
     with open(file_list_txt, 'r') as file:
-        tile_list = [line.strip() for line in file.readlines()[:limit]]
+        tile_list = [line.strip() for line in tqdm(file.readlines()[:limit])]
 
     return tile_list
 
@@ -43,7 +44,8 @@ def split_val_files(tot_txt_path, train_file_list_txt_path, val_file_list_txt_pa
         train_file_list, val_file_list = partition_tile_dir_train_val(tot_file_list, percent_split)
     else:  
         train_file_list, val_file_list = partition_tile_dir_train_val(tot_file_list[:num_imgs], percent_split)
-
+    # print(f"train_file_list length = {len(train_file_list)}")
+    # print(f"val_file_list length = {len(val_file_list)}")
     # Write to files
     with open(os.path.join(train_file_list_txt_path), 'w') as f:
         for item in train_file_list:

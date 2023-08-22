@@ -90,10 +90,13 @@ class SimCLRDataModule(pl.LightningDataModule):
     
     def prepare_data(self):
         if self.split or not (os.path.exists(self.train_fpath) and os.path.exists(self.val_fpath)):
-            split_val_files(self.tot_fpath_wfname, self.train_fpath, self.val_fpath, self.num_img, self.percent)
-        self.train_flist = get_file_list(self.train_fpath)
-        self.val_flist = get_file_list(self.val_fpath)
-        print("in prepare_data")       
+            split_val_files(self.tot_fpath_wfname, self.train_fpath, self.val_fpath, self.num_images, self.percent)
+        if self.train_flist is None:
+            self.train_flist = get_file_list(self.train_fpath)
+        if self.val_flist is None:
+            self.val_flist = get_file_list(self.val_fpath)
+        ## todo: add the test flist
+        # print("in prepare_data")       
         
 
     def setup(self, stage: str):

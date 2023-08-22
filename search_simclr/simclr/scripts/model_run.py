@@ -55,10 +55,10 @@ class SDOConfig:
     cutout_size: float = 0.3
 
     lr: float = 0.005
-    num_workers: int = 12
-    batch_size: int = 10
+    num_workers: int = 20
+    batch_size: int = 4
     seed: int = 1
-    epochs: int = 5
+    epochs: int = 1
     input_size: int = 128 # input resolution
     num_ftrs: int = 32
     accelerator: str = "gpu" if torch.cuda.is_available() else "cpu"
@@ -108,7 +108,11 @@ def main():
     parser.add_argument('--train_stage', type=str, default=config.train_stage, help='Stage the model for training')
     parser.add_argument('--val_stage', type=str, default=config.val_stage, help='Stage the model for validation')
     args, _ = parser.parse_known_args()
-    print(args)
+
+
+    if not os.path.exists(args.save_vis_dir):
+        raise Exception("visual directory not defined.")
+        
     # Todo: Add "model_backbone" argument
     # Add: cpus, val split, gpus
     
@@ -169,12 +173,13 @@ def main():
     #accelerator = "gpu" if torch.cuda.is_available() else "cpu"
     wandb.init(project="SimCLR",
                 dir=args.save_vis_dir,
-                config=
-                {
-                    "architecture": "SimCLR",
-                    "dataset": "miniset2.0",
-                    "epochs": args.epochs,
-                }
+                config_path="sweeps.yml"
+                # config=
+                # {
+                #     "architecture": "SimCLR",
+                #     "dataset": "miniset2.0",
+                #     "epochs": args.epochs,
+                # }
     )
     
     offset = random.random() / 5
@@ -198,7 +203,7 @@ def main():
     model.eval()
     embeddings, filenames = generate_embeddings(model, sdo_datamodule.val_dataloader()) 
     # Todo: Once when have the test dataset, replace val_dataloader with test_dataloader
-    plot_knn_examples(embeddings, filenames)
+    plot_knn_examples(embeddings, filenames, path_to_data=args.tile_dir, n_neighbors=3, num_examples=6, vis_output_dir=args.save_vis_dir)
     wandb.finish()
 
     trained_backbone = model.backbone
