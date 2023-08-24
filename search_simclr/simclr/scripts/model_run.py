@@ -20,7 +20,7 @@ from search_simclr.simclr.dataloader.dataset import SdoDataset, partition_tile_d
 from search_utils.file_utils import get_file_list, split_val_files
 from search_simclr.simclr.dataloader.datamodule import SimCLRDataModule
 from search_simclr.simclr.model.simCLR import SimCLR
-from search_simclr.simclr_utils.vis_utils import generate_embeddings, plot_knn_examples
+from search_simclr.simclr_utils.vis_utils import generate_embeddings, plot_knn_examples, plot_nearest_neighbors_3x3
 from typing import Tuple
 from argparse import ArgumentParser
 
@@ -65,6 +65,11 @@ class SDOConfig:
     devices: bool = 1
     train_stage: str = "train"
     val_stage: str = "validate"
+    
+# sweep_config_path = os.path.join(root, "search_simclr", "simclr", "scripts", 'sweeps.yaml')
+# print(wandb.sweep(sweep_config_path, project="search_simclr"))
+# sweep_id = wandb.sweep(sweep_config_path, project="search_simclr")
+# print (sweep_id)
 
 def main():
     config = SDOConfig()
@@ -110,6 +115,8 @@ def main():
     args, _ = parser.parse_known_args()
 
 
+    if not os.path.exists(args.save_model_dir):
+        raise Exception("visual directory not defined.")
     if not os.path.exists(args.save_vis_dir):
         raise Exception("visual directory not defined.")
         
@@ -171,9 +178,9 @@ def main():
     #print("Wandb: "+success)
     
     #accelerator = "gpu" if torch.cuda.is_available() else "cpu"
-    wandb.init(project="SimCLR",
+    wandb.init(project="search_simclr",
                 dir=args.save_vis_dir,
-                config_path="sweeps.yml"
+                # config="sweeps.yml"
                 # config=
                 # {
                 #     "architecture": "SimCLR",
@@ -192,24 +199,36 @@ def main():
     #     wandb.log({"accuracy": acc, "loss": loss})
 
     
-
+    # Training the Model
     model = SimCLR()
     model = model.to(torch.float64)
     trainer = pl.Trainer(max_epochs=args.epochs, devices=args.devices, accelerator=args.accelerator)
     trainer.fit(model, sdo_datamodule.train_dataloader())
     
-    # Todo: Make a better way to change the variable
+    # Save the Model
+    trained_backbone = model.backbone
+    state_dict = {"resnet18_parameters": trained_backbone.state_dict()}
+    torch.save(state_dict, os.path.join(args.save_model_dir, "model.pth"))
+    
+    # Running validation
     sdo_datamodule.setup(stage=args.val_stage)
     model.eval()
     embeddings, filenames = generate_embeddings(model, sdo_datamodule.val_dataloader()) 
     # Todo: Once when have the test dataset, replace val_dataloader with test_dataloader
-    plot_knn_examples(embeddings, filenames, path_to_data=args.tile_dir, n_neighbors=3, num_examples=6, vis_output_dir=args.save_vis_dir)
+    # plot_knn_examples(embeddings, filenames, path_to_data=args.tile_dir, n_neighbors=3, num_examples=6, vis_output_dir=args.save_vis_dir)
+    
+    # Todo: TEST CODE FROM SIMSIAM
+    example_images = [filenames[10**n] for n in range(5)]
+    # show example images for each cluster
+    for i, example_image in enumerate(example_images):
+        plot_nearest_neighbors_3x3(example_image, i)
+    
     wandb.finish()
 
-    trained_backbone = model.backbone
-    state_dict = {"resnet18_parameters": trained_backbone.state_dict()}
-    torch.save(state_dict, os.path.join(args.save_model_dir, "model.pth"))
+
+    
     # trainer.fit(model, dataloader_train_simclr)
 if __name__ == "__main__":
     main()
+    # wandb.agent(sweep_id, function=main)
     

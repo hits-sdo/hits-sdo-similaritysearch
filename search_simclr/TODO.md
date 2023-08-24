@@ -443,5 +443,23 @@ it's 0.5 < x < 5
 - [X] all the profit💰💰💰💰💰💰💰💰
 
 ## 8/23/23
-- [ ] 
-- [ ] write code, get cash 💰💰💰💰💰💰💰💰
+- [ ] Watch [Video Reference](https://www.youtube.com/watch?v=9zrmUIlScdY&ab_channel=Weights%26Biases)
+- [x] Train with the hyperparameter sweep
+- [x] Save images
+- [ ] Create 'tsne' and 'pca' plots locally using 'matplotlib'
+- [ ] Configure WandB to create `tsne` and `pca` plots https://docs.lightly.ai/self-supervised-learning/tutorials/package/tutorial_simclr_clothing.html
+- [ ] cutout some holes
+- [x] write code, get cash 💰💰💰💰💰💰💰💰
+
+## 8/28/23
+- [ ] Reference SimSiam: [SimSiam](https://github.com/hits-sdo/hits-sdo-similaritysearch/blob/ss_training/search_simsiam/simsiam_example_notebook_HITS.ipynb)
+    - [ ] Fix ``IndexError: list index out of range`` in ``model_run.py`` line 221
+    - [ ] Refactor code in ``vis_utils.py`` to be compatible with Simclr
+        - [ ] plot_nearest_neighbors_3x3()
+        - [ ] get_image_as_np_array_with_frame
+        - [ ] get_scatter_plot_with_thumbnails
+- [ ] Watch [Video Reference](https://www.youtube.com/watch?v=9zrmUIlScdY&ab_channel=Weights%26Biases)
+- [ ] Create 'tsne' and 'pca' plots locally using 'matplotlib'
+- [ ] Configure WandB to create `tsne` and `pca` plots https://docs.lightly.ai/self-supervised-learning/tutorials/package/tutorial_simclr_clothing.html
+- [ ] cutout some holes
+- [ ] SUNFLOWER PROFIT 💰💰💰💰💰💰💰💰

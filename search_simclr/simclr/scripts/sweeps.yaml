@@ -1,0 +1,14 @@
+program: model_run.py
+project: search_simclr 
+method: bayes
+metric:
+  name: train_loss_ssl
+  goal: minimize
+parameters:
+  wandb_run_name:
+    value: simclr_AIA_sweep
+  learning_rate:
+    min: 0.0001
+    max: 0.1
+  optimizer:
+    values: ["adam", "sgd"]
