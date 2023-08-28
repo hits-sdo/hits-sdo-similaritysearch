@@ -28,14 +28,14 @@ from lightly.models.modules.heads import SimCLRProjectionHead
 
 
 class SimCLR(pl.LightningModule):
-    def __init__(self):
+    def __init__(self, lr):
         super().__init__()
         resnet = torchvision.models.resnet18()
         self.backbone = nn.Sequential(*list(resnet.children())[:-1])
         hidden_dim = resnet.fc.in_features
         self.projection_head = SimCLRProjectionHead(hidden_dim, hidden_dim, 128)
-
         self.criterion = NTXentLoss()
+        self.lr = lr
         
     def forward(self, x):
         h = self.backbone(x).flatten(start_dim=1)
@@ -52,7 +52,7 @@ class SimCLR(pl.LightningModule):
 
     def configure_optimizers(self):
         optim = torch.optim.SGD(
-            self.parameters(), lr=6e-2, momentum=0.9, weight_decay=5e-4
+            self.parameters(), lr=self.lr, momentum=0.9, weight_decay=5e-4
         )
         #scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optim, max_epochs)
         return optim #[optim], [scheduler]
