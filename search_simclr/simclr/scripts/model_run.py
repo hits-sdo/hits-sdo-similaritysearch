@@ -23,6 +23,8 @@ from search_simclr.simclr.model.simCLR import SimCLR
 from search_simclr.simclr_utils.vis_utils import generate_embeddings, plot_knn_examples, plot_nearest_neighbors_3x3
 from typing import Tuple
 from argparse import ArgumentParser
+import yaml
+from datetime import datetime
 
 
 @dataclass
@@ -36,7 +38,7 @@ class SDOConfig:
     val_fpath: str = os.path.join(val_dir, 'val_file_list.txt')
     test_fpath: str = None
     percent_split: float = 0.8
-    num_img: int = 100
+    num_img: int = 1000
     model: str = "simclr"
     backbone: str = "resnet18"
     
@@ -76,10 +78,9 @@ def main():
     parser = ArgumentParser()
     parser.add_argument("--model",type=str,help="The model to initialize.",default=config.model)
     parser.add_argument("--backbone",type=str,help="The backbone to use in model",default=config.backbone)
-    parser.add_argument("--batchsize",type=int,help="batch size to use for training model",default=config.batch_size)
     parser.add_argument("--lr",type=float,help="The learning rate for training model",default=config.lr)
     parser.add_argument("--epochs",type=int,help="Number of epochs to train for.",default=config.epochs)
-    parser.add_argument("--split",type=bool,help="True if you want to overide the split files",default=False)
+    parser.add_argument("--split",type=bool,help="True if you want to overide the split files",default=True)
     parser.add_argument("--percent",type=float,help="Percentage of the total number of files that's reserved for training",default=config.percent_split)
     parser.add_argument("--numworkers",type=int,help="Number of processors running at the same time",default=config.num_workers)
     parser.add_argument('--tile_dir', type=str, default=config.tile_dir, help='Path to tile directory')
@@ -122,17 +123,37 @@ def main():
         
     # Todo: Add "model_backbone" argument
     # Add: cpus, val split, gpus
-    
-    
  
+    # Seed pytorch lightning
     pl.seed_everything(args.seed)
+    
+    wandb.init(project="search_simclr",
+        dir=args.save_vis_dir,
+        # config="sweeps.yml"
+        # config=
+        # {
+        #     "architecture": "SimCLR",
+        #     "dataset": "miniset2.0",
+        #     "epochs": args.epochs,
+        # }
+    )
+    
+    # Setup wandb config
+    wandb_config = wandb.config
+    if (wandb_config is not None):
+        args.lr = wandb_config.learning_rate
+        args.batch_size = wandb_config.batch_size
+        args.epochs = wandb_config.epochs
+        print("Using wandb config: "+str(wandb_config) + "\n")
+    else:
+        print("Not using wandb config")
 
 
     
-    # save_vis_dir: str = os.path.join(root, "search_simclr", "visualizations", "simclr_knn")
+    # save_vis_dir: str = os.path.join(root, "ssearch_simclr", "visualizations", "simclr_knn")
     # save_model_dir: str = os.path.join(root, "search_simclr", "model_weights")
-    train_flist = get_file_list(args.train_fpath)
-    val_flist = get_file_list(args.val_fpath)
+    # train_flist = get_file_list(args.train_fpath)
+    # val_flist = get_file_list(args.val_fpath)
     # Split the data into train and val
   
 
@@ -160,8 +181,8 @@ def main():
                  
                  train_fpath = args.train_fpath,
                  val_fpath = args.val_fpath,
-                 train_flist = train_flist, 
-                 val_flist = val_flist, 
+                 train_flist = None, 
+                 val_flist = None, #todo
                  test_flist = None,
                  tot_fpath_wfname = args.tot_fpath_wfname,
                  split = args.split,
@@ -178,18 +199,8 @@ def main():
     #print("Wandb: "+success)
     
     #accelerator = "gpu" if torch.cuda.is_available() else "cpu"
-    wandb.init(project="search_simclr",
-                dir=args.save_vis_dir,
-                # config="sweeps.yml"
-                # config=
-                # {
-                #     "architecture": "SimCLR",
-                #     "dataset": "miniset2.0",
-                #     "epochs": args.epochs,
-                # }
-    )
     
-    offset = random.random() / 5
+    # offset = random.random() / 5
 
     # simulating a training run
     # for epoch in range(2, args.epochs):
@@ -200,28 +211,30 @@ def main():
 
     
     # Training the Model
-    model = SimCLR()
+    model = SimCLR(args.lr)
     model = model.to(torch.float64)
-    trainer = pl.Trainer(max_epochs=args.epochs, devices=args.devices, accelerator=args.accelerator)
+    trainer = pl.Trainer(max_epochs=args.epochs, devices=args.devices, accelerator=args.accelerator, log_every_n_steps=1)
     trainer.fit(model, sdo_datamodule.train_dataloader())
     
     # Save the Model
     trained_backbone = model.backbone
     state_dict = {"resnet18_parameters": trained_backbone.state_dict()}
-    torch.save(state_dict, os.path.join(args.save_model_dir, "model.pth"))
+    now = datetime.now()
+    now_str = now.strftime("%Y-%m-%d_%H-%M-%S")
+    torch.save(state_dict, os.path.join(args.save_model_dir, f'{now_str} model.pth'))
     
     # Running validation
     sdo_datamodule.setup(stage=args.val_stage)
     model.eval()
-    embeddings, filenames = generate_embeddings(model, sdo_datamodule.val_dataloader()) 
+    # embeddings, filenames = generate_embeddings(model, sdo_datamodule.val_dataloader()) 
     # Todo: Once when have the test dataset, replace val_dataloader with test_dataloader
     # plot_knn_examples(embeddings, filenames, path_to_data=args.tile_dir, n_neighbors=3, num_examples=6, vis_output_dir=args.save_vis_dir)
     
     # Todo: TEST CODE FROM SIMSIAM
-    example_images = [filenames[10**n] for n in range(5)]
-    # show example images for each cluster
-    for i, example_image in enumerate(example_images):
-        plot_nearest_neighbors_3x3(example_image, i)
+    # example_images = [filenames[10**n] for n in range(5)]
+    # # show example images for each cluster
+    # for i, example_image in enumerate(example_images):
+    #     plot_nearest_neighbors_3x3(example_image, i)
     
     wandb.finish()
 
@@ -229,6 +242,11 @@ def main():
     
     # trainer.fit(model, dataloader_train_simclr)
 if __name__ == "__main__":
-    main()
+    # main()
+    with open("sweeps.yaml") as f:
+        sweep_config = yaml.safe_load(f)
+        print(sweep_config)
+    sweep_id = wandb.sweep(sweep_config, project="search_simclr") 
+    wandb.agent(sweep_id, function=main)
     # wandb.agent(sweep_id, function=main)
     

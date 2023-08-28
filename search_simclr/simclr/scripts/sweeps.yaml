@@ -10,5 +10,10 @@ parameters:
   learning_rate:
     min: 0.0001
     max: 0.1
+  batch_size:
+    values: [16, 32, 48, 64, 128]
+  epochs:
+    min: 3
+    max: 10
   optimizer:
     values: ["adam", "sgd"]
