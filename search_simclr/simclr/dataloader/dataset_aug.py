@@ -14,6 +14,8 @@ import torch
 import random
 import os.path
 from typing import Tuple
+import matplotlib.pyplot as plt
+from scipy.interpolate import griddata
 
 # rewrite all functions as classes and put those inside call
 # because then we can use that 
@@ -170,11 +172,68 @@ class Cutout(object):
 
             # Set the region of the hole in the mask to 0
             mask[random_coordinate[0]:random_coordinate[0]+hole_height, random_coordinate[1]:random_coordinate[1]+hole_width] = 0
-
+            
             # Apply the mask to the image
             cutout_image = cutout_image * mask
+            
+            coords = np.nonzero(mask)
+            values = cutout_image[coords]
+            missing = np.isnan(cutout_image)
+            
+            
+            # Now we are creating a set of coordinates for the points we want to interpolate
+            it = np.nditer(missing, flags=['multi_index'])
+            to_interpolate = list(zip(*[it.multi_index for _ in it if _]))
+            
+            interpolated_values = griddata(coords, values, to_interpolate, method='linear')
+            
+            # And finally, replace missing values with interpolated values
+            
+            cutout_image[missing] = interpolated_values
+            
+            gray_levels = cutout_image
+            
+            gradient_x, gradient_y = np.gradient(gray_levels)
+            #gradient_directions_x = np.interp(x, gradient_x[~np.isnan(gradient_x)], np.arange(image.shape[0])[~np.isnan(gradient_x)])
+            #gradient_directions_y = np.interp(x, gradient_y[~np.isnan(gradient_y)], np.arange(image.shape[0])[~np.isnan(gradient_y)])
+            
+            isophote_lines = extend_isophotes(cutout_image, gradient_x, gradient_y, missing)
+            
+            cutout_image[missing] = isophote_lines
+            
+            
+            
+            
 
         return {"image": cutout_image, "filename": fname}
+    
+    def extend_isophotes(image, gradient_x, gradient_y, missing):
+        # This is a placeholder for the complex mathematical process of extending the isophote lines
+        # into the missing regions. The actual implementation would involve solving a set of coupled
+        # second order partial differential equations, which is beyond the scope of this example.
+
+        # For the purposes of this example, let's just fill in the missing regions with the average
+        # gradient direction in the surrounding non-missing regions.
+
+        for i in range(image.shape[0]):
+            for j in range(image.shape[1]):
+                if missing[i, j]:
+                    # Get the surrounding non-missing pixels
+                    surrounding_pixels = []
+                    for di in [-1, 0, 1]:
+                        for dj in [-1, 0, 1]:
+                            if (0 <= i + di < image.shape[0] and 0 <= j + dj < image.shape[1] and not missing[i + di, j + dj]):
+                                surrounding_pixels.append((gradient_x[i + di, j + dj], gradient_y[i + di, j + dj]))
+
+                    # Calculate the average gradient direction
+                    avg_gradient_x = np.mean([gx for gx, gy in surrounding_pixels])
+                    avg_gradient_y = np.mean([gy for gx, gy in surrounding_pixels])
+
+                    # Fill in the missing pixel with the average gradient direction
+                    gradient_x[i, j] = avg_gradient_x
+                    gradient_y[i, j] = avg_gradient_y
+
+        return gradient_x, gradient_y
 
 class H_Flip(object):
     def __init__(self):
