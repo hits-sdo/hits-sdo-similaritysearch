@@ -66,14 +66,13 @@ class SDOConfig:
     accelerator: str = "gpu" if torch.cuda.is_available() else "cpu"
     devices: bool = 1
     train_stage: str = "train"
-    val_stage: str = "validate"
-    
+    val_stage: str = "validate"    
 # sweep_config_path = os.path.join(root, "search_simclr", "simclr", "scripts", 'sweeps.yaml')
 # print(wandb.sweep(sweep_config_path, project="search_simclr"))
 # sweep_id = wandb.sweep(sweep_config_path, project="search_simclr")
 # print (sweep_id)
 
-def main():
+def train(sweep = True):
     config = SDOConfig()
     parser = ArgumentParser()
     parser.add_argument("--model",type=str,help="The model to initialize.",default=config.model)
@@ -113,6 +112,8 @@ def main():
     parser.add_argument('--devices', type=bool, default=config.devices, help='Use GPUs if available')
     parser.add_argument('--train_stage', type=str, default=config.train_stage, help='Stage the model for training')
     parser.add_argument('--val_stage', type=str, default=config.val_stage, help='Stage the model for validation')
+    # parser.add_argument('--sweep', type=bool, default=config.val_stage, help='Stage the model for validation')
+
     args, _ = parser.parse_known_args()
 
 
@@ -139,8 +140,11 @@ def main():
     )
     
     # Setup wandb config
-    wandb_config = wandb.config
-    if (wandb_config is not None):
+    
+    
+    if (sweep):
+        wandb_config = wandb.config
+    #if (wandb_config is not None):
         args.lr = wandb_config.learning_rate
         args.batch_size = wandb_config.batch_size
         args.epochs = wandb_config.epochs
@@ -238,15 +242,10 @@ def main():
     
     wandb.finish()
 
-
+def main():
+    train(False)
     
     # trainer.fit(model, dataloader_train_simclr)
 if __name__ == "__main__":
-    # main()
-    with open("sweeps.yaml") as f:
-        sweep_config = yaml.safe_load(f)
-        print(sweep_config)
-    sweep_id = wandb.sweep(sweep_config, project="search_simclr") 
-    wandb.agent(sweep_id, function=main)
-    # wandb.agent(sweep_id, function=main)
+    main()
     
