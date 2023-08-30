@@ -8,11 +8,16 @@ import time
 
 
 class EmbeddingUtils:
-    def __init__(self, dataset=None, model=None, batch_size=None, num_workers=None):
+    def __init__(self, dataset=None,
+                 model=None,
+                 batch_size=None,
+                 num_workers=None,
+                 projection=False):
         self.dataset = dataset
         self.model = model
         self.batch_size = batch_size
         self.num_workers = num_workers
+        self.projection = projection
 
     def embedder(self):
         device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -37,6 +42,8 @@ class EmbeddingUtils:
                     # embed the images with the pre-trained backbone
                     y = self.model.backbone(x.to(device)).flatten(start_dim=1)
                     # store the embeddings and filenames in lists
+                    if self.projection is True:
+                        y = self.model.projection_head(y)
                     embeddings.append(y)
                     filenames = filenames + list(fnames)
 
