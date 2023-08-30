@@ -19,7 +19,8 @@ dataset_val_simsiam = LightlyDataset(input_dir=path, transform=transforms)
 E = EmbeddingUtils(dataset=dataset_val_simsiam,
                    model=load_model(model_path),
                    batch_size=64,
-                   num_workers=8)
+                   num_workers=8,
+                   projection=True)
 
 filenames, embeddings = E.embedder()
 
@@ -35,5 +36,5 @@ embeddings = {fname: embed for fname, embed in zip(filenames, embeddings.tolist(
 # with open("/home/schatterjee/Documents/hits/hits-sdo-similaritysearch/search_simsiam/embeddings_dict.p", "wb") as out_file:
 #     pickle.dump(embeddings, out_file)
 
-with open("/home/schatterjee/Documents/hits/hits-sdo-similaritysearch/search_simsiam/embeddings_dict_new.p", "wb") as out_file:
+with open("/home/schatterjee/Documents/hits/hits-sdo-similaritysearch/search_simsiam/embeddings_dict_new_proj.p", "wb") as out_file:
     pickle.dump(dct, out_file)
