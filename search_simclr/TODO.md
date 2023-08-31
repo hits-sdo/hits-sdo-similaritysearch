@@ -478,8 +478,18 @@ it's 0.5 < x < 5
 - [x] SUNFLOWER PROFIT 💰💰💰💰💰💰💰💰
 
 ## 8/30/23
-- [ ] Fix issue with model_run.py starting offline if ran without using the sweeps
-- [ ] Parallel Wandb Agents
+- [x] Added different feature extractor variable to the SimCLR model
+- [ ] Write Checkpoint code to intercept SimCLR architecture for training images at the output of the feature extractor (resnet101, resnet50, ...check current architecture for feature extractor type)
+  - [ ] May want to add feature extractor type to argparser in case user wants to change up the feature extractor
+  - [ ] Run WandB sweeps w/ different feature extractor and pick the one with the lowest loss
+- [ ] Take output of feature extractor checkpoint and funnel into 2D dimensionality reduction (dot plot):
+  - [ ] PCA
+  - [ ] TSNE
+  - [ ] UMAP
+- [ ] Write the functions to plot above
+- [ ] Write script to plot the training set embeddings and do the same 
+- [X] Fix issue with model_run.py starting offline if ran without using the sweeps
+- [ ] ~~Parallel Wandb Agents~~
 - [ ] Reference SimSiam: [SimSiam](https://github.com/hits-sdo/hits-sdo-similaritysearch/blob/ss_training/search_simsiam/simsiam_HITS_cleaned_up.ipynb)
     - [ ] `ss_training``
 - [ ] Generate embeddings script 'generate_embeddings.py'
@@ -487,6 +497,34 @@ it's 0.5 < x < 5
         - [ ] plot_nearest_neighbors_3x3()
         - [ ] get_image_as_np_array_with_frame
         - [ ] get_scatter_plot_with_thumbnails
+- [ ] Watch [Video Reference](https://www.youtube.com/watch?v=9zrmUIlScdY&ab_channel=Weights%26Biases)
+- [ ] Create 'tsne' and 'pca' plots locally using 'matplotlib'
+- [ ] Configure WandB to create `tsne` and `pca` plots https://docs.lightly.ai/self-supervised-learning/tutorials/package/tutorial_simclr_clothing.html
+- [ ] randomize augmentations
+    - [ ] Brighten
+    - [ ] Translate
+    - [ ] Zoom
+    - [ ] Blur
+- [ ] Log more than just the loss to wandb
+- [x] SUNFLOWER PROFIT 💰💰💰💰💰💰💰💰
+
+## 9/1/23
+- [ ] Write Checkpoint code to intercept SimCLR architecture for training images at the output of the feature extractor (resnet101, resnet50, ...check current architecture for feature extractor type)
+  - [ ] May want to add feature extractor type to argparser in case user wants to change up the feature extractor
+  - [ ] Run WandB sweeps w/ different feature extractor and pick the one with the lowest loss
+- [ ] Take output of feature extractor checkpoint and funnel into 2D dimensionality reduction (dot plot):
+  - [ ] PCA
+  - [ ] TSNE
+  - [ ] UMAP
+- [ ] Write the functions to plot above
+- [ ] Write script to plot the training set embeddings and do the same 
+- [ ] Generate embeddings script 'generate_embeddings.py'
+    - [ ] Refactor code in ``vis_utils.py`` to be compatible with Simclr
+        - [ ] plot_nearest_neighbors_3x3()
+        - [ ] get_image_as_np_array_with_frame
+        - [ ] get_scatter_plot_with_thumbnails
+- [ ] Reference SimSiam: [SimSiam](https://github.com/hits-sdo/hits-sdo-similaritysearch/blob/ss_training/search_simsiam/simsiam_HITS_cleaned_up.ipynb)
+* If we have time! *
 - [ ] Watch [Video Reference](https://www.youtube.com/watch?v=9zrmUIlScdY&ab_channel=Weights%26Biases)
 - [ ] Create 'tsne' and 'pca' plots locally using 'matplotlib'
 - [ ] Configure WandB to create `tsne` and `pca` plots https://docs.lightly.ai/self-supervised-learning/tutorials/package/tutorial_simclr_clothing.html

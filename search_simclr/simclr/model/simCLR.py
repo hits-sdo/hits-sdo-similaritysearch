@@ -28,11 +28,24 @@ from lightly.models.modules.heads import SimCLRProjectionHead
 
 
 class SimCLR(pl.LightningModule):
-    def __init__(self, lr):
+    def __init__(self, lr, model_str = 'resnet18'):
         super().__init__()
-        resnet = torchvision.models.resnet18()
-        self.backbone = nn.Sequential(*list(resnet.children())[:-1])
-        hidden_dim = resnet.fc.in_features
+        model_str = model_str.lower()
+        if model_str == 'resnet18':
+            feature_extractor = torchvision.models.resnet18()
+        elif model_str == 'resnet34':
+            feature_extractor = torchvision.models.resnet34()
+        elif model_str == 'resnet50':
+            feature_extractor = torchvision.models.resnet50()
+        elif model_str == 'resnet101':
+            feature_extractor = torchvision.models.resnet101()
+        elif model_str == 'resnet152':
+            feature_extractor = torchvision.models.resnet152()
+        elif model_str == 'densenet121':
+            feature_extractor = torchvision.models.densenet121()
+            
+        self.backbone = nn.Sequential(*list(feature_extractor.children())[:-1])
+        hidden_dim = feature_extractor.fc.in_features
         self.projection_head = SimCLRProjectionHead(hidden_dim, hidden_dim, 128)
         self.criterion = NTXentLoss()
         self.lr = lr

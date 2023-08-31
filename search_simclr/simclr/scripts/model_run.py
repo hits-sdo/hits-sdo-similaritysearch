@@ -57,7 +57,7 @@ class SDOConfig:
     cutout_size: float = 0.3
 
     lr: float = 0.005
-    num_workers: int = 20
+    num_workers: int = 12
     batch_size: int = 4
     seed: int = 1
     epochs: int = 1
@@ -215,7 +215,7 @@ def train(sweep = True):
 
     
     # Training the Model
-    model = SimCLR(args.lr)
+    model = SimCLR(args.lr, args.backbone)
     model = model.to(torch.float64)
     trainer = pl.Trainer(max_epochs=args.epochs, devices=args.devices, accelerator=args.accelerator, log_every_n_steps=1)
     trainer.fit(model, sdo_datamodule.train_dataloader())
