@@ -21,17 +21,22 @@ MODEL_32_PATH = "/mnt/d/Mis Documentos/AAResearch/SEARCH/best run/AMJ-ds1_bs64_l
 TILES_PATH = "/mnt/d/Mis Documentos/AAResearch/SEARCH/hits-sdo-downloader/AIA211_193_171_256x256/AIA211_193_171_256x256"
 # TILES_PATH = "/mnt/e/Downloads/AIA211_193_171_256x256"
 PROJECTION_SIZE = 32
+MAX_TILES_DISPLAYED = 50
 
 def main():
 
     st.set_page_config(layout="wide")
+    index_df = pd.read_csv(CSV_32_PATH, compression='zip')
+    n_matches_max_value = index_df.shape[0]
 
-    # st.title("HITS SDO Selector")
+    st.sidebar.title("HITS SDO Search Engine")
+    st.sidebar.markdown("This search engine provides similar tiles according to the selected tile of the query image.")
+
 
     # Upload an image and set some options for demo purposes
     # st.header("Cropper Demo")
     img_file = st.sidebar.file_uploader(label='Upload a file', type=['png', 'jpg'])
-    realtime_update = st.sidebar.checkbox(label="Update in Real Time", value=True)
+    n_matches = st.sidebar.number_input(label="Number of Matches to Return", min_value=1, max_value=n_matches_max_value, value=15, step=1)
     box_color = st.sidebar.color_picker(label="Box Color", value='#FF00FF')
     #aspect_choice = st.sidebar.radio(label="Aspect Ratio", options=["1:1", "16:9", "4:3", "2:3", "Free"])
     # aspect_dict = {
@@ -44,42 +49,35 @@ def main():
     aspect_ratio = (1, 1)
     model = load_byol_model(MODEL_32_PATH)
     # index_df = read_CSV_from_Zip(csv_path = "/mnt/e/Downloads/ds1_bs64_lr0.1_doubleaug_ss0.1_se1.0_pjs16_pds16_contrast_.zip")
-    index_df = pd.read_csv(CSV_32_PATH, compression='zip')
-
-
 
     if img_file:
         # with col1:
         img = Image.open(img_file)
-        if not realtime_update:
-            st.write("Double click to save crop")
         # Get a cropped image from the frontend
-        cropped_img = st_cropper(img, realtime_update=realtime_update, box_color=box_color,
+        cropped_img = st_cropper(img, realtime_update=True, box_color=box_color,
                                     aspect_ratio=aspect_ratio, max_height=700, max_width=700)
 
-        
         # cols = cycle(st.columns())
         # Manipulate cropped image at will
-        st.write("Preview")
+        st.sidebar.write("Preview")
         _ = cropped_img.thumbnail((150,150))
-        st.image(cropped_img, use_column_width=False)
+        st.sidebar.image(cropped_img, use_column_width=False)
         
+        button = st.sidebar.button("Perform Query")
         
     # with col2:
-    button = st.button("Perform Query")
 
-    transform = transforms.Compose([transforms.PILToTensor()])
+        transform = transforms.Compose([transforms.PILToTensor()])
+        # only display max number of images
+        if button:
+            inference_image = transform(cropped_img)[None,:,:,:].float()/255     
+            query_embedding = model.forward_momentum(inference_image)
+            print(f"We did it! The inference is: {query_embedding}")
+            kquery_neighbors = find_matches(query_embedding, index_df, PROJECTION_SIZE, n_matches=n_matches)
+            
+            print(kquery_neighbors)
 
-    if button:
-        inference_image = transform(cropped_img)[None,:,:,:].float()/255     
-        query_embedding = model.forward_momentum(inference_image)
-        print(f"We did it! The inference is: {query_embedding}")
-        n_matches = 15
-        kquery_neighbors = find_matches(query_embedding, index_df, PROJECTION_SIZE, n_matches=n_matches)
-         
-        print(kquery_neighbors)
-
-        read_and_plot_matches(kquery_neighbors, PROJECTION_SIZE)
+            read_and_plot_matches(kquery_neighbors, PROJECTION_SIZE)
 
 
 # Path to index for embeddings size 16 on Jake's computer:
@@ -154,7 +152,9 @@ def find_matches(input_embedding : np.ndarray, index_df: pd.DataFrame, projectio
     return kquery_neighbors
 
 def read_and_plot_matches(kquery_neighbors: pd.DataFrame, projection_size: int, n_columns: int = 10):
-    for n_row in range(kquery_neighbors.shape[0]//n_columns + 1):
+    number_of_rows = kquery_neighbors.shape[0]//n_columns + 1
+    number_of_rows = np.min([MAX_TILES_DISPLAYED//n_columns, number_of_rows])
+    for n_row in range(number_of_rows):
         cols = cycle(st.columns(n_columns)) # st.columns here since it is out of beta at the time I'm writing this
         i_start = n_row * n_columns
         i_end = (n_row + 1) * n_columns
