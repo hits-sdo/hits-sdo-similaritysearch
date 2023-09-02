@@ -26,9 +26,11 @@ import wandb
 from lightly.loss import NTXentLoss
 from lightly.models.modules.heads import SimCLRProjectionHead
 
+import math
+
 
 class SimCLR(pl.LightningModule):
-    def __init__(self, lr, model_str = 'resnet18'):
+    def __init__(self, lr, model_str = 'resnet18', output_dim=128):
         super().__init__()
         model_str = model_str.lower()
         if model_str == 'resnet18':
@@ -46,7 +48,10 @@ class SimCLR(pl.LightningModule):
             
         self.backbone = nn.Sequential(*list(feature_extractor.children())[:-1])
         hidden_dim = feature_extractor.fc.in_features
-        self.projection_head = SimCLRProjectionHead(hidden_dim, hidden_dim, 128)
+
+        self.projection_head = SimCLRProjectionHead(input_dim = hidden_dim, hidden_dim = hidden_dim, output_dim=output_dim)
+        # SimCLRProjectionHead(input_dim: int = 2048, hidden_dim: int = 2048, 
+        # output_dim: int = 128, num_layers: int = 2, batch_norm: bool = True)
         self.criterion = NTXentLoss()
         self.lr = lr
         
@@ -60,7 +65,12 @@ class SimCLR(pl.LightningModule):
         z0 = self.forward(x0)
         z1 = self.forward(x1)
         loss = self.criterion(z0, z1)
+        output = torch.nn.functional.normalize(z0.detach(), dim=1)
+        output_std = torch.std(output, 0)
+        output_std = output_std.mean()
+        collapse = max(0.0, 1 - math.sqrt(self.out_dim) * output_std)
         wandb.log({"train_loss_ssl": loss})
+        wandb.log({"collapse_level": collapse})
         return loss
 
     def configure_optimizers(self):

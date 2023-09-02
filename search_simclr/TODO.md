@@ -509,8 +509,9 @@ it's 0.5 < x < 5
 - [x] SUNFLOWER PROFIT 💰💰💰💰💰💰💰💰
 
 ## 9/1/23
-- [ ] Write Checkpoint code to intercept SimCLR architecture for training images at the output of the feature extractor (resnet101, resnet50, ...check current architecture for feature extractor type)
-  - [ ] May want to add feature extractor type to argparser in case user wants to change up the feature extractor
+- [x] Write Checkpoint code to intercept SimCLR architecture for training images at the output of the feature extractor (resnet101, resnet50, ...check current architecture for feature extractor type)
+  - [ ] Load from checkpoint [Checkpoint](https://lightning.ai/docs/pytorch/stable/common/checkpointing_basic.html)
+  - [ ] May want to add feature extractor type to argparser in case user wants to change up the feature extractor [Hooks and Callbacks](https://stephencowchau.medium.com/pytorch-lightning-hooks-and-callbacks-my-limited-understanding-d8e0a56dcf2b)
   - [ ] Run WandB sweeps w/ different feature extractor and pick the one with the lowest loss
 - [ ] Take output of feature extractor checkpoint and funnel into 2D dimensionality reduction (dot plot):
   - [ ] PCA
@@ -533,5 +534,12 @@ it's 0.5 < x < 5
     - [ ] Translate
     - [ ] Zoom
     - [ ] Blur
-- [ ] Log more than just the loss to wandb
-- [ ] SUNFLOWER PROFIT 💰💰💰💰💰💰💰💰
+- [ ] Log more than just the loss to wandb 
+    - [ ] `collapse`
+    - [x] referense SimSiam (https://github.com/hits-sdo/hits-sdo-similaritysearch/blob/main/search_simsiam/simsiam_example_notebook_HITS_reproducible.ipynb)
+    - [ ] epochs
+    - [ ] accuracy
+- [ ] [sweeps in wandb](https://colab.research.google.com/github/wandb/examples/blob/master/colabs/pytorch/Organizing_Hyperparameter_Sweeps_in_PyTorch_with_W%26B.ipynb)
+- [ ] [wandb sweeps documentation](https://docs.wandb.ai/guides/sweeps)
+- [ ] [wandb w/ simclr](https://wandb.ai/sayakpaul/simclr/reports/Towards-self-supervised-image-understanding-with-SimCLR--VmlldzoxMDI5NDM?_gl=1%2A1leb11n%2A_ga%2AMTAwNzI4MDkxLjE2OTE2MTkxODM.%2A_ga_JH1SJHJQXJ%2AMTY5MzYxMDE0OC4zOS4xLjE2OTM2MTA1NTguNDguMC4w)
+- [x] SUNFLOWER PROFIT 💰💰💰💰💰💰💰💰

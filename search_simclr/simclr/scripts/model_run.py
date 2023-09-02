@@ -44,6 +44,7 @@ class SDOConfig:
     
     save_vis_dir: str = os.path.join(root, "search_simclr", "visualizations", "simclr_knn")
     save_model_dir: str = os.path.join(root, "search_simclr", "model_weights")
+    save_checkpoint_dir: str = os.path.join(root, "search_simclr", "checkpoints")
     #TODO: train_flist: str = 
     tot_fpath_wfname = os.path.join(train_dir, 'tot_full_path_files.txt')
     blur: Tuple[int, int] = (5,5)
@@ -60,7 +61,7 @@ class SDOConfig:
     num_workers: int = 12
     batch_size: int = 4
     seed: int = 1
-    epochs: int = 1
+    epochs: int = 3
     input_size: int = 128 # input resolution
     num_ftrs: int = 32
     accelerator: str = "gpu" if torch.cuda.is_available() else "cpu"
@@ -86,6 +87,7 @@ def train(sweep = True):
     parser.add_argument('--train_dir', type=str, default=config.train_dir, help='Path to train directory')
     parser.add_argument('--val_dir', type=str, default=config.val_dir, help='Path to validation directory') 
     parser.add_argument('--test_dir', type=str, default=config.test_dir, help='Path to test directory')
+    parser.add_argument('--save_checkpoint_dir', type=str,default=config.save_checkpoint_dir, help="Path to checkpoint directory")
     parser.add_argument('--train_fpath', type=str, default=config.train_fpath, help='Path to train file list')
     parser.add_argument('--val_fpath', type=str, default=config.val_fpath, help='Path to validation file list')
     parser.add_argument('--test_fpath', type=str, default=config.test_fpath, help='Path to test file list')
@@ -121,6 +123,8 @@ def train(sweep = True):
         raise Exception("visual directory not defined.")
     if not os.path.exists(args.save_vis_dir):
         raise Exception("visual directory not defined.")
+    if not os.path.exists(args.save_checkpoint_dir):
+        raise Exception("checkpoint directory not defined.")
         
     # Todo: Add "model_backbone" argument
     # Add: cpus, val split, gpus
@@ -217,7 +221,7 @@ def train(sweep = True):
     # Training the Model
     model = SimCLR(args.lr, args.backbone)
     model = model.to(torch.float64)
-    trainer = pl.Trainer(max_epochs=args.epochs, devices=args.devices, accelerator=args.accelerator, log_every_n_steps=1)
+    trainer = pl.Trainer(max_epochs=args.epochs, devices=args.devices, accelerator=args.accelerator, log_every_n_steps=1, default_root_dir=args.save_checkpoint_dir)
     trainer.fit(model, sdo_datamodule.train_dataloader())
     
     # Save the Model

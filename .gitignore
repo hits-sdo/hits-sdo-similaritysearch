@@ -5,6 +5,7 @@ search_simclr/model_weights/
 search_simclr/visualizations/
 search_simclr/simclr/scripts/lightning_logs/
 search_simclr/simclr/scripts/wandb/
+search_simclr/checkpoints
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
