@@ -543,3 +543,14 @@ it's 0.5 < x < 5
 - [ ] [wandb sweeps documentation](https://docs.wandb.ai/guides/sweeps)
 - [ ] [wandb w/ simclr](https://wandb.ai/sayakpaul/simclr/reports/Towards-self-supervised-image-understanding-with-SimCLR--VmlldzoxMDI5NDM?_gl=1%2A1leb11n%2A_ga%2AMTAwNzI4MDkxLjE2OTE2MTkxODM.%2A_ga_JH1SJHJQXJ%2AMTY5MzYxMDE0OC4zOS4xLjE2OTM2MTA1NTguNDguMC4w)
 - [x] SUNFLOWER PROFIT 💰💰💰💰💰💰💰💰
+- [ ] Look at [this:] (https://github.com/hits-sdo/hits-sdo-similaritysearch/blob/main/search_simsiam/simsiam_example_notebook_HITS_reproducible.ipynb)
+
+## 09/08/2023
+- [ ] Create a standalon dataset class file to hold the deliciuos config so we can import it into `validated_model.py`
+- [ ] Solve `load_state_dict` key error when loading the torch model computational graph from Peachy-Sweep
+- [ ] Plot the knn neighbors for Sierra
+- [ ] Plot the embeddings from validation and compare with the embeddings on the final epoch of training (or do what the other teams are doing and plot for embeddings for training data too)
+  - [ ] tsne, pca, umap
+- [ ] Update the `sweeps.yaml` to include encoder architecture (fun fact this is already implemented in the argparser code)
+- [ ] Additional slide for Sunflower (at request of Subhamoy and Andres) Show sweep outcomes and best hyperparameters and encoder architecture results from wandb
+- [ ] Profit

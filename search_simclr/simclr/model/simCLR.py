@@ -15,6 +15,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pytorch_lightning as pl
 import torch
+from pytorch_lightning.callbacks import Callback
 import torch.nn as nn
 import torchvision
 from PIL import Image
@@ -30,7 +31,7 @@ import math
 
 
 class SimCLR(pl.LightningModule):
-    def __init__(self, lr, model_str = 'resnet18', output_dim=128):
+    def __init__(self, lr = 0.02, model_str = 'resnet18', output_dim=128):
         super().__init__()
         model_str = model_str.lower()
         if model_str == 'resnet18':
@@ -52,11 +53,15 @@ class SimCLR(pl.LightningModule):
         self.projection_head = SimCLRProjectionHead(input_dim = hidden_dim, hidden_dim = hidden_dim, output_dim=output_dim)
         # SimCLRProjectionHead(input_dim: int = 2048, hidden_dim: int = 2048, 
         # output_dim: int = 128, num_layers: int = 2, batch_norm: bool = True)
+        self.out_dim = output_dim
         self.criterion = NTXentLoss()
         self.lr = lr
+        self.save_hyperparameters() # Saves hyperparameters so that when we load from a checkpoint, we can use the same hyperparameters
         
     def forward(self, x):
         h = self.backbone(x).flatten(start_dim=1)
+        # Save the output of the base encoder as base_encoder_output
+        self.base_encoder_output = h
         z = self.projection_head(h)
         return z
     
@@ -79,6 +84,19 @@ class SimCLR(pl.LightningModule):
         )
         #scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optim, max_epochs)
         return optim #[optim], [scheduler]
+    
+class SimCLRCallback(Callback):
+    def __init__(self, save_path):
+        super().__init__()
+        self.save_path = save_path
+
+    def on_after_backward(self, trainer, pl_module):
+        # Access the embeddings at the output of the base encoder
+        embeddings = pl_module.base_encoder_output
+
+        # Save the embeddings to a file
+        torch.save(embeddings, self.save_path)
+
 
 # note on line 47:
 '''

@@ -19,12 +19,13 @@ from search_simclr.simclr.dataloader import dataset_aug
 from search_simclr.simclr.dataloader.dataset import SdoDataset, partition_tile_dir_train_val
 from search_utils.file_utils import get_file_list, split_val_files
 from search_simclr.simclr.dataloader.datamodule import SimCLRDataModule
-from search_simclr.simclr.model.simCLR import SimCLR
+from search_simclr.simclr.model.simCLR import SimCLR, SimCLRCallback
 from search_simclr.simclr_utils.vis_utils import generate_embeddings, plot_knn_examples, plot_nearest_neighbors_3x3
 from typing import Tuple
 from argparse import ArgumentParser
 import yaml
 from datetime import datetime
+
 
 
 @dataclass
@@ -38,7 +39,7 @@ class SDOConfig:
     val_fpath: str = os.path.join(val_dir, 'val_file_list.txt')
     test_fpath: str = None
     percent_split: float = 0.8
-    num_img: int = 1000
+    num_img: int = 10000
     model: str = "simclr"
     backbone: str = "resnet18"
     
@@ -68,6 +69,8 @@ class SDOConfig:
     devices: bool = 1
     train_stage: str = "train"
     val_stage: str = "validate"    
+    enable_checkpoint: bool = True
+    log_every_n_steps: int = 10
 # sweep_config_path = os.path.join(root, "search_simclr", "simclr", "scripts", 'sweeps.yaml')
 # print(wandb.sweep(sweep_config_path, project="search_simclr"))
 # sweep_id = wandb.sweep(sweep_config_path, project="search_simclr")
@@ -114,6 +117,8 @@ def train(sweep = True):
     parser.add_argument('--devices', type=bool, default=config.devices, help='Use GPUs if available')
     parser.add_argument('--train_stage', type=str, default=config.train_stage, help='Stage the model for training')
     parser.add_argument('--val_stage', type=str, default=config.val_stage, help='Stage the model for validation')
+    parser.add_argument('--enable_checkpoint', type=bool, default=config.enable_checkpoint, help='Enable checkpointing')
+    parser.add_argument('--log_every_n_steps', type=int, default=config.log_every_n_steps, help='Log every n steps')
     # parser.add_argument('--sweep', type=bool, default=config.val_stage, help='Stage the model for validation')
 
     args, _ = parser.parse_known_args()
@@ -217,19 +222,21 @@ def train(sweep = True):
     #     print(f"epoch={epoch}, accuracy={acc}, loss={loss}")
     #     wandb.log({"accuracy": acc, "loss": loss})
 
+    now = datetime.now()
+    now_str = now.strftime("%Y-%m-%d_%H-%M-%S")
     
     # Training the Model
     model = SimCLR(args.lr, args.backbone)
     model = model.to(torch.float64)
-    trainer = pl.Trainer(max_epochs=args.epochs, devices=args.devices, accelerator=args.accelerator, log_every_n_steps=1, default_root_dir=args.save_checkpoint_dir)
+    callback = SimCLRCallback(os.path.join(args.save_checkpoint_dir, f'{now_str}_{args.backbone}_embeddings.pt'))
+    trainer = pl.Trainer(max_epochs=args.epochs, devices=args.devices, accelerator=args.accelerator, log_every_n_steps=args.log_every_n_steps, default_root_dir=args.save_checkpoint_dir, enable_checkpointing=args.enable_checkpoint, callbacks=[callback])
     trainer.fit(model, sdo_datamodule.train_dataloader())
     
     # Save the Model
     trained_backbone = model.backbone
-    state_dict = {"resnet18_parameters": trained_backbone.state_dict()}
-    now = datetime.now()
-    now_str = now.strftime("%Y-%m-%d_%H-%M-%S")
-    torch.save(state_dict, os.path.join(args.save_model_dir, f'{now_str} model.pth'))
+    state_dict = {"backbone_state_dict": trained_backbone.state_dict()}
+    
+    torch.save(state_dict, os.path.join(args.save_model_dir, f'{now_str}_model.pth'))
     
     # Running validation
     sdo_datamodule.setup(stage=args.val_stage)
