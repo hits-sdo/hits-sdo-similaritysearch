@@ -9,7 +9,42 @@ import zipfile
 from sklearn.metrics.pairwise import cosine_similarity
 from model import load_model
 from PIL import Image
+
 import pickle
+
+from sdo_augmentation.augmentation_list import AugmentationList
+from sdo_augmentation.augmentation import Augmentations
+
+
+root_path = '/home/schatterjee/Documents/hits/'
+model_path = root_path + '/hits-sdo-similaritysearch/search_simsiam/saved_model/'
+
+wavelengths_to_models = {
+    '171': model_path + 'epoch=9-step=17510.ckpt',  # TODO replace with correct model
+    '211_193_171': model_path + 'epoch=9-step=17510.ckpt',
+    '304_211_171': model_path + 'epoch=9-step=17510.ckpt',  # TODO replace with correct model
+    '335_193_94': model_path + 'epoch=9-step=17510.ckpt'  # TODO replace with correct model
+}
+
+
+# def apply_augmentation(img):
+#     '''
+#     Applies the current augmentation settings to the selected image
+#     checked if a user selected a region of interest -> cord_tup
+#     And displays the augmented image to the user
+#     '''
+#     img = Image.open(img)
+#     img = np.array(img)/255
+
+#     aug_list = AugmentationList(instrument="euv")
+#     aug_dict = aug_list.randomize()
+
+#     aug_img = Augmentations(img, aug_dict)
+#     fill_type = 'Nearest'
+#     img, _ = aug_img.perform_augmentations(fill_void=fill_type)
+#     st.session_state["aug_img"] = img
+
+#     img_container.image(img, use_column_width=True)
 
 
 def display_search_result(session_state, col2, embeddings_dict, data_path):
@@ -47,17 +82,26 @@ def display_search_result(session_state, col2, embeddings_dict, data_path):
                 zipf.write(data_path+session_state['fnames'][n])
 
 
+@st.cache_resource
+def simsiam_model(wavelength):
+    return load_model(wavelengths_to_models[wavelength]).eval()
+
+
 def show_nearest_neighbors(session_state,
                            wavelength,
-                            num_images,
-                            input_size,
-                            dist_type,
-                            start_date,
-                            end_date):
+                           num_images,
+                           input_size,
+                           dist_type,
+                           start_date,
+                           end_date):
     print("Showing the nearest neighbors")
     model = simsiam_model(wavelength)
+
     if session_state['augmented'] == 0:
-        pil_image = Image.open(session_state['img'])
+        if session_state['crop']:
+            pil_image = Image.fromarray((255*session_state['img']).astype(np.uint8))
+        else:
+            pil_image = Image.open(session_state['img'])
     else:
         pil_image = Image.fromarray((255*session_state['aug_img']).astype(np.uint8))
 
@@ -130,9 +174,9 @@ def fetch_n_neighbor_filenames(query_embedding, embeddings_dict, dist_type,
     return nearest_neighbors
 
 
-def simsiam_model(wavelength):
-    # TODO add different model for each dataset and wavelength (and make pep8)
-    return load_model('/home/schatterjee/Documents/hits/hits-sdo-similaritysearch/search_simsiam/saved_model/epoch=9-step=17510.ckpt').eval()
+# def simsiam_model(wavelength):
+#     # TODO add different model for each dataset and wavelength (and make pep8)
+#     return load_model('/home/schatterjee/Documents/hits/hits-sdo-similaritysearch/search_simsiam/saved_model/epoch=9-step=17510.ckpt').eval()
 
 
 def embeddings_dict(session_state):

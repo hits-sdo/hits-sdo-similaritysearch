@@ -6,52 +6,42 @@
 # [x] add advanced menu to select between backbone and projection head
 # [x] add option to clear augmentations
 # [ ] Speed up display of search results
-# [ ] switching model based on wavelength (use dictionary mapping name to model)
+# [x] switching model based on wavelength (use dictionary mapping name to model)
+    # [ ] test with second 171 model
 # [ ] add smoother transitions
+# [ ] crop functionality
+    # [ ] reorder so crop -> augment instead of augment -> crop
+# [ ] drag-and-drop not working...?
+
 """
 import streamlit as st
-import pickle
 import datetime
 import numpy as np
-import matplotlib.pyplot as plt
 from PIL import Image
+from model import load_model
 from sdo_augmentation.augmentation_list import AugmentationList
 from sdo_augmentation.augmentation import Augmentations
 from gui_utils import (
-    fetch_n_neighbor_filenames,
+    root_path, 
+    model_path,
+    wavelengths_to_models,
     display_search_result,
     show_nearest_neighbors,
     embeddings_dict
 )
+from streamlit_cropper import st_cropper
+
+
+data_path = root_path + 'AIA211_193_171_Miniset/'
 
 
 def empty_fnames():
     st.session_state['fnames'] = []
 
 
+# define session state parameters
 if 'fnames' not in st.session_state:
     empty_fnames()
-
-data_path = '/home/schatterjee/Documents/hits/AIA211_193_171_Miniset/'
-
-
-@st.cache_resource
-def simsiam_model(wavelength):
-    # TODO add different model for each dataset and wavelength (and make pep8)
-    return load_model('/home/schatterjee/Documents/hits/hits-sdo-similaritysearch/search_simsiam/saved_model/epoch=9-step=17510.ckpt').eval()
-
-
-# @st.cache_resource
-
-# upload image for similarity search
-st.session_state['img'] = st.file_uploader(
-    "Choose an image...",
-    type=["p", "jpg", "png"],
-    on_change=empty_fnames)
-
-col1, col2 = st.columns([1, 2])  # define columns for images
-
-# define session state parameters
 if 'dist' not in st.session_state:
     st.session_state['dist'] = 'Euclidean'
 if 'embed' not in st.session_state:
@@ -66,6 +56,14 @@ if 'aug_img' not in st.session_state:
     st.session_state['aug_img'] = None
 if 'neighbors' not in st.session_state:
     st.session_state['neighbors'] = 26
+
+# upload image for similarity search
+st.session_state['img'] = st.file_uploader(
+    "Choose an image...",
+    type=["p", "jpg", "png"],
+    on_change=empty_fnames)
+
+col1, col2 = st.columns([1, 2])  # define columns for images
 
 
 def apply_augmentation(img):
@@ -85,7 +83,7 @@ def apply_augmentation(img):
     img, _ = aug_img.perform_augmentations(fill_void=fill_type)
     st.session_state["aug_img"] = img
 
-    img_container.image(img, use_column_width=True)
+    img_container.image(img, use_column_width=True, clamp=True)
 
 
 with st.sidebar:
@@ -98,9 +96,10 @@ with st.sidebar:
 
     st.selectbox(
         'Wavelength',
-        ('211 193 171', '211 193 171'),
+        wavelengths_to_models.keys(),
         key='wavelength',
-        help=wavelength_help)
+        help=wavelength_help,
+        on_change=empty_fnames)
 
     st.selectbox(
         'Filter with date',
@@ -181,10 +180,43 @@ if st.session_state['img'] is not None:
     if st.session_state['augmented'] == 0:
         img_text.write('Query Image')
         img_container.image(st.session_state['img'], use_column_width=True)
+        pil_img = Image.open(st.session_state['img'])
     else:
         img_text.write('Augmented Image')
         apply_augmentation(st.session_state['img'])
         img_container.image(st.session_state['aug_img'], use_column_width=True)
+        pil_img = Image.fromarray((255*st.session_state['aug_img']).astype(np.uint8))
+
+    if col1.toggle("Crop", on_change=empty_fnames, key='crop'):
+        with img_container:
+            np_img = np.array(pil_img)
+            aspect_ratio = np_img.shape[1]/np_img.shape[0]
+            SIZE = 230
+            pil_img = pil_img.resize((int(SIZE*aspect_ratio), SIZE))
+
+            cropped_coords = st_cropper(pil_img,
+                                        realtime_update=True,
+                                        box_color='#0000FF',
+                                        return_type='box',
+                                        should_resize_image=True,
+                                        aspect_ratio=None)
+
+            scaling_factor = np_img.shape[0] / SIZE
+            cord_tuple = tuple(map(int, cropped_coords.values()))
+
+            # scale all values
+            cord_tuple = tuple(
+                [int(x * scaling_factor) for x in cord_tuple]
+                )
+
+            st.session_state['img'] = np_img[
+                cord_tuple[1]:cord_tuple[1] + cord_tuple[3],
+                cord_tuple[0]:cord_tuple[0] + cord_tuple[2]
+            ]
+
+            # Show Preview
+            col1.write("Cropped Image")
+            col1.image(st.session_state['img'], use_column_width=True, clamp=True)
 
 if len(st.session_state['fnames']) > 0:
     # embeddings_dict = embeddings_dict(st.session_state)
