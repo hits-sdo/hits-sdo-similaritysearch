@@ -48,14 +48,18 @@ def main():
     # }
     aspect_ratio = (1, 1)
     model = load_byol_model(MODEL_32_PATH)
-    # index_df = read_CSV_from_Zip(csv_path = "/mnt/e/Downloads/ds1_bs64_lr0.1_doubleaug_ss0.1_se1.0_pjs16_pds16_contrast_.zip")
+    # index_df = read_CSV_from_Zi, "x pixel coordinate bottom left"p(csv_path = "/mnt/e/Downloads/ds1_bs64_lr0.1_doubleaug_ss0.1_se1.0_pjs16_pds16_contrast_.zip")
+    
+    # TODO: Placeholder for user-defined tile height and width.
+    tile_height = 256
+    tile_width = 256
 
     if img_file:
         # with col1:
         img = Image.open(img_file)
         # Get a cropped image from the frontend
         cropped_img = st_cropper(img, realtime_update=True, box_color=box_color,
-                                    aspect_ratio=aspect_ratio, max_height=700, max_width=700)
+                                    aspect_ratio=aspect_ratio, max_height=700, max_width=700, tile_height=tile_height, tile_width=tile_width)
 
         # cols = cycle(st.columns())
         # Manipulate cropped image at will
@@ -63,13 +67,13 @@ def main():
         _ = cropped_img.thumbnail((150,150))
         st.sidebar.image(cropped_img, use_column_width=False)
         
-        button = st.sidebar.button("Perform Query")
-        
+        query_button = st.sidebar.button("Perform Query")
+        download_button = st.sidebar.button("Download CSV with Matches")
     # with col2:
 
         transform = transforms.Compose([transforms.PILToTensor()])
         # only display max number of images
-        if button:
+        if query_button:
             inference_image = transform(cropped_img)[None,:,:,:].float()/255     
             query_embedding = model.forward_momentum(inference_image)
             print(f"We did it! The inference is: {query_embedding}")
@@ -78,7 +82,10 @@ def main():
             print(kquery_neighbors)
 
             read_and_plot_matches(kquery_neighbors, PROJECTION_SIZE)
+            create_csv_for_download(kquery_neighbors, tile_height=tile_height, tile_width=tile_width)
 
+        if download_button:
+            create_csv_for_download(kquery_neighbors)
 
 # Path to index for embeddings size 16 on Jake's computer:
 
@@ -169,6 +176,22 @@ def read_and_plot_matches(kquery_neighbors: pd.DataFrame, projection_size: int, 
     #     st.image(tile_match)    
 
 
+def create_csv_for_download(kquery_neighbors : pd.DataFrame, tile_height : int, tile_width : int):
+    # date_string = re.search(r"\d{8}_\d{6}(?!.+\d{8}_\d{6}.+)", data_filename).group().replace('_', 'T')
+    df_download = kquery_neighbors.copy()
+    df_download['Date'] = df_download['FileName'].apply(lambda x: re.search(r"\d{8}_\d{6}(?!.+\d{8}_\d{6}.+)", x).group().replace('_', 'T')) # retrieve date from filename.
+    df_download['Date'] = df_download['Date'].apply(lambda x: '-'.join([x[0:4], x[4:6] ,x[6:]])) # format date.
+    df_download['Date'] = df_download['Date'].apply(lambda x: ':'.join([x[0:13], x[13:15] , x[15:]]))
+    df_download['X_Coordinate'] = df_download['FileName'].apply(lambda x: re.split('_|\.', x)[-2])
+    df_download['Y_Coordinate'] = df_download['FileName'].apply(lambda x: re.split('_|\.', x)[-3])
+    df_download['JSOC_String'] = df_download['Date'].apply(lambda x: 'aia.lev1_euv_12s'+ f'[{x}]')
+    df_download['Tile_Height'] = tile_height
+    df_download['Tile_Width'] = tile_width
+
+    # print(df_download['Date'], df_download['X_Coordinate'], df_download['Y_Coordinate'], df_download['JSOC_String'])
+    #TODO: Drop first column integer; drop filename; reorganize columns; rename csv filename.
+    df_download.to_csv('csv_for_download.csv')
+    
 
 if __name__ == "__main__":
     main()
