@@ -546,11 +546,29 @@ it's 0.5 < x < 5
 - [ ] Look at [this:] (https://github.com/hits-sdo/hits-sdo-similaritysearch/blob/main/search_simsiam/simsiam_example_notebook_HITS_reproducible.ipynb)
 
 ## 09/08/2023
-- [ ] Create a standalon dataset class file to hold the deliciuos config so we can import it into `validated_model.py`
-- [ ] Solve `load_state_dict` key error when loading the torch model computational graph from Peachy-Sweep
-- [ ] Plot the knn neighbors for Sierra
+- [X] Create a stand alone dataset class file to hold the deliciuos config so we can import it into `validated_model.py`
+- [X] Solve `load_state_dict` key error when loading the torch model computational graph from Peachy-Sweep
+- [X] Plot the knn neighbors for Sierra
 - [ ] Plot the embeddings from validation and compare with the embeddings on the final epoch of training (or do what the other teams are doing and plot for embeddings for training data too)
   - [ ] tsne, pca, umap
-- [ ] Update the `sweeps.yaml` to include encoder architecture (fun fact this is already implemented in the argparser code)
+- [X] Update the `sweeps.yaml` to include encoder architecture (fun fact this is already implemented in the argparser code)
 - [ ] Additional slide for Sunflower (at request of Subhamoy and Andres) Show sweep outcomes and best hyperparameters and encoder architecture results from wandb
-- [ ] Profit
+- [X] Profit
+
+## 09/11/2023
+- [ ] Plot the embeddings from validation and compare with the embeddings on the final epoch of training (or do what the other teams are doing and plot for embeddings for training data too)
+  - [ ] tsne, pca, umap
+- [ ] randomize augmentation of values within a neighborhood
+    - [ ] Brighten
+    - [ ] Translate
+    - [ ] Zoom
+    - [ ] Blur
+- [ ] configure sweeps plot and log more than just loss
+    - [ ] [link](https://wandb.ai/site/articles/running-hyperparameter-sweeps-to-pick-the-best-model-using-w-b)
+    
+- [ ] configure `simclr.py` model to use pretrained base encoder architecture
+    - [ ] add wandb.log to training loop
+        - [ ] epochs
+        - [ ] accuracy
+- [ ] finish loading from checkpoint and callback
+- [ ] profit 

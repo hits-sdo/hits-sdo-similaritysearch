@@ -17,3 +17,5 @@ parameters:
     max: 10
   optimizer:
     values: ["adam", "sgd"]
+  backbone:
+    values: ["resnet18","resnet34","resnet50","resnet101","resnet152","densenet121"]

@@ -25,62 +25,13 @@ from typing import Tuple
 from argparse import ArgumentParser
 import yaml
 from datetime import datetime
-
-
-
-@dataclass
-class SDOConfig:
-    """ Configuration options for HITS-SDO Dataset"""
-    tile_dir = os.path.join(root , 'data')
-    train_dir: str = os.path.join(tile_dir, 'train_val_simclr')
-    val_dir: str = os.path.join(tile_dir, 'train_val_simclr')
-    test_dir: str = None
-    train_fpath: str = os.path.join(train_dir,'train_file_list.txt')
-    val_fpath: str = os.path.join(val_dir, 'val_file_list.txt')
-    test_fpath: str = None
-    percent_split: float = 0.8
-    num_img: int = 10000
-    model: str = "simclr"
-    backbone: str = "resnet18"
-    
-    save_vis_dir: str = os.path.join(root, "search_simclr", "visualizations", "simclr_knn")
-    save_model_dir: str = os.path.join(root, "search_simclr", "model_weights")
-    save_checkpoint_dir: str = os.path.join(root, "search_simclr", "checkpoints")
-    #TODO: train_flist: str = 
-    tot_fpath_wfname = os.path.join(train_dir, 'tot_full_path_files.txt')
-    blur: Tuple[int, int] = (5,5)
-    brighten: float = 1.0
-    translate: Tuple[int, int] = (1,3)
-    zoom: float = 1.5
-    rotate: float = 360.0
-    noise_mean: float = 0.0 
-    noise_std: float = 0.05
-    cutout_holes: int = 1 
-    cutout_size: float = 0.3
-
-    lr: float = 0.005
-    num_workers: int = 12
-    batch_size: int = 4
-    seed: int = 1
-    epochs: int = 3
-    input_size: int = 128 # input resolution
-    num_ftrs: int = 32
-    accelerator: str = "gpu" if torch.cuda.is_available() else "cpu"
-    devices: bool = 1
-    train_stage: str = "train"
-    val_stage: str = "validate"    
-    enable_checkpoint: bool = True
-    log_every_n_steps: int = 10
-# sweep_config_path = os.path.join(root, "search_simclr", "simclr", "scripts", 'sweeps.yaml')
-# print(wandb.sweep(sweep_config_path, project="search_simclr"))
-# sweep_id = wandb.sweep(sweep_config_path, project="search_simclr")
-# print (sweep_id)
+from search_simclr.simclr.scripts.sdoconfig_dataclass import SDOConfig
 
 def train(sweep = True):
     config = SDOConfig()
     parser = ArgumentParser()
     parser.add_argument("--model",type=str,help="The model to initialize.",default=config.model)
-    parser.add_argument("--backbone",type=str,help="The backbone to use in model",default=config.backbone)
+    parser.add_argument("--backbone",type=str,help="The backbone to use in model (resnet18,resnet34,resnet50,resnet101,resnet152,densenet121)",default=config.backbone)
     parser.add_argument("--lr",type=float,help="The learning rate for training model",default=config.lr)
     parser.add_argument("--epochs",type=int,help="Number of epochs to train for.",default=config.epochs)
     parser.add_argument("--split",type=bool,help="True if you want to overide the split files",default=True)
@@ -157,6 +108,7 @@ def train(sweep = True):
         args.lr = wandb_config.learning_rate
         args.batch_size = wandb_config.batch_size
         args.epochs = wandb_config.epochs
+        args.backbone = wandb_config.backbone
         print("Using wandb config: "+str(wandb_config) + "\n")
     else:
         print("Not using wandb config")

@@ -73,7 +73,7 @@ class SimCLR(pl.LightningModule):
         output = torch.nn.functional.normalize(z0.detach(), dim=1)
         output_std = torch.std(output, 0)
         output_std = output_std.mean()
-        collapse = max(0.0, 1 - math.sqrt(self.out_dim) * output_std)
+        collapse = 1 - math.sqrt(self.out_dim) * output_std
         wandb.log({"train_loss_ssl": loss})
         wandb.log({"collapse_level": collapse})
         return loss

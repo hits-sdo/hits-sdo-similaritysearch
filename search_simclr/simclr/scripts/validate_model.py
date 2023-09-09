@@ -25,68 +25,65 @@ from typing import Tuple
 from argparse import ArgumentParser
 import yaml
 from datetime import datetime
+from search_simclr.simclr.scripts.sdoconfig_dataclass import SDOConfig
+from search_simclr.simclr.dataloader.datamodule import SimCLRDataModule
 
-@dataclass
-class SDOConfig:
-    """ Configuration options for HITS-SDO Dataset"""
-    tile_dir = os.path.join(root , 'data')
-    train_dir: str = os.path.join(tile_dir, 'train_val_simclr')
-    val_dir: str = os.path.join(tile_dir, 'train_val_simclr')
-    test_dir: str = None
-    train_fpath: str = os.path.join(train_dir,'train_file_list.txt')
-    val_fpath: str = os.path.join(val_dir, 'val_file_list.txt')
-    test_fpath: str = None
-    percent_split: float = 0.8
-    num_img: int = 10000
-    model: str = "simclr"
-    backbone: str = "resnet18"
-    
-    save_vis_dir: str = os.path.join(root, "search_simclr", "visualizations", "simclr_knn")
-    save_model_dir: str = os.path.join(root, "search_simclr", "model_weights")
-    save_checkpoint_dir: str = os.path.join(root, "search_simclr", "checkpoints")
-    #TODO: train_flist: str = 
-    tot_fpath_wfname = os.path.join(train_dir, 'tot_full_path_files.txt')
-    blur: Tuple[int, int] = (5,5)
-    brighten: float = 1.0
-    translate: Tuple[int, int] = (1,3)
-    zoom: float = 1.5
-    rotate: float = 360.0
-    noise_mean: float = 0.0 
-    noise_std: float = 0.05
-    cutout_holes: int = 1 
-    cutout_size: float = 0.3
+def main():
+    config = SDOConfig()
+    sdo_datamodule = SimCLRDataModule() # <-- stuff here
 
-    lr: float = 0.005
-    num_workers: int = 12
-    batch_size: int = 4
-    seed: int = 1
-    epochs: int = 3
-    input_size: int = 128 # input resolution
-    num_ftrs: int = 32
-    accelerator: str = "gpu" if torch.cuda.is_available() else "cpu"
-    devices: bool = 1
-    train_stage: str = "train"
-    val_stage: str = "validate"    
-    enable_checkpoint: bool = True
-    log_every_n_steps: int = 10
-    
-# Load the model from path
-lr = 0.0003
-model = SimCLR(lr)
-path = os.path.join(root, 'search_simclr', 'model_weights', '2023-08-28_10-05-25PeachySweepmodel.pth')
-print(f'path: {path}')
-temp = torch.load(path)
-print(f'temp.shape: {temp.shape}')
-#model.load_state_dict(torch.load(path))
-#print(f"Torch keys {model.load_state_dict(torch.load(path)).keys}")
-####FIX ME <- resnant parameters
+        
+    # Load the model from path
+    model = SimCLR()
+    model = model.to(torch.float64)
+    path = os.path.join(root, 'search_simclr', 'model_weights', '2023-09-08_14-30-08_model.pth')
+    print(f'path: {path}')
+    temp = torch.load(path)
+    #print(f'temp.shape: {temp.shape}')
+    temp = temp["backbone_state_dict"] # FIX ME <- "backbone_state_dict"
+    model.backbone.load_state_dict(temp)
 
-# Validate the model
-model.eval()
-# Fetch the validation set from the dataloader
-sdo_datamodule.setup(stage=config.val_stage)
 
-# Generate embeddings for validation
-embeddings, filenames = generate_embeddings(model, sdo_datamodule.val_dataloader())
-#Visualize Nearest Neighbors
-plot_knn_examples(embeddings, filenames)
+    # Validate the model
+    model.eval()
+    # Fetch the validation set from the dataloader
+    sdo_datamodule = SimCLRDataModule(
+                    blur = config.blur, 
+                    brighten = config.brighten, 
+                    translate = config.translate, 
+                    zoom = config.zoom, 
+                    rotate = config.rotate, 
+                    noise_mean = config.noise_mean, 
+                    noise_std = config.noise_std, 
+                    cutout_holes = config.cutout_holes, 
+                    cutout_size = config.cutout_size,
+                    batch_size = config.batch_size,
+                    num_images = config.num_img,
+                    percent = config.percent_split,
+                    
+                    tile_dir = config.tile_dir,
+                    train_dir = config.train_dir,
+                    val_dir = config.val_dir,
+                    test_dir = config.test_dir,
+                    
+                    train_fpath = config.train_fpath,
+                    val_fpath = config.val_fpath,
+                    train_flist = None, 
+                    val_flist = None,
+                    test_flist = None,
+                    tot_fpath_wfname = config.tot_fpath_wfname,
+                    split = True,
+                    num_workers = config.num_workers)
+
+
+    sdo_datamodule.prepare_data()
+    sdo_datamodule.setup(stage=config.val_stage)
+
+    # Generate embeddings for validation
+    embeddings, filenames = generate_embeddings(model, sdo_datamodule.val_dataloader())
+    #Visualize Nearest Neighbors
+    data_path = os.path.join(root, "data")
+    plot_knn_examples(embeddings, filenames, data_path, vis_output_dir=config.save_vis_dir)
+
+if __name__ == "__main__":
+    main()
