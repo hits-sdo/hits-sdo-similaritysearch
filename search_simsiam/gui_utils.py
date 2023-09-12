@@ -20,7 +20,7 @@ root_path = '/home/schatterjee/Documents/hits/'
 model_path = root_path + '/hits-sdo-similaritysearch/search_simsiam/saved_model/'
 
 wavelengths_to_models = {
-    '171': model_path + 'epoch=9-step=17510.ckpt',  # TODO replace with correct model
+    '171': model_path + 'epoch=8-step=14769.ckpt',  # TODO replace with correct model
     '211_193_171': model_path + 'epoch=9-step=17510.ckpt',
     '304_211_171': model_path + 'epoch=9-step=17510.ckpt',  # TODO replace with correct model
     '335_193_94': model_path + 'epoch=9-step=17510.ckpt'  # TODO replace with correct model
@@ -120,7 +120,7 @@ def show_nearest_neighbors(session_state,
     query_embedding = embedding[0].cpu().data.numpy()
     print('Q:', query_embedding[:5])
     filenames = fetch_n_neighbor_filenames(query_embedding,
-                                           embeddings_dict(session_state),
+                                           embeddings_dict(session_state, wavelength),
                                            dist_type,
                                            num_images=num_images,
                                            start_date=start_date,
@@ -179,8 +179,8 @@ def fetch_n_neighbor_filenames(query_embedding, embeddings_dict, dist_type,
 #     return load_model('/home/schatterjee/Documents/hits/hits-sdo-similaritysearch/search_simsiam/saved_model/epoch=9-step=17510.ckpt').eval()
 
 
-def embeddings_dict(session_state):
+def embeddings_dict(session_state, wavelength):
     if session_state['embed'] == 'Backbone':
-        return pickle.load(open('/home/schatterjee/Documents/hits/hits-sdo-similaritysearch/search_simsiam/embeddings_dict_211_193_171.p', 'rb'))
+        return pickle.load(open('/home/schatterjee/Documents/hits/hits-sdo-similaritysearch/search_simsiam/'+f'embeddings_dict_{wavelength}.p', 'rb'))
     else:
-        return pickle.load(open('/home/schatterjee/Documents/hits/hits-sdo-similaritysearch/search_simsiam/embeddings_dict_211_193_171_proj.p', 'rb'))
+        return pickle.load(open('/home/schatterjee/Documents/hits/hits-sdo-similaritysearch/search_simsiam/'+f'embeddings_dict_{wavelength}_proj.p', 'rb'))

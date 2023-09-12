@@ -32,7 +32,7 @@ from gui_utils import (
 from streamlit_cropper import st_cropper
 
 
-data_path = root_path + 'AIA211_193_171_Miniset/'
+
 
 
 def empty_fnames():
@@ -100,6 +100,9 @@ with st.sidebar:
         key='wavelength',
         help=wavelength_help,
         on_change=empty_fnames)
+    
+    w = st.session_state['wavelength']
+    data_path = root_path + f'AIA{w}_Miniset/'
 
     st.selectbox(
         'Filter with date',
@@ -220,4 +223,4 @@ if st.session_state['img'] is not None:
 
 if len(st.session_state['fnames']) > 0:
     # embeddings_dict = embeddings_dict(st.session_state)
-    display_search_result(st.session_state, col2, embeddings_dict(st.session_state), data_path)
+    display_search_result(st.session_state, col2, embeddings_dict(st.session_state, st.session_state['wavelength']), data_path)
