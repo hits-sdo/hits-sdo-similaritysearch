@@ -179,7 +179,7 @@ def train(sweep = True):
     
     # Training the Model
     model = SimCLR(args.lr, args.backbone)
-    model = model.to(torch.float64)
+    # model = model.to(torch.float64)
     callback = SimCLRCallback(os.path.join(args.save_checkpoint_dir, f'{now_str}_{args.backbone}_embeddings.pt'))
     trainer = pl.Trainer(max_epochs=args.epochs, devices=args.devices, accelerator=args.accelerator, log_every_n_steps=args.log_every_n_steps, default_root_dir=args.save_checkpoint_dir, enable_checkpointing=args.enable_checkpoint, callbacks=[callback])
     trainer.fit(model, sdo_datamodule.train_dataloader())

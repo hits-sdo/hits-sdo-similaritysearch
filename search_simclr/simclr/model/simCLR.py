@@ -35,17 +35,17 @@ class SimCLR(pl.LightningModule):
         super().__init__()
         model_str = model_str.lower()
         if model_str == 'resnet18':
-            feature_extractor = torchvision.models.resnet18()
+            feature_extractor = torchvision.models.resnet18(pretrained=True)
         elif model_str == 'resnet34':
-            feature_extractor = torchvision.models.resnet34()
+            feature_extractor = torchvision.models.resnet34(pretrained=True)
         elif model_str == 'resnet50':
-            feature_extractor = torchvision.models.resnet50()
+            feature_extractor = torchvision.models.resnet50(pretrained=True)
         elif model_str == 'resnet101':
-            feature_extractor = torchvision.models.resnet101()
+            feature_extractor = torchvision.models.resnet101(pretrained=True)
         elif model_str == 'resnet152':
-            feature_extractor = torchvision.models.resnet152()
+            feature_extractor = torchvision.models.resnet152(pretrained=True)
         elif model_str == 'densenet121':
-            feature_extractor = torchvision.models.densenet121()
+            feature_extractor = torchvision.models.densenet121(pretrained=True)
             
         self.backbone = nn.Sequential(*list(feature_extractor.children())[:-1])
         hidden_dim = feature_extractor.fc.in_features

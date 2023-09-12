@@ -79,9 +79,11 @@ def main():
     sdo_datamodule.prepare_data()
     sdo_datamodule.setup(stage=config.val_stage)
 
-    # Generate embeddings for validation
+    # Generate embeddings for validation from the deap learning base encoder featured in simclr (resnet18 ... etc)
     embeddings, filenames = generate_embeddings(model, sdo_datamodule.val_dataloader())
-    #Visualize Nearest Neighbors
+    # take embeddings output from base encoder, and apply dimentionality reduction, to plot the embedding space in 2d
+    # perform_tsne, perform_gausiona, perform_pca, perform_umap ->write the object as a table
+    # Visualize Nearest Neighbors
     data_path = os.path.join(root, "data")
     plot_knn_examples(embeddings, filenames, data_path, vis_output_dir=config.save_vis_dir)
 

@@ -325,7 +325,7 @@ class ToTensor(object):
         # numpy image: H x W x C
         # torch image: C x H x W
         image = image.transpose((2, 0, 1))
-        return {"image": torch.from_numpy(image), "filename": fname}
+        return {"image": torch.from_numpy(image).to(torch.float32), "filename": fname}
     
 class Transforms_SimCLR(object):
     def __init__(self, 

@@ -82,9 +82,57 @@ def plot_knn_examples(embeddings, filenames, path_to_data="root/data", n_neighbo
         #     now_str = now.strftime("%Y-%m-%d_%H-%M-%S")
             
         #     plt.savefig(os.path.join(vis_output_dir, f'{now_str}_knn_plot.png'))
+        
+def plot_tsne(reduced_embeddings, vis_output_dir=None):
+    pass
+
+
                 
            
 # BELOW THIS LINE IS SIMSIAM CODE
+
+# display a scatter plot of the dataset
+# clustering similar images together
+
+
+# FOR TSNE/PCA/UMAP/ETC:
+# def get_scatter_plot_with_thumbnails(filenames, embeddings_2d, title):
+#     """Creates a scatter plot with image overlays."""
+#     # initialize empty figure and add subplot
+#     fig = plt.figure()
+#     fig.suptitle(title)
+#     ax = fig.add_subplot(1, 1, 1)
+#     # shuffle images and find out which images to show
+#     shown_images_idx = []
+#     shown_images = np.array([[1.0, 1.0]])
+#     iterator = [i for i in range(embeddings_2d.shape[0])]
+#     np.random.shuffle(iterator)
+#     for i in iterator:
+#         # only show image if it is sufficiently far away from the others
+#         dist = np.sum((embeddings_2d[i] - shown_images) ** 2, 1)
+#         if np.min(dist) < 2e-4:
+#             continue
+#         shown_images = np.r_[shown_images, [embeddings_2d[i]]]
+#         shown_images_idx.append(i)
+
+#     # plot image overlays
+#     for idx in shown_images_idx:
+#         thumbnail_size = int(rcp["figure.figsize"][0] * 2.0)
+#         path = os.path.join(path_to_data, filenames[idx])
+#         img = Image.open(path)
+#         img = functional.resize(img, thumbnail_size)
+#         img = np.array(img)
+#         img_box = osb.AnnotationBbox(
+#             osb.OffsetImage(img, cmap=plt.cm.gray_r),
+#             embeddings_2d[idx],
+#             pad=0.2,
+#         )
+#         ax.add_artist(img_box)
+
+#     # set aspect ratio
+#     ratio = 1.0 / ax.get_data_ratio()
+#     ax.set_aspect(ratio, adjustable="box")
+#     return fig
 
 
 def get_image_as_np_array_with_frame(filename: str, w: int = 5):

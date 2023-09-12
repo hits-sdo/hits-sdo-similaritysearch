@@ -557,7 +557,7 @@ it's 0.5 < x < 5
 
 ## 09/11/2023
 - [ ] Plot the embeddings from validation and compare with the embeddings on the final epoch of training (or do what the other teams are doing and plot for embeddings for training data too)
-  - [ ] tsne, pca, umap
+  - [ ] tsne(done), pca, umap
 - [ ] randomize augmentation of values within a neighborhood
     - [ ] Brighten
     - [ ] Translate
@@ -571,4 +571,30 @@ it's 0.5 < x < 5
         - [ ] epochs
         - [ ] accuracy
 - [ ] finish loading from checkpoint and callback
+- [ ] fix densenet101
+- [ ] reduce model memory
+    - [x] reduce the 64 doubles to 32 floats
+- [ ] profit 
+
+## 09/13/23
+- [ ] Plot the embeddings from validation and compare with the embeddings on the final epoch of training (or do what the other teams are doing and plot for embeddings for training data too)
+  - [ ] tsne(done), pca, umap
+- [X] Configure with pre-trained weights
+
+- [ ] configure sweeps plot and log more than just loss
+    - [ ] [link](https://wandb.ai/site/articles/running-hyperparameter-sweeps-to-pick-the-best-model-using-w-b)
+    
+- [X] configure `simclr.py` model to use pretrained base encoder architecture
+    - [X] add wandb.log to training loop
+        - [X] epochs
+        - [ ] accuracy
+- [ ] finish loading from checkpoint and callback
+- [ ] fix ~~densenet101~~
+- [ ] reduce model memory
+    - [x] reduce the 64 doubles to 32 floats
+- [ ] randomize augmentation of values within a neighborhood
+    - [ ] Brighten
+    - [ ] Translate
+    - [ ] Zoom
+    - [ ] Blur
 - [ ] profit 
