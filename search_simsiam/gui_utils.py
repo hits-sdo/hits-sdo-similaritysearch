@@ -26,24 +26,22 @@ wavelengths_to_models = {
     '335_193_94': model_path + 'epoch=9-step=17510.ckpt'  # TODO replace with correct model
 }
 
+def apply_augmentation(img):
+    '''
+    Applies the current augmentation settings to the selected image
+    checked if a user selected a region of interest -> cord_tup
+    And displays the augmented image to the user
+    '''
+    img = Image.open(img)
+    img = np.array(img)/255
 
-# def apply_augmentation(img):
-#     '''
-#     Applies the current augmentation settings to the selected image
-#     checked if a user selected a region of interest -> cord_tup
-#     And displays the augmented image to the user
-#     '''
-#     img = Image.open(img)
-#     img = np.array(img)/255
+    aug_list = AugmentationList(instrument="euv")
+    aug_dict = aug_list.randomize()
 
-#     aug_list = AugmentationList(instrument="euv")
-#     aug_dict = aug_list.randomize()
-
-#     aug_img = Augmentations(img, aug_dict)
-#     fill_type = 'Nearest'
-#     img, _ = aug_img.perform_augmentations(fill_void=fill_type)
-#     st.session_state["aug_img"] = img
-
+    aug_img = Augmentations(img, aug_dict)
+    fill_type = 'Nearest'
+    img, _ = aug_img.perform_augmentations(fill_void=fill_type)
+    st.session_state["aug_img"] = np.clip(img, 0, 1)
 #     img_container.image(img, use_column_width=True)
 
 
@@ -96,12 +94,10 @@ def show_nearest_neighbors(session_state,
                            end_date):
     print("Showing the nearest neighbors")
     model = simsiam_model(wavelength)
-
-    if session_state['augmented'] == 0:
-        if session_state['crop']:
-            pil_image = Image.fromarray((255*session_state['img']).astype(np.uint8))
-        else:
-            pil_image = Image.open(session_state['img'])
+    if session_state['crop']:
+        pil_image = Image.fromarray(session_state['img'].astype(np.uint8))
+    elif session_state['augmented'] == 0:
+        pil_image = Image.open(session_state['img'])
     else:
         pil_image = Image.fromarray((255*session_state['aug_img']).astype(np.uint8))
 

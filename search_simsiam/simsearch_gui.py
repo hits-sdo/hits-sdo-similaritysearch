@@ -15,29 +15,29 @@
 
 """
 import streamlit as st
+import matplotlib.pyplot as plt
+import cv2
 import datetime
 import numpy as np
 from PIL import Image
 from model import load_model
 from sdo_augmentation.augmentation_list import AugmentationList
 from sdo_augmentation.augmentation import Augmentations
-from gui_utils import (
-    root_path, 
+from gui_utils import (root_path, 
     model_path,
     wavelengths_to_models,
     display_search_result,
     show_nearest_neighbors,
-    embeddings_dict
+    embeddings_dict,
+    apply_augmentation
 )
 from streamlit_cropper import st_cropper
 
-
-
-
-
 def empty_fnames():
+    '''
+    clear the retrieved filenames from session state
+    '''
     st.session_state['fnames'] = []
-
 
 # define session state parameters
 if 'fnames' not in st.session_state:
@@ -54,6 +54,8 @@ if 'augmented' not in st.session_state:
     st.session_state['augmented'] = 0
 if 'aug_img' not in st.session_state:
     st.session_state['aug_img'] = None
+if 'cropped_img' not in st.session_state:
+    st.session_state['cropped_img'] = None
 if 'neighbors' not in st.session_state:
     st.session_state['neighbors'] = 26
 
@@ -66,33 +68,17 @@ st.session_state['img'] = st.file_uploader(
 col1, col2 = st.columns([1, 2])  # define columns for images
 
 
-def apply_augmentation(img):
-    '''
-    Applies the current augmentation settings to the selected image
-    checked if a user selected a region of interest -> cord_tup
-    And displays the augmented image to the user
-    '''
-    img = Image.open(img)
-    img = np.array(img)/255
-
-    aug_list = AugmentationList(instrument="euv")
-    aug_dict = aug_list.randomize()
-
-    aug_img = Augmentations(img, aug_dict)
-    fill_type = 'Nearest'
-    img, _ = aug_img.perform_augmentations(fill_void=fill_type)
-    st.session_state["aug_img"] = img
-
-    img_container.image(img, use_column_width=True, clamp=True)
-
-
 with st.sidebar:
-    wavelength_help = "Select dataset based on target wavelength(s). 🌊 Wavelengths are automatically mapped to RGB planes for color rendering."
-    distance_metric_help = "Choose the distance metric used for nearest neighbor search. Euclidean Distance is the L2 norm of the difference between two vectors. The Cosine distance is the dot product between the two unit vectors "
+    wavelength_help = "Select dataset based on target wavelength(s).\
+        🌊 Wavelengths are automatically mapped to RGB planes for color rendering."
+    distance_metric_help = "Choose the distance metric used for nearest neighbor search.\
+        Euclidean Distance is the L2 norm of the difference between two vectors.\
+        The Cosine distance is the dot product between the two unit vectors "
     non_help = "Number of images retrieved in the search"
     pss_help = "Click to retrieve similar images"
     sii_help = "Select image index to download"
-    embedding_help = "Select projection if you want augmentation invariance, otherwise select backbone"
+    embedding_help = "Select projection if you want augmentation invariance,\
+        otherwise select backbone"
 
     st.selectbox(
         'Wavelength',
@@ -100,7 +86,7 @@ with st.sidebar:
         key='wavelength',
         help=wavelength_help,
         on_change=empty_fnames)
-    
+
     w = st.session_state['wavelength']
     data_path = root_path + f'AIA{w}_Miniset/'
 
@@ -172,13 +158,13 @@ with st.sidebar:
 
         if st.button("Perform Random Augmentation", on_click=empty_fnames):
             st.session_state['augmented'] = 1
+            apply_augmentation(st.session_state['img'])
 
         if st.button("Clear Augmentation", on_click=empty_fnames):
             st.session_state['augmented'] = 0
 
 if st.session_state['img'] is not None:
     img_text = col1.empty()
-
     img_container = col1.empty()
     if st.session_state['augmented'] == 0:
         img_text.write('Query Image')
@@ -186,7 +172,6 @@ if st.session_state['img'] is not None:
         pil_img = Image.open(st.session_state['img'])
     else:
         img_text.write('Augmented Image')
-        apply_augmentation(st.session_state['img'])
         img_container.image(st.session_state['aug_img'], use_column_width=True)
         pil_img = Image.fromarray((255*st.session_state['aug_img']).astype(np.uint8))
 
@@ -200,10 +185,10 @@ if st.session_state['img'] is not None:
             cropped_coords = st_cropper(pil_img,
                                         realtime_update=True,
                                         box_color='#0000FF',
+                                        aspect_ratio=None,
                                         return_type='box',
-                                        should_resize_image=True,
-                                        aspect_ratio=None)
-
+                                        should_resize_image=True)
+            
             scaling_factor = np_img.shape[0] / SIZE
             cord_tuple = tuple(map(int, cropped_coords.values()))
 
@@ -211,7 +196,16 @@ if st.session_state['img'] is not None:
             cord_tuple = tuple(
                 [int(x * scaling_factor) for x in cord_tuple]
                 )
+            
+            fig, ax = plt.subplots(1, 1, figsize=(10, 10))
+            overlay = cv2.rectangle(np_img, (cord_tuple[0], cord_tuple[1]),
+                                    (cord_tuple[0]+cord_tuple[2],
+                                     cord_tuple[1]+cord_tuple[3]),
+                                    (255, 0, 0), 5)
+            ax.imshow(overlay[:, :, :])
+            ax.axis('off')
 
+            col1.pyplot(fig)
             st.session_state['img'] = np_img[
                 cord_tuple[1]:cord_tuple[1] + cord_tuple[3],
                 cord_tuple[0]:cord_tuple[0] + cord_tuple[2]
