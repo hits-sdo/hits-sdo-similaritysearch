@@ -11,6 +11,8 @@
 # [ ] add smoother transitions
 # [ ] crop functionality
     # [ ] reorder so crop -> augment instead of augment -> crop
+    # [ ] Fork st_cropper repository -> add in passed-in crop rectangle functionality
+    # [ ] why did the aspect ratio stop working????
 # [ ] drag-and-drop not working...?
 
 """
@@ -20,11 +22,8 @@ import cv2
 import datetime
 import numpy as np
 from PIL import Image
-from model import load_model
-from sdo_augmentation.augmentation_list import AugmentationList
-from sdo_augmentation.augmentation import Augmentations
 from gui_utils import (root_path, 
-    model_path,
+    empty_fnames,
     wavelengths_to_models,
     display_search_result,
     show_nearest_neighbors,
@@ -33,15 +32,9 @@ from gui_utils import (root_path,
 )
 from streamlit_cropper import st_cropper
 
-def empty_fnames():
-    '''
-    clear the retrieved filenames from session state
-    '''
-    st.session_state['fnames'] = []
-
 # define session state parameters
 if 'fnames' not in st.session_state:
-    empty_fnames()
+    empty_fnames(st.session_state)
 if 'dist' not in st.session_state:
     st.session_state['dist'] = 'Euclidean'
 if 'embed' not in st.session_state:
@@ -63,7 +56,8 @@ if 'neighbors' not in st.session_state:
 st.session_state['img'] = st.file_uploader(
     "Choose an image...",
     type=["p", "jpg", "png"],
-    on_change=empty_fnames)
+    on_change=empty_fnames,
+    args=([st.session_state]))
 
 col1, col2 = st.columns([1, 2])  # define columns for images
 
@@ -85,7 +79,8 @@ with st.sidebar:
         wavelengths_to_models.keys(),
         key='wavelength',
         help=wavelength_help,
-        on_change=empty_fnames)
+        on_change=empty_fnames,
+        args=([st.session_state]))
 
     w = st.session_state['wavelength']
     data_path = root_path + f'AIA{w}_Miniset/'
@@ -95,7 +90,8 @@ with st.sidebar:
         ('Yes', 'No'),
         index=1,
         key='search_type',
-        on_change=empty_fnames)
+        on_change=empty_fnames,
+        args=([st.session_state]))
 
     st.session_state['neighbors'] = st.slider(
         'Number of Neighbors',
@@ -104,6 +100,7 @@ with st.sidebar:
         step=1,
         value=st.session_state['neighbors'],
         on_change=empty_fnames,
+        args=([st.session_state]),
         help=non_help)
 
     if st.session_state['search_type'] == 'Yes':
@@ -148,26 +145,31 @@ with st.sidebar:
             'Distance metric',
             ('Euclidean', 'Cosine'),
             help=distance_metric_help,
-            on_change=empty_fnames)
+            on_change=empty_fnames,
+            args=([st.session_state]))
 
         st.session_state['embed'] = st.selectbox(
             'Embedding Source',
             ('Projection Head', 'Backbone'),
             help=embedding_help,
-            on_change=empty_fnames)
+            on_change=empty_fnames,
+            args=([st.session_state]))
 
-        if st.button("Perform Random Augmentation", on_click=empty_fnames):
+        if st.button("Perform Random Augmentation", on_click=empty_fnames, args=([st.session_state])):
             st.session_state['augmented'] = 1
             apply_augmentation(st.session_state['img'])
 
-        if st.button("Clear Augmentation", on_click=empty_fnames):
+        if st.button("Clear Augmentation", on_click=empty_fnames, args=([st.session_state])):
             st.session_state['augmented'] = 0
+
+
 
 if st.session_state['img'] is not None:
     img_text = col1.empty()
     img_container = col1.empty()
     if st.session_state['augmented'] == 0:
         img_text.write('Query Image')
+
         img_container.image(st.session_state['img'], use_column_width=True)
         pil_img = Image.open(st.session_state['img'])
     else:
@@ -175,19 +177,23 @@ if st.session_state['img'] is not None:
         img_container.image(st.session_state['aug_img'], use_column_width=True)
         pil_img = Image.fromarray((255*st.session_state['aug_img']).astype(np.uint8))
 
-    if col1.toggle("Crop", on_change=empty_fnames, key='crop'):
+    if col1.toggle("Crop", on_change=empty_fnames, args=([st.session_state]), key='crop'):
+        np_img = np.array(pil_img)
+        aspect_ratio = np_img.shape[1]/np_img.shape[0]
+        SIZE = 230
+        pil_img = pil_img.resize((int(SIZE*aspect_ratio), SIZE))
+        
         with img_container:
-            np_img = np.array(pil_img)
-            aspect_ratio = np_img.shape[1]/np_img.shape[0]
-            SIZE = 230
-            pil_img = pil_img.resize((int(SIZE*aspect_ratio), SIZE))
-
             cropped_coords = st_cropper(pil_img,
                                         realtime_update=True,
                                         box_color='#0000FF',
-                                        aspect_ratio=None,
+                                        aspect_ratio=(1, 1),
                                         return_type='box',
-                                        should_resize_image=True)
+                                        should_resize_image=True
+            )
+
+
+            # st.write(str(st.session_state['cropper']))
             
             scaling_factor = np_img.shape[0] / SIZE
             cord_tuple = tuple(map(int, cropped_coords.values()))
@@ -197,15 +203,15 @@ if st.session_state['img'] is not None:
                 [int(x * scaling_factor) for x in cord_tuple]
                 )
             
-            fig, ax = plt.subplots(1, 1, figsize=(10, 10))
-            overlay = cv2.rectangle(np_img, (cord_tuple[0], cord_tuple[1]),
-                                    (cord_tuple[0]+cord_tuple[2],
-                                     cord_tuple[1]+cord_tuple[3]),
-                                    (255, 0, 0), 5)
-            ax.imshow(overlay[:, :, :])
-            ax.axis('off')
+            # fig, ax = plt.subplots(1, 1, figsize=(10, 10))
+            # overlay = cv2.rectangle(np_img, (cord_tuple[0], cord_tuple[1]),
+            #                         (cord_tuple[0]+cord_tuple[2],
+            #                          cord_tuple[1]+cord_tuple[3]),
+            #                         (255, 0, 0), 5)
+            # ax.imshow(overlay[:, :, :])
+            # ax.axis('off')
 
-            col1.pyplot(fig)
+            # col1.pyplot(fig)
             st.session_state['img'] = np_img[
                 cord_tuple[1]:cord_tuple[1] + cord_tuple[3],
                 cord_tuple[0]:cord_tuple[0] + cord_tuple[2]

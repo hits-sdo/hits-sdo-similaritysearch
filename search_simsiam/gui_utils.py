@@ -26,6 +26,10 @@ wavelengths_to_models = {
     '335_193_94': model_path + 'epoch=9-step=17510.ckpt'  # TODO replace with correct model
 }
 
+def empty_fnames(session_state):
+    '''clear the retrieved filenames from session state'''
+    session_state['fnames'] = []
+
 def apply_augmentation(img):
     '''
     Applies the current augmentation settings to the selected image
