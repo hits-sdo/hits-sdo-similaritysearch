@@ -8,6 +8,7 @@ import pyprojroot
 import os
 from datetime import datetime
 from tqdm import tqdm
+import pandas as pd
 
 root = pyprojroot.here()
 utils_dir = root/'search_utils'
@@ -83,8 +84,39 @@ def plot_knn_examples(embeddings, filenames, path_to_data="root/data", n_neighbo
             
         #     plt.savefig(os.path.join(vis_output_dir, f'{now_str}_knn_plot.png'))
         
-def plot_tsne(reduced_embeddings, vis_output_dir=None):
-    pass
+def plot_scatter(components_table: pd.DataFrame,
+              vis_output_dir=None,
+              type: str = "TSNE"
+              ):
+    #create figure
+    plt.figure()
+    
+    columns = (components_table.shape[1] - 1)
+    
+    if columns == 2:
+        # Create scatterplot either 2d 
+        plt.scatter(components_table['CP_0'], components_table['CP_1'], cmap='hot', sizes=[10])
+        plt.xlabel('CP_0')
+        plt.ylabel('CP_1')
+        plt.title(label=f'{columns} component {type}')
+
+    else: #3D
+        # create scatterplot either 3d
+        fig = plt.figure()
+        ax=fig.add_subplot(111,projection='3d')
+
+        scatter = ax.scatter(components_table['CP_0'], components_table['CP_1'], components_table['CP_2'], cmap='hot', sizes=[10])
+        ax.set_xlabel('CP_0')
+        ax.set_ylabel('CP_1')
+        ax.set_zlabel('CP_2')
+        ax.set_title(f'{columns} component {type}')
+    
+    
+    now = datetime.now()
+    now_str = now.strftime("%Y-%m-%d_%H-%M-%S")
+    plt.savefig(os.path.join(vis_output_dir, f'{now_str}_{type}_plot.png'))
+    plt.show()
+    
 
 
                 

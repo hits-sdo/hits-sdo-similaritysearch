@@ -40,11 +40,12 @@ def performTSNE(embeddings: np.ndarray,
                 angle=angle, 
                 verbose=verbose)
     # Fit the T-SNE object to the data
-    embeddings_tsne = tsne.fit(embeddings)
+    embeddings_tsne = tsne.fit_transform(embeddings)
     # Return the reduced embeddings_tsne to plot
     return embeddings_tsne
 
-def create_embeddings_component_table(embeddings_reduced: np.ndarray, 
+def create_embeddings_component_table(num_components,
+                                      embeddings_reduced: np.ndarray, 
                                       filenames: list,
                                       num_points: int)->pd.DataFrame:
     """
@@ -59,7 +60,7 @@ def create_embeddings_component_table(embeddings_reduced: np.ndarray,
         and the corresponding filenames.
     """
     # find the number of compents in the embeddings array by using the shape attribute
-    num_components = embeddings_reduced.shape[1]
+    print('type: ', type(embeddings_reduced))
     # create a panda series from the list of filenames
     filenames_series = pd.Series(filenames)
     # create a list of column names for the dataframe by using list comprehension and num_components

@@ -17,7 +17,7 @@ import pytorch_lightning as pl
 import torch
 from pytorch_lightning.callbacks import Callback
 import torch.nn as nn
-import torchvision
+import torchvision.models as models
 from PIL import Image
 from sklearn.neighbors import NearestNeighbors
 from sklearn.preprocessing import normalize
@@ -35,17 +35,17 @@ class SimCLR(pl.LightningModule):
         super().__init__()
         model_str = model_str.lower()
         if model_str == 'resnet18':
-            feature_extractor = torchvision.models.resnet18(pretrained=True)
+            feature_extractor = models.resnet18(weights=models.ResNet18_Weights.DEFAULT)
         elif model_str == 'resnet34':
-            feature_extractor = torchvision.models.resnet34(pretrained=True)
+            feature_extractor = models.resnet34(weights=models.ResNet34_Weights.DEFAULT)
         elif model_str == 'resnet50':
-            feature_extractor = torchvision.models.resnet50(pretrained=True)
+            feature_extractor = models.resnet50(weights=models.ResNet50_Weights.DEFAULT)
         elif model_str == 'resnet101':
-            feature_extractor = torchvision.models.resnet101(pretrained=True)
+            feature_extractor = models.resnet101(weights=models.ResNet101_Weights.DEFAULT)
         elif model_str == 'resnet152':
-            feature_extractor = torchvision.models.resnet152(pretrained=True)
+            feature_extractor = models.resnet152(weights=models.ResNet152_Weights.DEFAULT)
         elif model_str == 'densenet121':
-            feature_extractor = torchvision.models.densenet121(pretrained=True)
+            feature_extractor = models.densenet121(weights=models.DenseNet121_Weights.DEFAULT)
             
         self.backbone = nn.Sequential(*list(feature_extractor.children())[:-1])
         hidden_dim = feature_extractor.fc.in_features

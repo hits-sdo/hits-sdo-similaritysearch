@@ -578,7 +578,9 @@ it's 0.5 < x < 5
 
 ## 09/13/23
 - [ ] Plot the embeddings from validation and compare with the embeddings on the final epoch of training (or do what the other teams are doing and plot for embeddings for training data too)
-  - [ ] tsne(done), pca, umap
+  - [X] tsne
+  - [ ] pca
+  - [ ] umap
 - [X] Configure with pre-trained weights
 
 - [ ] configure sweeps plot and log more than just loss
@@ -592,6 +594,23 @@ it's 0.5 < x < 5
 - [ ] fix ~~densenet101~~
 - [ ] reduce model memory
     - [x] reduce the 64 doubles to 32 floats
+- [ ] randomize augmentation of values within a neighborhood
+    - [ ] Brighten
+    - [ ] Translate
+    - [ ] Zoom
+    - [ ] Blur
+- [ ] profit 
+
+## 9/17/23
+- [ ] Plot the embeddings from validation and compare with the embeddings on the final epoch of training (or do what the other teams are doing and plot for embeddings for training data too)
+  - [ ] tsne make markers smaller, and outline points
+  - [ ] pca
+  - [ ] umap
+  - [ ] configure sweeps plot and log more than just loss
+    - [ ] [link](https://wandb.ai/site/articles/running-hyperparameter-sweeps-to-pick-the-best-model-using-w-b)
+- [ ] finish loading from checkpoint and callback
+- [ ] fix ~~densenet101~~
+- [ ] reduce model memory
 - [ ] randomize augmentation of values within a neighborhood
     - [ ] Brighten
     - [ ] Translate

@@ -20,13 +20,22 @@ from search_simclr.simclr.dataloader.dataset import SdoDataset, partition_tile_d
 from search_utils.file_utils import get_file_list, split_val_files
 from search_simclr.simclr.dataloader.datamodule import SimCLRDataModule
 from search_simclr.simclr.model.simCLR import SimCLR
-from search_simclr.simclr_utils.vis_utils import generate_embeddings, plot_knn_examples, plot_nearest_neighbors_3x3
+from search_simclr.simclr_utils.vis_utils import (
+    generate_embeddings,
+    plot_knn_examples,
+    plot_scatter,
+    plot_nearest_neighbors_3x3
+)
 from typing import Tuple
 from argparse import ArgumentParser
 import yaml
 from datetime import datetime
 from search_simclr.simclr.scripts.sdoconfig_dataclass import SDOConfig
 from search_simclr.simclr.dataloader.datamodule import SimCLRDataModule
+from search_simclr.simclr_utils.embeddings import (
+    performTSNE,
+    create_embeddings_component_table
+)
 
 def main():
     config = SDOConfig()
@@ -35,7 +44,7 @@ def main():
         
     # Load the model from path
     model = SimCLR()
-    model = model.to(torch.float64)
+    #model = model.to(torch.float64)
     path = os.path.join(root, 'search_simclr', 'model_weights', '2023-09-08_14-30-08_model.pth')
     print(f'path: {path}')
     temp = torch.load(path)
@@ -83,6 +92,14 @@ def main():
     embeddings, filenames = generate_embeddings(model, sdo_datamodule.val_dataloader())
     # take embeddings output from base encoder, and apply dimentionality reduction, to plot the embedding space in 2d
     # perform_tsne, perform_gausiona, perform_pca, perform_umap ->write the object as a table
+    num_components = 3
+    tsne_embeddings = performTSNE(embeddings, num_components)
+
+    tsne_dataframe = create_embeddings_component_table(num_components, tsne_embeddings, filenames, len(embeddings))
+    vis_dir = config.save_vis_dir
+    plot_scatter(tsne_dataframe, vis_dir, "TSNE")
+    
+
     # Visualize Nearest Neighbors
     data_path = os.path.join(root, "data")
     plot_knn_examples(embeddings, filenames, data_path, vis_output_dir=config.save_vis_dir)
