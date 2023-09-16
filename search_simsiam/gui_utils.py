@@ -184,3 +184,46 @@ def embeddings_dict(session_state, wavelength):
         return pickle.load(open('/home/schatterjee/Documents/hits/hits-sdo-similaritysearch/search_simsiam/'+f'embeddings_dict_{wavelength}.p', 'rb'))
     else:
         return pickle.load(open('/home/schatterjee/Documents/hits/hits-sdo-similaritysearch/search_simsiam/'+f'embeddings_dict_{wavelength}_proj.p', 'rb'))
+
+
+
+
+
+def box_algorithm(img: Image, aspect_ratio = False) -> dict:
+    # Find a recommended box for the image (could be replaced with image detection)
+    box = (st.session_state["cropped_cords"][0], 
+           st.session_state["cropped_cords"][1], 
+           st.session_state["cropped_cords"][2], 
+           st.session_state["cropped_cords"][3])
+    box = [int(i) for i in box]
+    height = box[3] - box[1]
+    width = box[2] - box[0]
+
+    # If an aspect_ratio is provided, then fix the aspect
+    if aspect_ratio:
+        ideal_aspect = aspect_ratio[0] / aspect_ratio[1]
+        height = (box[3] - box[1])
+        current_aspect = width / height
+        if current_aspect > ideal_aspect:
+            new_width = int(ideal_aspect * height)
+            offset = (width - new_width) // 2
+            resize = (offset, 0, -offset, 0)
+        else:
+            new_height = int(width / ideal_aspect)
+            offset = (height - new_height) // 2
+            resize = (0, offset, 0, -offset)
+        box = [box[i] + resize[i] for i in range(4)]
+        left = box[0]
+        top = box[1]
+        width = 0
+        iters = 0
+        while width < box[2] - left:
+            width += aspect_ratio[0]
+            iters += 1
+        height = iters * aspect_ratio[1]
+    else:
+        left = box[0]
+        top = box[1]
+        width = box[2] - box[0]
+        height = box[3] - box[1]
+    return {'left': int(left), 'top': int(top), 'width': int(width), 'height': int(height)}

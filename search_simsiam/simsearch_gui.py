@@ -20,6 +20,9 @@ import streamlit as st
 import matplotlib.pyplot as plt
 import cv2
 import datetime
+import random
+
+
 import numpy as np
 from PIL import Image
 from gui_utils import (root_path, 
@@ -28,9 +31,61 @@ from gui_utils import (root_path,
     display_search_result,
     show_nearest_neighbors,
     embeddings_dict,
-    apply_augmentation
+    apply_augmentation,
+    #box_algorithm
 )
 from streamlit_cropper import st_cropper
+
+def max_function:
+    st.write("hi from max function")
+
+
+def box_algorithm(img: Image, aspect_ratio = False) -> dict:
+    # Find a recommended box for the image (could be replaced with image detection)
+    box = (not_a_session_state[0], 
+           not_a_session_state[1], 
+           not_a_session_state[2], 
+           not_a_session_state[3])
+    box = [int(i) for i in box]
+    height = box[3] - box[1]
+    width = box[2] - box[0]
+
+    # If an aspect_ratio is provided, then fix the aspect
+    if aspect_ratio:
+        ideal_aspect = aspect_ratio[0] / aspect_ratio[1]
+        height = (box[3] - box[1])
+        current_aspect = width / height
+        if current_aspect > ideal_aspect:
+            new_width = int(ideal_aspect * height)
+            offset = (width - new_width) // 2
+            resize = (offset, 0, -offset, 0)
+        else:
+            new_height = int(width / ideal_aspect)
+            offset = (height - new_height) // 2
+            resize = (0, offset, 0, -offset)
+        box = [box[i] + resize[i] for i in range(4)]
+        left = box[0]
+        top = box[1]
+        width = 0
+        iters = 0
+        while width < box[2] - left:
+            width += aspect_ratio[0]
+            iters += 1
+        height = iters * aspect_ratio[1]
+    else:
+        left = box[0]
+        top = box[1]
+        width = box[2] - box[0]
+        height = box[3] - box[1]
+    return {'left': int(left), 'top': int(top), 'width': int(width), 'height': int(height)}
+
+
+st.set_page_config(
+    page_title='SimSiam Similarity Search',
+    page_icon='📚',
+    layout='centered',
+    initial_sidebar_state='auto'
+    )
 
 # define session state parameters
 if 'fnames' not in st.session_state:
@@ -51,6 +106,8 @@ if 'cropped_img' not in st.session_state:
     st.session_state['cropped_img'] = None
 if 'neighbors' not in st.session_state:
     st.session_state['neighbors'] = 26
+if 'coords' not in st.session_state:
+    st.session_state["coords"] = None
 
 # upload image for similarity search
 st.session_state['img'] = st.file_uploader(
@@ -61,6 +118,20 @@ st.session_state['img'] = st.file_uploader(
 
 col1, col2 = st.columns([1, 2])  # define columns for images
 
+
+
+not_a_session_state = st.session_state["coords"]
+
+#prevent every other crop from being ignored
+if not_a_session_state is None:
+    not_a_session_state = (230 * 0.2, 230 * 0.2, 230 * 0.8, 230 * 0.8)
+    
+    
+
+
+
+
+    
 
 with st.sidebar:
     wavelength_help = "Select dataset based on target wavelength(s).\
@@ -124,7 +195,7 @@ with st.sidebar:
         st.session_state['end_date'] = None
 
     st.button('Perform Similarity Search',
-              on_click=show_nearest_neighbors,
+              on_click=show_nearest_neighbors, max_function,
               args=([st.session_state,
                      st.session_state['wavelength'],
                      st.session_state['neighbors'],
@@ -183,26 +254,33 @@ if st.session_state['img'] is not None:
         SIZE = 230
         pil_img = pil_img.resize((int(SIZE*aspect_ratio), SIZE))
         
-        with img_container:
+        with col1:
+
             cropped_coords = st_cropper(pil_img,
                                         realtime_update=True,
                                         box_color='#0000FF',
-                                        aspect_ratio=(1, 1),
                                         return_type='box',
+                                        box_algorithm=box_algorithm,
                                         should_resize_image=True
             )
-
-
-            # st.write(str(st.session_state['cropper']))
             
             scaling_factor = np_img.shape[0] / SIZE
-            cord_tuple = tuple(map(int, cropped_coords.values()))
+            cord_tuple = tuple(cropped_coords.values())
+
+            not_a_session_state = (cord_tuple[0], cord_tuple[1],
+                    cord_tuple[0]+cord_tuple[2],
+                    cord_tuple[1]+cord_tuple[3])
+
+            st.session_state["coords"] = not_a_session_state
+            
+            st.write(not_a_session_state)
+
 
             # scale all values
             cord_tuple = tuple(
                 [int(x * scaling_factor) for x in cord_tuple]
                 )
-            
+        
             # fig, ax = plt.subplots(1, 1, figsize=(10, 10))
             # overlay = cv2.rectangle(np_img, (cord_tuple[0], cord_tuple[1]),
             #                         (cord_tuple[0]+cord_tuple[2],
@@ -218,8 +296,12 @@ if st.session_state['img'] is not None:
             ]
 
             # Show Preview
-            col1.write("Cropped Image")
-            col1.image(st.session_state['img'], use_column_width=True, clamp=True)
+            st.write("Cropped Image")
+            st.image(st.session_state['img'], use_column_width=True, clamp=True)
+
+    else:
+        not_a_session_state = (230 * 0.2, 230 * 0.2, 230 * 0.8, 230 * 0.8)
+        
 
 if len(st.session_state['fnames']) > 0:
     # embeddings_dict = embeddings_dict(st.session_state)
