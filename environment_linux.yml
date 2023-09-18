@@ -1,7 +1,7 @@
 name: search-ssl
 channels:
-  - pytorch
   - conda-forge
+  - pytorch
   - nvidia
   - rapidsai
   - bioconda
