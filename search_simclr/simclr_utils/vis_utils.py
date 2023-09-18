@@ -9,6 +9,12 @@ import os
 from datetime import datetime
 from tqdm import tqdm
 import pandas as pd
+from matplotlib.offsetbox import OffsetImage, AnnotationBbox
+from mpl_toolkits.mplot3d import Axes3D
+from mpl_toolkits.mplot3d import proj3d
+# import matplotlib.offsetbox as offsetbox
+from matplotlib import offsetbox
+
 
 root = pyprojroot.here()
 utils_dir = root/'search_utils'
@@ -83,43 +89,174 @@ def plot_knn_examples(embeddings, filenames, path_to_data="root/data", n_neighbo
         #     now_str = now.strftime("%Y-%m-%d_%H-%M-%S")
             
         #     plt.savefig(os.path.join(vis_output_dir, f'{now_str}_knn_plot.png'))
-        
+
 def plot_scatter(components_table: pd.DataFrame,
-              vis_output_dir=None,
-              type: str = "TSNE"
-              ):
+                 vis_output_dir=None,
+                 data_dir: str = None,
+                 type: str = "TSNE"):
     #create figure
-    plt.figure()
+    
     
     columns = (components_table.shape[1] - 1)
     
     if columns == 2:
-        # Create scatterplot either 2d 
-        plt.scatter(components_table['CP_0'], components_table['CP_1'], cmap='hot', sizes=[10])
-        plt.xlabel('CP_0')
-        plt.ylabel('CP_1')
-        plt.title(label=f'{columns} component {type}')
+        # Create scatterplot In 2D
+        fig, ax = plt.subplots()
+        fig.suptitle("Title Test")
 
-    else: #3D
-        # create scatterplot either 3d
-        fig = plt.figure()
-        ax=fig.add_subplot(111,projection='3d')
+        # Add scatter points
+        ax.scatter(components_table['CP_0'], components_table['CP_1'], cmap='hot')
 
-        scatter = ax.scatter(components_table['CP_0'], components_table['CP_1'], components_table['CP_2'], cmap='hot', sizes=[10])
+        for i in range(len(components_table)):
+            path = os.path.join(data_dir, components_table['filename'][i])
+            img = Image.open(path)
+            print("Plotting img: "+str(path))
+            img.thumbnail((20, 20), Image.ANTIALIAS)  # resizes image in-place
+            img = np.array(img)
+            im = OffsetImage(img, zoom=1)
+            ab = AnnotationBbox(im, (components_table['CP_0'][i], components_table['CP_1'][i]), frameon=False)
+
+            ax.add_artist(ab)
+
         ax.set_xlabel('CP_0')
         ax.set_ylabel('CP_1')
-        ax.set_zlabel('CP_2')
-        ax.set_title(f'{columns} component {type}')
+        ax.set_title(label=f'{columns} component {type}')
+            
+        
+        
+        ax.set_xlabel('CP_0')
+        ax.set_ylabel('CP_1')
+        ax.set_title(label=f'{columns} component {type}')
+        
+        now = datetime.now()
+        now_str = now.strftime("%Y-%m-%d_%H-%M-%S")
+        plt.savefig(os.path.join(vis_output_dir, f'{now_str}_{type}_plot.png'))
+        plt.show()
+
+    else: #3D
+        # create scatterplot in 3D
+        # fig = plt.figure()
+        # ax=fig.add_subplot(111,projection='3d')
+
+        # scatter = ax.scatter(components_table['CP_0'], components_table['CP_1'], components_table['CP_2'], cmap='hot', sizes=[10])
+        # ax.set_xlabel('CP_0')
+        # ax.set_ylabel('CP_1')
+        # ax.set_zlabel('CP_2')
+        # ax.set_title(f'{columns} component {type}')
+        
+        plot_3D(components_table, vis_output_dir, data_dir, type)
     
-    
-    now = datetime.now()
-    now_str = now.strftime("%Y-%m-%d_%H-%M-%S")
-    plt.savefig(os.path.join(vis_output_dir, f'{now_str}_{type}_plot.png'))
-    plt.show()
     
 
 
-                
+
+
+
+def plot_3D(components_table: pd.DataFrame,
+            vis_output_dir = None,
+            data_dir: str = None,
+            type: str = "TSNE"):
+    # xs = [1,1.5,2,2]
+    # ys = [1,2,3,1]
+    # zs = [0,1,2,0]
+    # cmap = ["b","r","g","gold"]
+    
+
+
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection=Axes3D.name)
+    
+    xs = components_table['CP_0'].values.tolist()
+    ys = components_table['CP_1'].values.tolist()
+    zs = components_table['CP_2'].values.tolist()
+    print("3D Component Lengths: "+str(len(xs))+" "+str(len(ys))+" "+str(len(zs)))
+    print("Components: "+str(len(components_table))+" "+str(components_table.shape))
+
+    cmap = (1, 0, 0)  # RGB for red
+    ax.scatter(xs, ys, zs, c=cmap, marker="o", alpha=0)
+
+    # Create a dummy axes to place annotations to
+    ax2 = fig.add_subplot(111,frame_on=False) 
+    ax2.axis("off")
+    ax2.axis([0,1,0,1])
+
+    class ImageAnnotations3D():
+        def __init__(self, xyz, imgs, ax3d,ax2d):
+            self.xyz = xyz
+            self.imgs = imgs
+            print("Images Count: "+str(len(imgs)))
+            self.ax3d = ax3d
+            self.ax2d = ax2d
+            self.annot = []
+            for s,im in zip(self.xyz, self.imgs):
+                x,y = self.proj(s)
+                self.annot.append(self.image(im,[x,y]))
+            self.lim = self.ax3d.get_w_lims()
+            self.rot = self.ax3d.get_proj()
+            self.cid = self.ax3d.figure.canvas.mpl_connect("draw_event",self.update)
+
+            self.funcmap = {"button_press_event" : self.ax3d._button_press,
+                            "motion_notify_event" : self.ax3d._on_move,
+                            "button_release_event" : self.ax3d._button_release}
+
+            self.cfs = [self.ax3d.figure.canvas.mpl_connect(kind, self.cb) \
+                            for kind in self.funcmap.keys()]
+
+        def cb(self, event):
+            event.inaxes = self.ax3d
+            self.funcmap[event.name](event)
+
+        def proj(self, X):
+            """ From a 3D point in axes ax1, 
+                calculate position in 2D in ax2 """
+            x,y,z = X
+            x2, y2, _ = proj3d.proj_transform(x,y,z, self.ax3d.get_proj())
+            tr = self.ax3d.transData.transform((x2, y2))
+            return self.ax2d.transData.inverted().transform(tr)
+
+        def image(self,arr,xy):
+            """ Place an image (arr) as annotation at position xy """
+            distance = np.sqrt((self.ax3d.get_w_lims()[1] - self.ax3d.get_w_lims()[0]) ** 2 + (self.ax3d.get_proj()[1] - self.ax3d.get_proj()[0]) ** 2)
+            new_zoom_level = 150 / distance[0]
+            im = offsetbox.OffsetImage(arr, zoom=new_zoom_level)
+            im.image.axes = ax
+            # ab = offsetbox.AnnotationBbox(im, xy, xybox=(-30., 30.),
+            #         xycoords='data', boxcoords="offset points",
+            #         pad=0.3, arrowprops=dict(arrowstyle="->"))
+            ab = offsetbox.AnnotationBbox(im, xy, xybox=(0,0),
+                                xycoords='data', boxcoords="offset points", frameon=False)
+            self.ax2d.add_artist(ab)
+            return ab
+
+        def update(self, event):
+            lims = self.ax3d.get_w_lims()
+            proj = self.ax3d.get_proj()
+            if np.any(lims != self.lim) or np.any(proj != self.rot):
+                self.lim = lims
+                self.rot = proj
+                distance = np.sqrt((lims[1] - lims[0]) ** 2 + (proj[1] - proj[0]) ** 2)
+                zoom = 150 / distance[0]
+                for s,ab in zip(self.xyz, self.annot):
+                    ab.xy = self.proj(s)
+                    im = ab.get_children()[0]  # Get the first child, which is the OffsetImage
+                    im.set_zoom(zoom)  # Set the new zoom level
+
+    imgs = []
+
+    # Run a loop to open, resize and convert images into numpy arrays
+    for i in range(len(components_table)):
+        path = os.path.join(data_dir, components_table['filename'][i])
+        img = Image.open(path)
+        img.thumbnail((8, 8), Image.ANTIALIAS)  # resizes image in-place
+        img = np.array(img)
+        imgs.append(img)  # Add to images list
+   
+    ia = ImageAnnotations3D(np.c_[xs,ys,zs], imgs, ax, ax2 )
+
+    ax.set_xlabel('X Label')
+    ax.set_ylabel('Y Label')
+    ax.set_zlabel('Z Label')
+    plt.show()   
            
 # BELOW THIS LINE IS SIMSIAM CODE
 
