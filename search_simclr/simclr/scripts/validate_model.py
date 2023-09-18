@@ -92,17 +92,36 @@ def main():
     embeddings, filenames = generate_embeddings(model, sdo_datamodule.val_dataloader())
     # take embeddings output from base encoder, and apply dimentionality reduction, to plot the embedding space in 2d
     # perform_tsne, perform_gausiona, perform_pca, perform_umap ->write the object as a table
-    num_components = 3
-    tsne_embeddings = performTSNE(embeddings, num_components)
 
-    tsne_dataframe = create_embeddings_component_table(num_components, tsne_embeddings, filenames, len(embeddings))
-    vis_dir = config.save_vis_dir
-    plot_scatter(tsne_dataframe, vis_dir, "TSNE")
+    print("Lengths - Embeddings: ", len(embeddings), " Filenames: ", len(filenames))
+    
+    # Plot Scatter Plots
+    plot_2D(config, embeddings, filenames)
+    plot_3D(config, embeddings, filenames)
     
 
     # Visualize Nearest Neighbors
     data_path = os.path.join(root, "data")
     plot_knn_examples(embeddings, filenames, data_path, vis_output_dir=config.save_vis_dir)
+    
+def plot_2D(config: SDOConfig, embeddings, filenames):
+    # Plot 2D Scatter Plot
+    num_components = 2
+    tsne_embeddings = performTSNE(embeddings, num_components)
+
+    tsne_dataframe = create_embeddings_component_table(num_components, tsne_embeddings, filenames, len(filenames)) 
+    # Todo: Try with len(filenames)
+    vis_dir = config.save_vis_dir
+    plot_scatter(tsne_dataframe, vis_dir, config.tile_dir, "TSNE")
+
+def plot_3D(config: SDOConfig, embeddings, filenames):
+    # Plot 3D Scatter Plot
+    num_components = 3
+    tsne_embeddings = performTSNE(embeddings, num_components)
+
+    tsne_dataframe = create_embeddings_component_table(num_components, tsne_embeddings, filenames, len(filenames))
+    vis_dir = config.save_vis_dir
+    plot_scatter(tsne_dataframe, vis_dir, config.tile_dir, "TSNE")
 
 if __name__ == "__main__":
     main()
