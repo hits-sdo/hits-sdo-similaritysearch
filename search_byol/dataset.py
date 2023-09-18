@@ -74,7 +74,7 @@ class SDOTilesDataset(Dataset):
                            image_format="jpg")
 
         if self.augmentation.lower() != 'none':
-            image2 = image.copy()
+            # image2 = image.copy()
 
             aug = Augmentations(image, self.augmentation_list.randomize())
             image2, _ = aug.perform_augmentations(fill_void='Nearest')
