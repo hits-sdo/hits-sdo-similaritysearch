@@ -8,6 +8,8 @@ import wandb
 import numpy as np
 from sklearn.manifold import TSNE
 import pandas as pd
+from sklearn.decomposition import PCA
+
 
 def performTSNE(embeddings: np.ndarray,
                 components: int, 
@@ -43,6 +45,15 @@ def performTSNE(embeddings: np.ndarray,
     embeddings_tsne = tsne.fit_transform(embeddings)
     # Return the reduced embeddings_tsne to plot
     return embeddings_tsne
+
+def performPCA(embeddings: np.ndarray,
+                components: int) -> np.ndarray:
+    # Create a PCA object or instance from the sklearn.decomposition.PCA class using the parameters
+    pca = PCA(components, svd_solver='auto', whiten=True)
+    pca.fit(embeddings)
+    embeddings_pca = pca.transform(embeddings)
+    
+    return embeddings_pca
 
 def create_embeddings_component_table(num_components,
                                       embeddings_reduced: np.ndarray, 
