@@ -161,5 +161,8 @@ cython_debug/
 
 *.npy
 *.ckpt
+*.pt
+*.json
 
 wandb/
+lightning_logs/

@@ -1,30 +1,33 @@
 name: search-ssl
 channels:
-  - conda-forge
   - pytorch
+  - conda-forge
   - nvidia
+  - rapidsai
   - bioconda
 dependencies:
   - python=3.10
   - snakemake-minimal
   - wandb
   - ipywidgets
+  - umap-learn
   - opencv
-  - pytorch
-  - torchvision
-  - torchaudio
-  - pytorch-cuda=11.8
+  - pytorch::pytorch
+  - pytorch::torchvision
+  - pytorch::torchaudio
+  - pytorch::pytorch-cuda=11.8
   - scikit-learn=1.2.2
+  - plotly
+  - cuml
+  - sunpy
+  - pandas
+  - hdbscan
+  - wandb
+  - matplotlib
+  - seaborn
   - pip
   - pip:
     - lightning
     - lightly
-    - sunpy
-    - pandas
-    - wandb
-    - matplotlib
-    - hdbscan
-    - umap-learn
-    - seaborn
     - git+https://github.com/hits-sdo/hits-sdo-packager.git@pip_nodata
 
