@@ -601,10 +601,26 @@ it's 0.5 < x < 5
     - [ ] Blur
 - [ ] profit 
 
-## 9/17/23
+## 9/18/23
 - [ ] Plot the embeddings from validation and compare with the embeddings on the final epoch of training (or do what the other teams are doing and plot for embeddings for training data too)
-  - [ ] tsne make markers smaller, and outline points
-  - [ ] pca
+  - [X] tsne make markers smaller, and outline points
+  - [x] pca
+  - [ ] umap
+  - [ ] configure sweeps plot and log more than just loss
+    - [ ] [link](https://wandb.ai/site/articles/running-hyperparameter-sweeps-to-pick-the-best-model-using-w-b)
+  - [X] (we understand now) fix bug regarding 5x less images being plotted based on number of images in config 
+- [ ] finish loading from checkpoint and callback
+- [ ] fix ~~densenet101~~
+- [ ] reduce model memory
+- [ ] randomize augmentation of values within a neighborhood
+    - [ ] Brighten
+    - [ ] Translate
+    - [ ] Zoom
+    - [ ] Blur
+- [x] profit 
+
+## 9/20/23
+- [ ] Plot the embeddings from validation and compare with the embeddings on the final epoch of training (or do what the other teams are doing and plot for embeddings for training data too)
   - [ ] umap
   - [ ] configure sweeps plot and log more than just loss
     - [ ] [link](https://wandb.ai/site/articles/running-hyperparameter-sweeps-to-pick-the-best-model-using-w-b)
@@ -616,4 +632,5 @@ it's 0.5 < x < 5
     - [ ] Translate
     - [ ] Zoom
     - [ ] Blur
+- [ ] Plot only one channel for visualizations in ``vis_utils.py``
 - [ ] profit 

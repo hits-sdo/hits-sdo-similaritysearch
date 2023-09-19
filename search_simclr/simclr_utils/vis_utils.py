@@ -14,6 +14,7 @@ from mpl_toolkits.mplot3d import Axes3D
 from mpl_toolkits.mplot3d import proj3d
 # import matplotlib.offsetbox as offsetbox
 from matplotlib import offsetbox
+from matplotlib import cm
 
 
 root = pyprojroot.here()
@@ -102,28 +103,23 @@ def plot_scatter(components_table: pd.DataFrame,
     if columns == 2:
         # Create scatterplot In 2D
         fig, ax = plt.subplots()
-        fig.suptitle("Title Test")
 
         # Add scatter points
-        ax.scatter(components_table['CP_0'], components_table['CP_1'], cmap='hot')
+        ax.scatter(components_table['CP_0'], components_table['CP_1'])
 
         for i in range(len(components_table)):
             path = os.path.join(data_dir, components_table['filename'][i])
             img = Image.open(path)
-            print("Plotting img: "+str(path))
-            img.thumbnail((20, 20), Image.ANTIALIAS)  # resizes image in-place
+            # print("Plotting img: "+str(path))
+            img.thumbnail((16, 16), Image.ANTIALIAS)  # resizes image in-place
             img = np.array(img)
+            print(f'img shape: {img.shape}')
+            # img = cm.get_cmap('hot')(img)
             im = OffsetImage(img, zoom=1)
             ab = AnnotationBbox(im, (components_table['CP_0'][i], components_table['CP_1'][i]), frameon=False)
 
             ax.add_artist(ab)
 
-        ax.set_xlabel('CP_0')
-        ax.set_ylabel('CP_1')
-        ax.set_title(label=f'{columns} component {type}')
-            
-        
-        
         ax.set_xlabel('CP_0')
         ax.set_ylabel('CP_1')
         ax.set_title(label=f'{columns} component {type}')
