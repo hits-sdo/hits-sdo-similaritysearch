@@ -620,8 +620,8 @@ it's 0.5 < x < 5
 - [x] profit 
 
 ## 9/20/23
-- [ ] Plot the embeddings from validation and compare with the embeddings on the final epoch of training (or do what the other teams are doing and plot for embeddings for training data too)
-  - [ ] umap
+- [X] Plot the embeddings from validation and compare with the embeddings on the final epoch of training (or do what the other teams are doing and plot for embeddings for training data too)
+  - [X] umap
   - [ ] configure sweeps plot and log more than just loss
     - [ ] [link](https://wandb.ai/site/articles/running-hyperparameter-sweeps-to-pick-the-best-model-using-w-b)
 - [ ] finish loading from checkpoint and callback
@@ -633,4 +633,22 @@ it's 0.5 < x < 5
     - [ ] Zoom
     - [ ] Blur
 - [ ] Plot only one channel for visualizations in ``vis_utils.py``
-- [ ] profit 
+- [X] profit 💰💰💰💰💰💰💰💰
+
+
+## 9/22/23
+- [ ] Find the max range between the images to determine a suitable numerator for the zoom value: `vis_utils.py` in `upddate` function
+    - [ ] fix the distance calculation in `vis_utils.py` in `update` function to base it off each tile so thast distant tiles would apper smaller
+    - [ ] Move the code for `ImageAnotations3D` class from `vis_utils.py` to another file
+- [ ] configure sweeps plot and log more than just loss
+    - [ ] [link](https://wandb.ai/site/articles/running-hyperparameter-sweeps-to-pick-the-best-model-using-w-b)
+- [ ] finish loading from checkpoint and callback
+- [ ] fix ~~densenet101~~
+- [ ] reduce model memory
+- [ ] randomize augmentation of values within a neighborhood
+    - [ ] Brighten
+    - [ ] Translate
+    - [ ] Zoom
+    - [ ] Blur
+- [ ] Plot only one channel for visualizations in ``vis_utils.py``
+- [ ] profit 💰💰💰💰💰💰💰💰

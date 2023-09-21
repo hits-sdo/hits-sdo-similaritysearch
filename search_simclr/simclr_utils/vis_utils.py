@@ -168,8 +168,7 @@ def plot_3D(components_table: pd.DataFrame,
     print("3D Component Lengths: "+str(len(xs))+" "+str(len(ys))+" "+str(len(zs)))
     print("Components: "+str(len(components_table))+" "+str(components_table.shape))
 
-    cmap = (1, 0, 0)  # RGB for red
-    ax.scatter(xs, ys, zs, c=cmap, marker="o", alpha=0)
+    ax.scatter(xs, ys, zs, marker="o", alpha=0)
 
     # Create a dummy axes to place annotations to
     ax2 = fig.add_subplot(111,frame_on=False) 

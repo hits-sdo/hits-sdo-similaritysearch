@@ -35,18 +35,19 @@ from search_simclr.simclr.dataloader.datamodule import SimCLRDataModule
 from search_simclr.simclr_utils.embeddings import (
     performTSNE,
     performPCA,
+    performUMAP,
     create_embeddings_component_table
 )
 
 def main():
     config = SDOConfig()
-    sdo_datamodule = SimCLRDataModule() # <-- stuff here
+    #sdo_datamodule = SimCLRDataModule() # <-- stuff here
 
         
     # Load the model from path
     model = SimCLR()
     #model = model.to(torch.float64)
-    path = os.path.join(root, 'search_simclr', 'model_weights', '2023-09-08_14-30-08_model.pth')
+    path = os.path.join(root, 'search_simclr', 'model_weights', '2023-09-15_14-55-23_model.pth')
     print(f'path: {path}')
     temp = torch.load(path)
     #print(f'temp.shape: {temp.shape}')
@@ -82,7 +83,7 @@ def main():
                     val_flist = None,
                     test_flist = None,
                     tot_fpath_wfname = config.tot_fpath_wfname,
-                    split = False,
+                    split = True,
                     num_workers = config.num_workers)
 
 
@@ -101,15 +102,21 @@ def main():
     # embeddings after dimensionality reduction
     embeddings_tsne = performTSNE(embeddings, num_components)
     embeddings_pca = performPCA(embeddings, num_components)
+    embeddings_umap = performUMAP(embeddings, num_components)
+    
     # # Plot Scatter Plots
-    plot(config.save_vis_dir, config.tile_dir, filenames, "embeddings tsne", embeddings_tsne, num_components)
-    plot(config.save_vis_dir, config.tile_dir, filenames, "embeddings pca", embeddings_pca, num_components)
+    plot(config.save_vis_dir, config.tile_dir, filenames, "embeddings_tsne", embeddings_tsne, num_components)
+    plot(config.save_vis_dir, config.tile_dir, filenames, "embeddings_pca", embeddings_pca, num_components)
+    plot(config.save_vis_dir, config.tile_dir, filenames, "embeddings_umap", embeddings_umap, num_components)
     
     num_components = 3
     embeddings_tsne = performTSNE(embeddings, num_components)
     embeddings_pca = performPCA(embeddings, num_components)
-    plot(config.save_vis_dir, config.tile_dir, filenames, "embeddings tsne", embeddings_tsne, num_components)
-    plot(config.save_vis_dir, config.tile_dir, filenames, "embeddings pca", embeddings_pca, num_components)
+    embeddings_umap = performUMAP(embeddings, num_components)
+    
+    plot(config.save_vis_dir, config.tile_dir, filenames, "embeddings_tsne", embeddings_tsne, num_components)
+    plot(config.save_vis_dir, config.tile_dir, filenames, "embeddings_pca", embeddings_pca, num_components)
+    plot(config.save_vis_dir, config.tile_dir, filenames, "embeddings_umap", embeddings_umap, num_components)
     # plot_2D(config, , filenames)
     # plot_3D(config, dim_reduct_embed, filenames)
     

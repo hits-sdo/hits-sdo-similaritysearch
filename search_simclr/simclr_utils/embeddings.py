@@ -9,8 +9,9 @@ import numpy as np
 from sklearn.manifold import TSNE
 import pandas as pd
 from sklearn.decomposition import PCA
+from umap import UMAP
 
-
+#function to perform TSNE
 def performTSNE(embeddings: np.ndarray,
                 components: int, 
                 lr: float = 150,
@@ -46,6 +47,7 @@ def performTSNE(embeddings: np.ndarray,
     # Return the reduced embeddings_tsne to plot
     return embeddings_tsne
 
+#Function to perform PCA
 def performPCA(embeddings: np.ndarray,
                 components: int) -> np.ndarray:
     # Create a PCA object or instance from the sklearn.decomposition.PCA class using the parameters
@@ -54,6 +56,37 @@ def performPCA(embeddings: np.ndarray,
     embeddings_pca = pca.transform(embeddings)
     
     return embeddings_pca
+
+#Function to perform UMAP
+def performUMAP(embeddings: np.ndarray,
+                components: int,
+                lr: float = 150,
+                verbose: bool = True) -> np.ndarray:
+    # Create the UMAP object or instance from the umap library using named parameters
+    
+    reducer = UMAP(n_components=components, learning_rate=lr, verbose=verbose, random_state=42)
+    # Fit the UMAP object to the data
+    embeddings_umap = reducer.fit_transform(embeddings)
+    return embeddings_umap
+    
+
+
+'''
+UMAP(a=None, angular_rp_forest=False, b=None,
+     force_approximation_algorithm=False, init='spectral', learning_rate=1.0,
+     local_connectivity=1.0, low_memory=False, metric='euclidean',
+     metric_kwds=None, min_dist=0.1, n_components=2, n_epochs=None,
+     n_neighbors=15, negative_sample_rate=5, output_metric='euclidean',
+     output_metric_kwds=None, random_state=42, repulsion_strength=1.0,
+     set_op_mix_ratio=1.0, spread=1.0, target_metric='categorical',
+     target_metric_kwds=None, target_n_neighbors=-1, target_weight=0.5,
+     transform_queue_size=4.0, transform_seed=42, unique=False, verbose=False)
+     
+     reducer = umap.UMAP(random_state=42)
+     reducer.fit(digits.data)
+     
+     '''
+
 
 def create_embeddings_component_table(num_components,
                                       embeddings_reduced: np.ndarray, 
