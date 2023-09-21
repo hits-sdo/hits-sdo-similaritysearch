@@ -36,16 +36,13 @@ from gui_utils import (root_path,
 )
 from streamlit_cropper import st_cropper
 
-def max_function:
-    st.write("hi from max function")
-
 
 def box_algorithm(img: Image, aspect_ratio = False) -> dict:
     # Find a recommended box for the image (could be replaced with image detection)
-    box = (not_a_session_state[0], 
-           not_a_session_state[1], 
-           not_a_session_state[2], 
-           not_a_session_state[3])
+    box = (coords[0],
+           coords[1],
+           coords[2],
+           coords[3])
     box = [int(i) for i in box]
     height = box[3] - box[1]
     width = box[2] - box[0]
@@ -108,6 +105,8 @@ if 'neighbors' not in st.session_state:
     st.session_state['neighbors'] = 26
 if 'coords' not in st.session_state:
     st.session_state["coords"] = None
+if 'cord_tuple' not in st.session_state:
+    st.session_state['cord_tuple'] = (int(1024*0.2), int(1024*0.2), int(1024*0.8), int(1024*0.8))
 
 # upload image for similarity search
 st.session_state['img'] = st.file_uploader(
@@ -120,11 +119,11 @@ col1, col2 = st.columns([1, 2])  # define columns for images
 
 
 
-not_a_session_state = st.session_state["coords"]
+coords = st.session_state["coords"]
 
 #prevent every other crop from being ignored
-if not_a_session_state is None:
-    not_a_session_state = (230 * 0.2, 230 * 0.2, 230 * 0.8, 230 * 0.8)
+if coords is None:
+    coords = (230 * 0.2, 230 * 0.2, 230 * 0.8, 230 * 0.8)
     
     
 
@@ -195,7 +194,7 @@ with st.sidebar:
         st.session_state['end_date'] = None
 
     st.button('Perform Similarity Search',
-              on_click=show_nearest_neighbors, max_function,
+              on_click=show_nearest_neighbors,
               args=([st.session_state,
                      st.session_state['wavelength'],
                      st.session_state['neighbors'],
@@ -255,6 +254,12 @@ if st.session_state['img'] is not None:
         pil_img = pil_img.resize((int(SIZE*aspect_ratio), SIZE))
         
         with col1:
+            st.session_state['img'] = np_img[
+                st.session_state['cord_tuple'][1]:st.session_state['cord_tuple'][1]
+                    + st.session_state['cord_tuple'][3],
+                st.session_state['cord_tuple'][0]:st.session_state['cord_tuple'][0] 
+                    + st.session_state['cord_tuple'][2]
+            ]
 
             cropped_coords = st_cropper(pil_img,
                                         realtime_update=True,
@@ -267,20 +272,19 @@ if st.session_state['img'] is not None:
             scaling_factor = np_img.shape[0] / SIZE
             cord_tuple = tuple(cropped_coords.values())
 
-            not_a_session_state = (cord_tuple[0], cord_tuple[1],
+            coords = (cord_tuple[0], cord_tuple[1],
                     cord_tuple[0]+cord_tuple[2],
                     cord_tuple[1]+cord_tuple[3])
-
-            st.session_state["coords"] = not_a_session_state
-            
-            st.write(not_a_session_state)
-
 
             # scale all values
             cord_tuple = tuple(
                 [int(x * scaling_factor) for x in cord_tuple]
                 )
         
+            st.write(cord_tuple)
+
+            st.session_state["cord_tuple"] = cord_tuple
+
             # fig, ax = plt.subplots(1, 1, figsize=(10, 10))
             # overlay = cv2.rectangle(np_img, (cord_tuple[0], cord_tuple[1]),
             #                         (cord_tuple[0]+cord_tuple[2],
@@ -290,17 +294,21 @@ if st.session_state['img'] is not None:
             # ax.axis('off')
 
             # col1.pyplot(fig)
-            st.session_state['img'] = np_img[
+            
+            img = np_img[
                 cord_tuple[1]:cord_tuple[1] + cord_tuple[3],
                 cord_tuple[0]:cord_tuple[0] + cord_tuple[2]
             ]
 
-            # Show Preview
-            st.write("Cropped Image")
-            st.image(st.session_state['img'], use_column_width=True, clamp=True)
+            if not np.array_equal(st.session_state['img'], img):
+                empty_fnames(st.session_state)
+                st.session_state['img'] = img
 
+            # Show Preview
+            st.write("Cropped Query Image")
+            st.image(st.session_state['img'], use_column_width=True, clamp=True)
     else:
-        not_a_session_state = (230 * 0.2, 230 * 0.2, 230 * 0.8, 230 * 0.8)
+        coords = (230 * 0.2, 230 * 0.2, 230 * 0.8, 230 * 0.8)
         
 
 if len(st.session_state['fnames']) > 0:

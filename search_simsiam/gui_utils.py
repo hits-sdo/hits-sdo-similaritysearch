@@ -191,6 +191,7 @@ def embeddings_dict(session_state, wavelength):
 
 def box_algorithm(img: Image, aspect_ratio = False) -> dict:
     # Find a recommended box for the image (could be replaced with image detection)
+    empty_fnames()
     box = (st.session_state["cropped_cords"][0], 
            st.session_state["cropped_cords"][1], 
            st.session_state["cropped_cords"][2], 
