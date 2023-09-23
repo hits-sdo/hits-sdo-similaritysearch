@@ -17,7 +17,7 @@ class SDOConfig:
     val_fpath: str = os.path.join(val_dir, 'val_file_list.txt')
     test_fpath: str = None
     percent_split: float = 0.8
-    num_img: int = 1500
+    num_img: int = 300
     model: str = "simclr"
     backbone: str = "resnet18"
     
@@ -37,7 +37,7 @@ class SDOConfig:
     cutout_size: float = 0.3
 
     lr: float = 0.005
-    num_workers: int = 12
+    num_workers: int = 8
     batch_size: int = 4
     seed: int = 1
     epochs: int = 3

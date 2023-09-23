@@ -637,9 +637,28 @@ it's 0.5 < x < 5
 
 
 ## 9/22/23
-- [ ] Find the max range between the images to determine a suitable numerator for the zoom value: `vis_utils.py` in `upddate` function
+- [x] Find the max range between the images to determine a suitable numerator for the zoom value: `vis_utils.py` in `update` function
     - [ ] fix the distance calculation in `vis_utils.py` in `update` function to base it off each tile so thast distant tiles would apper smaller
-    - [ ] Move the code for `ImageAnotations3D` class from `vis_utils.py` to another file
+    - [x] Move the code for `ImageAnotations3D` class from `vis_utils.py` to another file
+- [ ] configure sweeps plot and log more than just loss
+    - [ ] [link](https://wandb.ai/site/articles/running-hyperparameter-sweeps-to-pick-the-best-model-using-w-b)
+- [ ] finish loading from checkpoint and callback
+- [ ] fix ~~densenet101~~
+- [ ] reduce model memory
+- [ ] randomize augmentation of values within a neighborhood
+    - [ ] Brighten
+    - [ ] Translate
+    - [ ] Zoom
+    - [ ] Blur
+- [ ] Plot only one channel for visualizations in ``vis_utils.py``
+- [ ] profit 💰💰💰💰💰💰💰💰
+
+## 9/25/23
+- [ ] Fix 'plot_knn_examples' in 'vis_utils.py' (3x3 image grid w/ center image as query image)
+    - [ ] Cosine vs. Euclidean distance functions
+    - [ ] See if we can use Subhamoy's 'plot_nearest_neighbors_3x3'
+- [ ] Get set up on Google CoLab Pro
+    - [ ] Clone repo and add data, run sweeps
 - [ ] configure sweeps plot and log more than just loss
     - [ ] [link](https://wandb.ai/site/articles/running-hyperparameter-sweeps-to-pick-the-best-model-using-w-b)
 - [ ] finish loading from checkpoint and callback

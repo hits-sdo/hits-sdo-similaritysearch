@@ -4,6 +4,7 @@ import numpy as np
 from PIL import Image
 from sklearn.neighbors import NearestNeighbors
 from sklearn.preprocessing import normalize
+import math
 import pyprojroot
 import os
 from datetime import datetime
@@ -49,47 +50,79 @@ def get_image_as_np_array(filename: str):
     return np.asarray(img)
 
 
+# def plot_knn_examples(embeddings, filenames, path_to_data="root/data", n_neighbors=3, num_examples=6, vis_output_dir=None):
+#     """Plots multiple rows of random images with their nearest neighbors"""
+#     print(f'Embeddings.shape: {len(embeddings)}')
+#     # lets look at the nearest neighbors for some samples
+#     # we use the sklearn library
+#     nbrs = NearestNeighbors(n_neighbors=n_neighbors).fit(embeddings)
+#     distances, indices = nbrs.kneighbors(embeddings)
+
+#     # get 5 random samples
+#     samples_idx = np.random.choice(len(indices), size=num_examples, replace=False)
+#     print(f'len(samples_idx): {len(samples_idx)}')
+
+#     # loop through our randomly picked samples
+#     i = 0
+#     for idx in samples_idx:
+#         fig = plt.figure()
+#         # loop through their nearest neighbors
+#         for plot_x_offset, neighbor_idx in enumerate(indices[idx]):
+#             # add the subplot
+#             ax = fig.add_subplot(1, len(indices[idx]), plot_x_offset + 1)
+#             # get the correponding filename for the current index
+#             fname = os.path.join(path_to_data, filenames[neighbor_idx]) # tailor to our path directory structure
+#             print(f'file name: {fname}')
+#             # plot the image
+#             plt.imshow(get_image_as_np_array(fname), cmap='hot')
+#             # set the title to the distance of the neighbor
+#             ax.set_title(f"d={distances[idx][plot_x_offset]:.3f}")
+#             # let's disable the axis
+#             plt.axis("off")
+#         #plt.show()
+#         i +=1
+#         plt.savefig(os.path.join(vis_output_dir, f'{i}_knn_plot.png'))
+
 def plot_knn_examples(embeddings, filenames, path_to_data="root/data", n_neighbors=3, num_examples=6, vis_output_dir=None):
     """Plots multiple rows of random images with their nearest neighbors"""
     print(f'Embeddings.shape: {len(embeddings)}')
-    # print("Inside plot_knn_examples() " + path_to_data)
+    grid_size = (n_neighbors, n_neighbors)
     # lets look at the nearest neighbors for some samples
     # we use the sklearn library
     nbrs = NearestNeighbors(n_neighbors=n_neighbors).fit(embeddings)
     distances, indices = nbrs.kneighbors(embeddings)
 
-    # get 5 random samples
+    # get random samples
     samples_idx = np.random.choice(len(indices), size=num_examples, replace=False)
     print(f'len(samples_idx): {len(samples_idx)}')
 
+    # calculate number of rows and columns in the grid
+    num_rows, num_cols = grid_size
+    # total_plots = num_rows * num_cols
+
     # loop through our randomly picked samples
-    i = 0
-    for idx in samples_idx:
+    for i, idx in enumerate(samples_idx):
         fig = plt.figure()
         # loop through their nearest neighbors
-        for plot_x_offset, neighbor_idx in enumerate(indices[idx]):
-            # print("Inside plot_knn_examples() loop")
-            
+        for plot_idx, neighbor_idx in enumerate(indices[idx]):
+            # calculate the row and column position of the subplot
+            row = math.floor(plot_idx / num_cols)
+            col = plot_idx % num_cols
+
             # add the subplot
-            ax = fig.add_subplot(1, len(indices[idx]), plot_x_offset + 1)
-            # get the correponding filename for the current index
+            ax = fig.add_subplot(num_rows, num_cols, plot_idx + 1)
+            # get the corresponding filename for the current index
             fname = os.path.join(path_to_data, filenames[neighbor_idx]) # tailor to our path directory structure
             print(f'file name: {fname}')
             # plot the image
-            plt.imshow(get_image_as_np_array(fname)[:,:,0], cmap='hot')
+        plt.imshow(get_image_as_np_array(fname), cmap='hot')
             # set the title to the distance of the neighbor
-            ax.set_title(f"d={distances[idx][plot_x_offset]:.3f}")
+        ax.set_title(f"d={distances[idx][plot_idx]:.3f}")
             # let's disable the axis
-            plt.axis("off")
-        #plt.show()
-        i +=1
-        plt.savefig(os.path.join(vis_output_dir, f'{i}_knn_plot.png'))
-            # Save to file
-        # if vis_output_dir is not None:
-        #     now = datetime.now()
-        #     now_str = now.strftime("%Y-%m-%d_%H-%M-%S")
-            
-        #     plt.savefig(os.path.join(vis_output_dir, f'{now_str}_knn_plot.png'))
+        plt.axis("off")
+
+        # save the plot with row and column information in the filename
+        plt.savefig(os.path.join(vis_output_dir, f'{i+1}_knn_plot_row{row+1}_col{col+1}.png'))
 
 def plot_scatter(components_table: pd.DataFrame,
                  vis_output_dir=None,
@@ -111,7 +144,7 @@ def plot_scatter(components_table: pd.DataFrame,
             path = os.path.join(data_dir, components_table['filename'][i])
             img = Image.open(path)
             # print("Plotting img: "+str(path))
-            img.thumbnail((16, 16), Image.ANTIALIAS)  # resizes image in-place
+            img.thumbnail((16, 16))  # resizes image in-place
             img = np.array(img)
             print(f'img shape: {img.shape}')
             # img = cm.get_cmap('hot')(img)
@@ -160,7 +193,7 @@ def plot_3D(components_table: pd.DataFrame,
 
 
     fig = plt.figure()
-    ax = fig.add_subplot(111, projection=Axes3D.name)
+    ax1 = fig.add_subplot(111, projection=Axes3D.name)
     
     xs = components_table['CP_0'].values.tolist()
     ys = components_table['CP_1'].values.tolist()
@@ -168,91 +201,108 @@ def plot_3D(components_table: pd.DataFrame,
     print("3D Component Lengths: "+str(len(xs))+" "+str(len(ys))+" "+str(len(zs)))
     print("Components: "+str(len(components_table))+" "+str(components_table.shape))
 
-    ax.scatter(xs, ys, zs, marker="o", alpha=0)
+    ax1.scatter(xs, ys, zs, marker="o", alpha=0)
 
     # Create a dummy axes to place annotations to
     ax2 = fig.add_subplot(111,frame_on=False) 
     ax2.axis("off")
     ax2.axis([0,1,0,1])
+    
+    ## Get the limits of the x, y, and z axes
+    xmin, xmax = ax1.get_xlim()
+    ymin, ymax = ax1.get_ylim()
+    zmin, zmax = ax1.get_zlim()
 
-    class ImageAnnotations3D():
-        def __init__(self, xyz, imgs, ax3d,ax2d):
-            self.xyz = xyz
-            self.imgs = imgs
-            print("Images Count: "+str(len(imgs)))
-            self.ax3d = ax3d
-            self.ax2d = ax2d
-            self.annot = []
-            for s,im in zip(self.xyz, self.imgs):
-                x,y = self.proj(s)
-                self.annot.append(self.image(im,[x,y]))
-            self.lim = self.ax3d.get_w_lims()
-            self.rot = self.ax3d.get_proj()
-            self.cid = self.ax3d.figure.canvas.mpl_connect("draw_event",self.update)
+    print("X-axis limits:", xmin, xmax)
+    print("Y-axis limits:", ymin, ymax)
+    print("Z-axis limits:", zmin, zmax)
+    
+    # Get the average of all the min and max:
+    image_zoom = (xmax-xmin + ymax-ymin + zmax-zmin) / 3
+    # Scales the images smaller
+    image_zoom = image_zoom / 1.5 
+    print("New Image Scale: "+str(image_zoom))
 
-            self.funcmap = {"button_press_event" : self.ax3d._button_press,
-                            "motion_notify_event" : self.ax3d._on_move,
-                            "button_release_event" : self.ax3d._button_release}
-
-            self.cfs = [self.ax3d.figure.canvas.mpl_connect(kind, self.cb) \
-                            for kind in self.funcmap.keys()]
-
-        def cb(self, event):
-            event.inaxes = self.ax3d
-            self.funcmap[event.name](event)
-
-        def proj(self, X):
-            """ From a 3D point in axes ax1, 
-                calculate position in 2D in ax2 """
-            x,y,z = X
-            x2, y2, _ = proj3d.proj_transform(x,y,z, self.ax3d.get_proj())
-            tr = self.ax3d.transData.transform((x2, y2))
-            return self.ax2d.transData.inverted().transform(tr)
-
-        def image(self,arr,xy):
-            """ Place an image (arr) as annotation at position xy """
-            distance = np.sqrt((self.ax3d.get_w_lims()[1] - self.ax3d.get_w_lims()[0]) ** 2 + (self.ax3d.get_proj()[1] - self.ax3d.get_proj()[0]) ** 2)
-            new_zoom_level = 150 / distance[0]
-            im = offsetbox.OffsetImage(arr, zoom=new_zoom_level)
-            im.image.axes = ax
-            # ab = offsetbox.AnnotationBbox(im, xy, xybox=(-30., 30.),
-            #         xycoords='data', boxcoords="offset points",
-            #         pad=0.3, arrowprops=dict(arrowstyle="->"))
-            ab = offsetbox.AnnotationBbox(im, xy, xybox=(0,0),
-                                xycoords='data', boxcoords="offset points", frameon=False)
-            self.ax2d.add_artist(ab)
-            return ab
-
-        def update(self, event):
-            lims = self.ax3d.get_w_lims()
-            proj = self.ax3d.get_proj()
-            if np.any(lims != self.lim) or np.any(proj != self.rot):
-                self.lim = lims
-                self.rot = proj
-                distance = np.sqrt((lims[1] - lims[0]) ** 2 + (proj[1] - proj[0]) ** 2)
-                zoom = 150 / distance[0]
-                for s,ab in zip(self.xyz, self.annot):
-                    ab.xy = self.proj(s)
-                    im = ab.get_children()[0]  # Get the first child, which is the OffsetImage
-                    im.set_zoom(zoom)  # Set the new zoom level
-
+   
     imgs = []
 
     # Run a loop to open, resize and convert images into numpy arrays
     for i in range(len(components_table)):
         path = os.path.join(data_dir, components_table['filename'][i])
         img = Image.open(path)
-        img.thumbnail((8, 8), Image.ANTIALIAS)  # resizes image in-place
+        img.thumbnail((8, 8))  # resizes image in-place
         img = np.array(img)
         imgs.append(img)  # Add to images list
    
-    ia = ImageAnnotations3D(np.c_[xs,ys,zs], imgs, ax, ax2 )
+    ia = ImageAnnotations3D(np.c_[xs,ys,zs], imgs, ax1, ax2, image_zoom)
 
-    ax.set_xlabel('X Label')
-    ax.set_ylabel('Y Label')
-    ax.set_zlabel('Z Label')
+    ax1.set_xlabel('X Label')
+    ax1.set_ylabel('Y Label')
+    ax1.set_zlabel('Z Label')
     plt.show()   
            
+class ImageAnnotations3D():
+    def __init__(self, xyz, imgs, ax3d, ax2d, zoom_scale):
+        self.xyz = xyz
+        self.imgs = imgs
+        self.zoom_scale = zoom_scale
+        print("Images Count: "+str(len(imgs)))
+        self.ax3d = ax3d
+        self.ax2d = ax2d
+        self.annot = []
+        for s,im in zip(self.xyz, self.imgs):
+            x,y = self.proj(s)
+            self.annot.append(self.image(im,[x,y]))
+        self.lim = self.ax3d.get_w_lims()
+        self.rot = self.ax3d.get_proj()
+        self.cid = self.ax3d.figure.canvas.mpl_connect("draw_event",self.update)
+
+        self.funcmap = {"button_press_event" : self.ax3d._button_press,
+                        "motion_notify_event" : self.ax3d._on_move,
+                        "button_release_event" : self.ax3d._button_release}
+
+        self.cfs = [self.ax3d.figure.canvas.mpl_connect(kind, self.cb) \
+                        for kind in self.funcmap.keys()]
+
+    def cb(self, event):
+        event.inaxes = self.ax3d
+        self.funcmap[event.name](event)
+
+    def proj(self, X):
+        """ From a 3D point in axes ax1, 
+            calculate position in 2D in ax2 """
+        x,y,z = X
+        x2, y2, _ = proj3d.proj_transform(x,y,z, self.ax3d.get_proj())
+        tr = self.ax3d.transData.transform((x2, y2))
+        return self.ax2d.transData.inverted().transform(tr)
+
+    def image(self,arr,xy):
+        """ Place an image (arr) as annotation at position xy """
+        distance = np.sqrt((self.ax3d.get_w_lims()[1] - self.ax3d.get_w_lims()[0]) ** 2 + (self.ax3d.get_proj()[1] - self.ax3d.get_proj()[0]) ** 2)
+        new_zoom_level = self.zoom_scale / distance[0]
+        im = offsetbox.OffsetImage(arr, zoom=new_zoom_level)
+        im.image.axes = self.ax3d
+        # ab = offsetbox.AnnotationBbox(im, xy, xybox=(-30., 30.),
+        #         xycoords='data', boxcoords="offset points",
+        #         pad=0.3, arrowprops=dict(arrowstyle="->"))
+        ab = offsetbox.AnnotationBbox(im, xy, xybox=(0,0),
+                            xycoords='data', boxcoords="offset points", frameon=False)
+        self.ax2d.add_artist(ab)
+        return ab
+
+    def update(self, event):
+        lims = self.ax3d.get_w_lims()
+        proj = self.ax3d.get_proj()
+        if np.any(lims != self.lim) or np.any(proj != self.rot):
+            self.lim = lims
+            self.rot = proj
+            distance = np.sqrt((lims[1] - lims[0]) ** 2 + (proj[1] - proj[0]) ** 2)
+            zoom = self.zoom_scale / distance[0]
+            for s,ab in zip(self.xyz, self.annot):
+                ab.xy = self.proj(s)
+                im = ab.get_children()[0]  # Get the first child, which is the OffsetImage
+                im.set_zoom(zoom)  # Set the new zoom level
+
 # BELOW THIS LINE IS SIMSIAM CODE
 
 # display a scatter plot of the dataset
