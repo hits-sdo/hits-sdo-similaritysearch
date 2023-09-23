@@ -5,44 +5,41 @@
 # [x] add option for random augmentation to validate embeddings
 # [x] add advanced menu to select between backbone and projection head
 # [x] add option to clear augmentations
-# [ ] Speed up display of search results
+# [x] Speed up display of search results
 # [x] switching model based on wavelength (use dictionary mapping name to model)
     # [ ] test with second 171 model
-# [ ] add smoother transitions
+# [x] add smoother transitions
 # [ ] crop functionality
-    # [ ] reorder so crop -> augment instead of augment -> crop
-    # [ ] Fork st_cropper repository -> add in passed-in crop rectangle functionality
-    # [ ] why did the aspect ratio stop working????
-# [ ] drag-and-drop not working...?
+    # [x] why did the aspect ratio stop working????
+    # [ ] fix resetting of cropping on advanced option toggle
+# [x] drag-and-drop not working...?
 
 """
 import streamlit as st
-import matplotlib.pyplot as plt
-import cv2
 import datetime
-import random
+from copy import deepcopy
 
 
 import numpy as np
 from PIL import Image
-from gui_utils import (root_path, 
+from gui_utils import (
+    root_path,
     empty_fnames,
     wavelengths_to_models,
     display_search_result,
     show_nearest_neighbors,
     embeddings_dict,
     apply_augmentation,
-    #box_algorithm
 )
 from streamlit_cropper import st_cropper
 
 
 def box_algorithm(img: Image, aspect_ratio = False) -> dict:
     # Find a recommended box for the image (could be replaced with image detection)
-    box = (coords[0],
-           coords[1],
-           coords[2],
-           coords[3])
+    box = (cropped_coords[0],
+           cropped_coords[1],
+           cropped_coords[2],
+           cropped_coords[3])
     box = [int(i) for i in box]
     height = box[3] - box[1]
     width = box[2] - box[0]
@@ -99,14 +96,12 @@ if 'augmented' not in st.session_state:
     st.session_state['augmented'] = 0
 if 'aug_img' not in st.session_state:
     st.session_state['aug_img'] = None
-if 'cropped_img' not in st.session_state:
-    st.session_state['cropped_img'] = None
 if 'neighbors' not in st.session_state:
     st.session_state['neighbors'] = 26
-if 'coords' not in st.session_state:
-    st.session_state["coords"] = None
-if 'cord_tuple' not in st.session_state:
-    st.session_state['cord_tuple'] = (int(1024*0.2), int(1024*0.2), int(1024*0.8), int(1024*0.8))
+if 'cropped_roi_tuple' not in st.session_state:
+    st.session_state['cropped_roi_tuple'] = (int(1024*0.2), int(1024*0.2), int(1024*0.6), int(1024*0.6))
+
+aug = 'perform_aug' in st.session_state and st.session_state['perform_aug']
 
 # upload image for similarity search
 st.session_state['img'] = st.file_uploader(
@@ -119,18 +114,14 @@ col1, col2 = st.columns([1, 2])  # define columns for images
 
 
 
-coords = st.session_state["coords"]
-
-#prevent every other crop from being ignored
-if coords is None:
-    coords = (230 * 0.2, 230 * 0.2, 230 * 0.8, 230 * 0.8)
-    
-    
 
 
+# prevent every other crop from being ignored
+# NOTE: adding the "if" and tabbing in cropped_coords means you have to crop twice to work,
+# removing the "if" means crop does not persist through similarity search and augmentation
 
+cropped_coords = (int(230 * 0.2), int(230 * 0.2), int(230 * 0.8), int(230 * 0.8))
 
-    
 
 with st.sidebar:
     wavelength_help = "Select dataset based on target wavelength(s).\
@@ -194,6 +185,7 @@ with st.sidebar:
         st.session_state['end_date'] = None
 
     st.button('Perform Similarity Search',
+              key='sim_search',
               on_click=show_nearest_neighbors,
               args=([st.session_state,
                      st.session_state['wavelength'],
@@ -210,7 +202,7 @@ with st.sidebar:
                                                  options=tuple(option),
                                                  help=sii_help)
 
-    if st.toggle("Advanced options"):
+    if st.toggle("Advanced options", key='toggle'):
         st.session_state['dist'] = st.selectbox(
             'Distance metric',
             ('Euclidean', 'Cosine'),
@@ -225,14 +217,12 @@ with st.sidebar:
             on_change=empty_fnames,
             args=([st.session_state]))
 
-        if st.button("Perform Random Augmentation", on_click=empty_fnames, args=([st.session_state])):
+        if st.button("Perform Random Augmentation", key='perform_aug', on_click=empty_fnames, args=([st.session_state])):
             st.session_state['augmented'] = 1
             apply_augmentation(st.session_state['img'])
 
         if st.button("Clear Augmentation", on_click=empty_fnames, args=([st.session_state])):
             st.session_state['augmented'] = 0
-
-
 
 if st.session_state['img'] is not None:
     img_text = col1.empty()
@@ -252,55 +242,55 @@ if st.session_state['img'] is not None:
         aspect_ratio = np_img.shape[1]/np_img.shape[0]
         SIZE = 230
         pil_img = pil_img.resize((int(SIZE*aspect_ratio), SIZE))
-        
+        if st.session_state['sim_search'] or aug:
+
+            cropped_coords = (st.session_state["cropped_roi_tuple"][0], st.session_state["cropped_roi_tuple"][1],
+                              st.session_state["cropped_roi_tuple"][0]+st.session_state["cropped_roi_tuple"][2],
+                              st.session_state["cropped_roi_tuple"][1]+st.session_state["cropped_roi_tuple"][3])
+            scaling_factor = np_img.shape[0] / SIZE
+
+            cropped_coords = tuple(
+                [int(x / scaling_factor) for x in cropped_coords])
+
+        c1 = deepcopy(cropped_coords)
         with col1:
             st.session_state['img'] = np_img[
-                st.session_state['cord_tuple'][1]:st.session_state['cord_tuple'][1]
-                    + st.session_state['cord_tuple'][3],
-                st.session_state['cord_tuple'][0]:st.session_state['cord_tuple'][0] 
-                    + st.session_state['cord_tuple'][2]
+                st.session_state['cropped_roi_tuple'][1]:st.session_state['cropped_roi_tuple'][1]
+                    + st.session_state['cropped_roi_tuple'][3],
+                st.session_state['cropped_roi_tuple'][0]:st.session_state['cropped_roi_tuple'][0] 
+                    + st.session_state['cropped_roi_tuple'][2]
             ]
 
-            cropped_coords = st_cropper(pil_img,
-                                        realtime_update=True,
-                                        box_color='#0000FF',
-                                        return_type='box',
-                                        box_algorithm=box_algorithm,
-                                        should_resize_image=True
+            cropped_roi = st_cropper(pil_img,
+                                     realtime_update=True,
+                                     box_color='#0000FF',
+                                     return_type='box',
+                                     box_algorithm=box_algorithm,
+                                     should_resize_image=True
             )
-            
-            scaling_factor = np_img.shape[0] / SIZE
-            cord_tuple = tuple(cropped_coords.values())
 
-            coords = (cord_tuple[0], cord_tuple[1],
-                    cord_tuple[0]+cord_tuple[2],
-                    cord_tuple[1]+cord_tuple[3])
+            scaling_factor = np_img.shape[0] / SIZE
+            cropped_roi_tuple = tuple(cropped_roi.values())
+
+            cropped_coords = (cropped_roi_tuple[0], cropped_roi_tuple[1],
+                              cropped_roi_tuple[0]+cropped_roi_tuple[2],
+                              cropped_roi_tuple[1]+cropped_roi_tuple[3])
+
+            c2 = deepcopy(cropped_coords)
 
             # scale all values
-            cord_tuple = tuple(
-                [int(x * scaling_factor) for x in cord_tuple]
+            cropped_roi_tuple = tuple(
+                [int(x * scaling_factor) for x in cropped_roi_tuple]
                 )
-        
-            st.write(cord_tuple)
 
-            st.session_state["cord_tuple"] = cord_tuple
+            st.session_state["cropped_roi_tuple"] = cropped_roi_tuple
 
-            # fig, ax = plt.subplots(1, 1, figsize=(10, 10))
-            # overlay = cv2.rectangle(np_img, (cord_tuple[0], cord_tuple[1]),
-            #                         (cord_tuple[0]+cord_tuple[2],
-            #                          cord_tuple[1]+cord_tuple[3]),
-            #                         (255, 0, 0), 5)
-            # ax.imshow(overlay[:, :, :])
-            # ax.axis('off')
-
-            # col1.pyplot(fig)
-            
             img = np_img[
-                cord_tuple[1]:cord_tuple[1] + cord_tuple[3],
-                cord_tuple[0]:cord_tuple[0] + cord_tuple[2]
+                cropped_roi_tuple[1]:cropped_roi_tuple[1] + cropped_roi_tuple[3],
+                cropped_roi_tuple[0]:cropped_roi_tuple[0] + cropped_roi_tuple[2]
             ]
 
-            if not np.array_equal(st.session_state['img'], img):
+            if c1 != c2:
                 empty_fnames(st.session_state)
                 st.session_state['img'] = img
 
@@ -308,9 +298,8 @@ if st.session_state['img'] is not None:
             st.write("Cropped Query Image")
             st.image(st.session_state['img'], use_column_width=True, clamp=True)
     else:
-        coords = (230 * 0.2, 230 * 0.2, 230 * 0.8, 230 * 0.8)
-        
+        cropped_coords = (230 * 0.2, 230 * 0.2, 230 * 0.8, 230 * 0.8)
+
 
 if len(st.session_state['fnames']) > 0:
-    # embeddings_dict = embeddings_dict(st.session_state)
     display_search_result(st.session_state, col2, embeddings_dict(st.session_state, st.session_state['wavelength']), data_path)
