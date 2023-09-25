@@ -42,6 +42,7 @@ class SDOTilesDataset(Dataset):
         if data_stride>1:
             self.image_files = self.image_files[::data_stride]
         self.augmentation_list = AugmentationList(instrument="euv")
+        self.augmentation_list.keys.remove('brighten')
         self.datatype=datatype
         self.augmentation = augmentation
         if self.augmentation is None:
@@ -73,7 +74,7 @@ class SDOTilesDataset(Dataset):
                            image_format="jpg")
 
         if self.augmentation.lower() != 'none':
-            image2 = image.copy()
+            # image2 = image.copy()
 
             aug = Augmentations(image, self.augmentation_list.randomize())
             image2, _ = aug.perform_augmentations(fill_void='Nearest')
@@ -85,10 +86,9 @@ class SDOTilesDataset(Dataset):
             image = np.moveaxis(image, [0, 1, 2], [1, 2, 0]).astype(self.datatype)           
             image2 = np.moveaxis(image2, [0, 1, 2], [1, 2, 0]).astype(self.datatype)           
 
-            return image, image2
+            return image, image2, self.image_files[idx]
 
         else:
 
             image = np.moveaxis(image, [0, 1, 2], [1, 2, 0]).astype(self.datatype)           
-            return image, 0
-
+            return image, self.image_files[idx]
