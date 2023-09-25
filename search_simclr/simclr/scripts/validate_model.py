@@ -24,7 +24,8 @@ from search_simclr.simclr_utils.vis_utils import (
     generate_embeddings,
     plot_knn_examples,
     plot_scatter,
-    plot_nearest_neighbors_3x3
+    plot_nearest_neighbors_3x3,
+    plot_NxN_examples
 )
 from typing import Tuple
 from argparse import ArgumentParser
@@ -100,30 +101,32 @@ def main():
     num_components = 2
 
     # embeddings after dimensionality reduction
-    embeddings_tsne = performTSNE(embeddings, num_components)
-    embeddings_pca = performPCA(embeddings, num_components)
-    embeddings_umap = performUMAP(embeddings, num_components)
+    # embeddings_tsne = performTSNE(embeddings, num_components)
+    # embeddings_pca = performPCA(embeddings, num_components)
+    # embeddings_umap = performUMAP(embeddings, num_components)
     
-    # # Plot Scatter Plots
-    plot(config.save_vis_dir, config.tile_dir, filenames, "embeddings_tsne", embeddings_tsne, num_components)
-    plot(config.save_vis_dir, config.tile_dir, filenames, "embeddings_pca", embeddings_pca, num_components)
-    plot(config.save_vis_dir, config.tile_dir, filenames, "embeddings_umap", embeddings_umap, num_components)
+    # # Plot 2D Scatter Plots
+    # plot(config.save_vis_dir, config.tile_dir, filenames, "embeddings_tsne", embeddings_tsne, num_components)
+    # plot(config.save_vis_dir, config.tile_dir, filenames, "embeddings_pca", embeddings_pca, num_components)
+    # plot(config.save_vis_dir, config.tile_dir, filenames, "embeddings_umap", embeddings_umap, num_components)
     
-    num_components = 3
-    embeddings_tsne = performTSNE(embeddings, num_components)
-    embeddings_pca = performPCA(embeddings, num_components)
-    embeddings_umap = performUMAP(embeddings, num_components)
+    # num_components = 3
+    # embeddings_tsne = performTSNE(embeddings, num_components)
+    # embeddings_pca = performPCA(embeddings, num_components)
+    # embeddings_umap = performUMAP(embeddings, num_components)
     
-    plot(config.save_vis_dir, config.tile_dir, filenames, "embeddings_tsne", embeddings_tsne, num_components)
-    plot(config.save_vis_dir, config.tile_dir, filenames, "embeddings_pca", embeddings_pca, num_components)
-    plot(config.save_vis_dir, config.tile_dir, filenames, "embeddings_umap", embeddings_umap, num_components)
-    # plot_2D(config, , filenames)
-    # plot_3D(config, dim_reduct_embed, filenames)
-    
+    # # Plot 3D Scatter Plots
+    # plot(config.save_vis_dir, config.tile_dir, filenames, "embeddings_tsne", embeddings_tsne, num_components)
+    # plot(config.save_vis_dir, config.tile_dir, filenames, "embeddings_pca", embeddings_pca, num_components)
+    # plot(config.save_vis_dir, config.tile_dir, filenames, "embeddings_umap", embeddings_umap, num_components)
 
     # Visualize Nearest Neighbors
     data_path = os.path.join(root, "data")
-    plot_knn_examples(embeddings, filenames, data_path, vis_output_dir=config.save_vis_dir)
+    # plot_knn_examples(embeddings, filenames, data_path, vis_output_dir=config.save_vis_dir)
+    
+    plot_NxN_examples(embeddings, filenames, data_path, vis_output_dir=config.save_vis_dir)
+    plot_NxN_examples(embeddings, filenames, data_path, vis_output_dir=config.save_vis_dir, grid_size=5, num_examples=5, distType='cosine')
+    plot_NxN_examples(embeddings, filenames, data_path, vis_output_dir=config.save_vis_dir, grid_size=7, num_examples=5, distType='euclidean')
 
 def plot(vis_dir:str,
          tile_dir:str,
@@ -134,24 +137,6 @@ def plot(vis_dir:str,
     dim_reduct_df = create_embeddings_component_table(num_components, dim_reduct_embed, filenames, len(filenames))
     plot_scatter(dim_reduct_df, vis_dir, tile_dir, title)
     
-# def plot_2D(config: SDOConfig, dim_reduct_embed, filenames):
-#     # Plot 2D Scatter Plot
-#     num_components = 2
-#     tsne_embeddings = performTSNE(embeddings, num_components)
-
-#     tsne_dataframe = create_embeddings_component_table(num_components, tsne_embeddings, filenames, len(filenames)) 
-#     # Todo: Try with len(filenames)
-#     vis_dir = config.save_vis_dir
-#     plot_scatter(tsne_dataframe, vis_dir, config.tile_dir, "TSNE")
-
-# def plot_3D(config: SDOConfig, embeddings, filenames):
-#     # Plot 3D Scatter Plot
-#     num_components = 3
-#     tsne_embeddings = performTSNE(embeddings, num_components)
-
-#     tsne_dataframe = create_embeddings_component_table(num_components, tsne_embeddings, filenames, len(filenames))
-#     vis_dir = config.save_vis_dir
-#     plot_scatter(tsne_dataframe, vis_dir, config.tile_dir, "TSNE")
 
 if __name__ == "__main__":
     main()

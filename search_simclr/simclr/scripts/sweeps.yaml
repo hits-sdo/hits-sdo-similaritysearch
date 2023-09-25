@@ -11,11 +11,11 @@ parameters:
     min: 0.0001
     max: 0.1
   batch_size:
-    values: [16, 32, 48, 64, 128]
+    values: [16, 32]
   epochs:
     min: 3
-    max: 10
+    max: 5
   optimizer:
     values: ["adam", "sgd"]
   backbone:
-    values: ["resnet18","resnet34","resnet50","resnet101","resnet152","densenet121"]
+    values: ["resnet18","resnet34","resnet50","resnet101","resnet152"]
