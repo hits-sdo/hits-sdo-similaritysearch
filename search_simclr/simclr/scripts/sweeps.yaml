@@ -1,0 +1,21 @@
+program: model_run.py
+project: search_simclr 
+method: bayes
+metric:
+  name: train_loss_ssl
+  goal: minimize
+parameters:
+  wandb_run_name:
+    value: simclr_AIA_sweep
+  learning_rate:
+    min: 0.0001
+    max: 0.1
+  batch_size:
+    values: [16, 32]
+  epochs:
+    min: 3
+    max: 5
+  optimizer:
+    values: ["adam", "sgd"]
+  backbone:
+    values: ["resnet18","resnet34","resnet50","resnet101","resnet152"]
