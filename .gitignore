@@ -6,6 +6,9 @@ search_simclr/visualizations/
 search_simclr/simclr/scripts/lightning_logs/
 search_simclr/simclr/scripts/wandb/
 search_simclr/checkpoints
+search_simclr/README.md
+search_simclr/error_logs
+search_simclr/tut_imgs
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
