@@ -123,6 +123,87 @@ def plot_knn_examples(embeddings, filenames, path_to_data="root/data", n_neighbo
 
         # save the plot with row and column information in the filename
         plt.savefig(os.path.join(vis_output_dir, f'{i+1}_knn_plot_row{row+1}_col{col+1}.png'))
+        
+def plot_NxN_examples(embeddings, filenames, path_to_data="root/data", vis_output_dir=None, grid_size=3, num_examples=6, distType='minkowski'):
+    """Plots multiple rows of random images with their nearest neighbors"""
+    # Num_examples is the number of images to save.
+    print(f'Embeddings.shape: {len(embeddings)}')
+    
+    # Calculate number of rows and columns in the grid
+    grid_size_tuple = (grid_size, grid_size)
+    num_rows, num_cols = grid_size_tuple
+    total_plots = num_rows * num_cols
+
+    # Lets look at the nearest neighbors for some samples, using the sklearn library
+    # seuclidean, euclidean, cosine, minkowski
+    print(f'Using {distType} distance metric')
+    nbrs = NearestNeighbors(n_neighbors=total_plots, metric=distType).fit(embeddings)
+    distances, indices = nbrs.kneighbors(embeddings)
+
+    # Get random samples
+    samples_idx = np.random.choice(len(indices), size=num_examples, replace=False)
+    print(f'len(samples_idx): {len(samples_idx)}')
+
+    # Define the order of the subplots in a spiral starting from the center
+    order = concentric_order_of_subplots(num_rows, num_cols)
+    print("Concentric order of subplots:")
+    for i, pos in enumerate(order):
+        print(f"Position {i+1}: {pos}")
+
+    # Loop through our randomly picked samples
+    for sample, idx in enumerate(samples_idx):
+        
+        fig = plt.figure()
+        # loop through their nearest neighbors
+        for plot_idx, neighbor_idx in enumerate(indices[idx]):
+            # calculate the row and column position of the subplot
+            row, col = order[plot_idx]
+
+            # add the subplot
+            ax = fig.add_subplot(num_rows, num_cols, row*num_cols + col + 1)
+            # get the corresponding filename for the current index
+            fname = os.path.join(path_to_data, filenames[neighbor_idx]) # tailor to our path directory structure
+            # print(f'file name: {fname}')
+            # plot the image
+            plt.imshow(get_image_as_np_array(fname), cmap='hot')
+            # set the title to the distance of the neighbor
+            ax.set_title(f"d={distances[idx][plot_idx]:.3f}")
+            # let's disable the axis
+            plt.axis("off")
+
+        # save the plot with row and column information in the filename
+        plt.savefig(os.path.join(vis_output_dir, f'{num_rows}x{num_cols}_knn_plot_{sample+1}_{distType}.png'))
+        
+def concentric_order_of_subplots(num_rows, num_cols):
+    # Calculate the center of the grid
+    center = (num_rows//2, num_cols//2)
+    
+    # Initialize the concentric order list with the center of the grid
+    concentric_order = [center]
+    
+    # Generate the concentric squares
+    for layer in range(1, max(num_rows, num_cols)//2 + 1):
+        # Top side
+        for col in range(center[1] - layer + 1, center[1] + layer + 1):
+            if 0 <= center[0] - layer < num_rows and 0 <= col < num_cols:
+                concentric_order.append((center[0] - layer, col))
+        
+        # Right side
+        for row in range(center[0] - layer + 1, center[0] + layer + 1):
+            if 0 <= row < num_rows and 0 <= center[1] + layer < num_cols:
+                concentric_order.append((row, center[1] + layer))
+        
+        # Bottom side
+        for col in range(center[1] + layer - 1, center[1] - layer - 1, -1):
+            if 0 <= center[0] + layer < num_rows and 0 <= col < num_cols:
+                concentric_order.append((center[0] + layer, col))
+        
+        # Left side
+        for row in range(center[0] + layer - 1, center[0] - layer - 1, -1):
+            if 0 <= row < num_rows and 0 <= center[1] - layer < num_cols:
+                concentric_order.append((row, center[1] - layer))
+    
+    return concentric_order
 
 def plot_scatter(components_table: pd.DataFrame,
                  vis_output_dir=None,
