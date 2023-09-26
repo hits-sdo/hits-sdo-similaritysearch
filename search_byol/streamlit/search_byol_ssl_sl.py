@@ -50,7 +50,7 @@ def main():
     model = load_byol_model(MODEL_32_PATH)
     # index_df = read_CSV_from_Zi, "x pixel coordinate bottom left"p(csv_path = "/mnt/e/Downloads/ds1_bs64_lr0.1_doubleaug_ss0.1_se1.0_pjs16_pds16_contrast_.zip")
     
-    # TODO: Placeholder for user-defined tile height and width.
+    # TODO: Placeholder for user-defined tile height and width; allow for custom tile sizes / selection of tile sizes.
     tile_height = 256
     tile_width = 256
 
@@ -68,7 +68,15 @@ def main():
         st.sidebar.image(cropped_img, use_column_width=False)
         
         query_button = st.sidebar.button("Perform Query")
-        download_button = st.sidebar.button("Download CSV with Matches")
+        # download_button = st.sidebar.button("Download CSV with Matches")
+        filename = f'{n_matches}_matches.csv'        
+        st.sidebar.download_button(
+            label="Download CSV with Matches",
+            data=open(filename),
+            file_name=filename,
+            mime='text/csv',
+        )
+
     # with col2:
 
         transform = transforms.Compose([transforms.PILToTensor()])
@@ -82,10 +90,12 @@ def main():
             print(kquery_neighbors)
 
             read_and_plot_matches(kquery_neighbors, PROJECTION_SIZE)
-            create_csv_for_download(kquery_neighbors, tile_height=tile_height, tile_width=tile_width)
 
-        if download_button:
-            create_csv_for_download(kquery_neighbors)
+            create_csv_for_download(kquery_neighbors, tile_height=tile_height, tile_width=tile_width, filename=filename)
+
+        # if download_button:
+
+            
 
 # Path to index for embeddings size 16 on Jake's computer:
 
@@ -176,21 +186,22 @@ def read_and_plot_matches(kquery_neighbors: pd.DataFrame, projection_size: int, 
     #     st.image(tile_match)    
 
 
-def create_csv_for_download(kquery_neighbors : pd.DataFrame, tile_height : int, tile_width : int):
+def create_csv_for_download(kquery_neighbors : pd.DataFrame, tile_height : int, tile_width : int, filename: str):
     # date_string = re.search(r"\d{8}_\d{6}(?!.+\d{8}_\d{6}.+)", data_filename).group().replace('_', 'T')
-    df_download = kquery_neighbors.copy()
-    df_download['Date'] = df_download['FileName'].apply(lambda x: re.search(r"\d{8}_\d{6}(?!.+\d{8}_\d{6}.+)", x).group().replace('_', 'T')) # retrieve date from filename.
+    df_download = pd.DataFrame()
+    # df_embeddings = kquery_neighbors.copy()
+    df_download['Date'] = kquery_neighbors['FileName'].apply(lambda x: re.search(r"\d{8}_\d{6}(?!.+\d{8}_\d{6}.+)", x).group().replace('_', 'T')) # retrieve date from filename.
     df_download['Date'] = df_download['Date'].apply(lambda x: '-'.join([x[0:4], x[4:6] ,x[6:]])) # format date.
     df_download['Date'] = df_download['Date'].apply(lambda x: ':'.join([x[0:13], x[13:15] , x[15:]]))
-    df_download['X_Coordinate'] = df_download['FileName'].apply(lambda x: re.split('_|\.', x)[-2])
-    df_download['Y_Coordinate'] = df_download['FileName'].apply(lambda x: re.split('_|\.', x)[-3])
-    df_download['JSOC_String'] = df_download['Date'].apply(lambda x: 'aia.lev1_euv_12s'+ f'[{x}]')
+    df_download['JSOC_String'] = df_download['Date'].apply(lambda x: 'aia.lev1_euv_12s'+ f'[{x}]') # create JSOC string.
+    df_download['X_Coordinate'] = kquery_neighbors['FileName'].apply(lambda x: re.split('_|\.', x)[-2]) # tile pixel coordinates.
+    df_download['Y_Coordinate'] = kquery_neighbors['FileName'].apply(lambda x: re.split('_|\.', x)[-3])
     df_download['Tile_Height'] = tile_height
     df_download['Tile_Width'] = tile_width
 
+    df_download = df_download.join(kquery_neighbors.iloc[:, 0:-1])
     # print(df_download['Date'], df_download['X_Coordinate'], df_download['Y_Coordinate'], df_download['JSOC_String'])
-    #TODO: Drop first column integer; drop filename; reorganize columns; rename csv filename.
-    df_download.to_csv('csv_for_download.csv')
+    df_download.to_csv(filename, index=False)
     
 
 if __name__ == "__main__":
