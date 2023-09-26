@@ -654,9 +654,9 @@ it's 0.5 < x < 5
 - [ ] profit 💰💰💰💰💰💰💰💰
 
 ## 9/25/23
-- [ ] Fix 'plot_knn_examples' in 'vis_utils.py' (3x3 image grid w/ center image as query image)
-    - [ ] Cosine vs. Euclidean distance functions
-    - [ ] See if we can use Subhamoy's 'plot_nearest_neighbors_3x3'
+- [X] Fix 'plot_knn_examples' in 'vis_utils.py' (3x3 image grid w/ center image as query image)
+    - [X] Cosine vs. Euclidean distance functions
+    - [X] See if we can use Subhamoy's 'plot_nearest_neighbors_3x3'
 - [ ] Get set up on Google CoLab Pro
     - [ ] Clone repo and add data, run sweeps
 - [ ] configure sweeps plot and log more than just loss
@@ -671,3 +671,26 @@ it's 0.5 < x < 5
     - [ ] Blur
 - [ ] Plot only one channel for visualizations in ``vis_utils.py``
 - [ ] profit 💰💰💰💰💰💰💰💰
+
+## 9/27/23
+- [ ] Quick Fixes
+    - [ ] Reduce distance label in plot nxn in vis_utils.py and/or spread out tiles in plot
+    - [ ] Randomize augmentation of values within a neighborhood
+        - [ ] Brighten
+        - [ ] Translate
+        - [ ] Zoom
+        - [ ] Blur
+    - [ ] README
+- [ ] Get set up on Google CoLab Pro
+    - [ ] Clone repo and add data, run sweeps
+- [ ] Create Notebook directory in repo
+- [ ] Improve model loss
+    - [ ] Try Resnet152 with batch size > 32 in CoLab
+    - [ ] Run more sweeps with higher learning rate over larger dataset
+- [ ] Parameters from sweeps thus far (best performer)
+    - [ ] Resnet152
+    - [ ] Batch size 16
+    - [ ] Epochs 5
+    - [ ] Learning rate .02256 (not of high importance)
+    - [ ] Optimizer SGD
+- [ ] PROFIT !!! 💰💰💰💰💰💰💰💰
