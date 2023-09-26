@@ -3,7 +3,6 @@ from PIL import Image
 import numpy as np
 import os
 
-
 def read_image(image_loc, image_format):
     '''
     reads in image
@@ -155,6 +154,7 @@ def stitch_adj_imgs(data_dir, file_name,
         removed_coords = []
 
     source_image = read_image(os.path.join(data_dir, file_name), file_format)
+
     image_len = source_image.shape[0]
     superImage = np.zeros((3*image_len, 3*image_len, 3))
 
@@ -185,5 +185,5 @@ def stitch_adj_imgs(data_dir, file_name,
             for loc in removed_coords:               
                 superImage = interpolate_superimage(superImage, loc)
 
-
     return superImage
+
