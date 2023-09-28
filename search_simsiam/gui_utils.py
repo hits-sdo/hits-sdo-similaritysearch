@@ -50,8 +50,8 @@ def apply_augmentation(img):
 
 
 def display_search_result(session_state, col2, embeddings_dict, data_path):
-    if 'All' in session_state["indices"]:
-        session_state["indices"] = [x for x in range(session_state['neighbors'])]
+    if 'All' in session_state["indices"][-1]:
+        session_state["indices"][-1] = [x for x in range(session_state['neighbors'])]
 
     col2.write('Retrieved Images')
     idx = embeddings_dict['filenames'].index(session_state['fnames'][0])
@@ -71,7 +71,7 @@ def display_search_result(session_state, col2, embeddings_dict, data_path):
 
         ax[i].text(10, 30, i, color='black', fontsize=(10/dim)*10)
 
-        if i in session_state['indices']:
+        if i in session_state['indices'][-1]:
             overlay = cv2.rectangle(img, (0, 0), (127, 127), (0, 0, 255), 10)
             ax[i].imshow(overlay[:, :, ::-1])
 
@@ -79,7 +79,7 @@ def display_search_result(session_state, col2, embeddings_dict, data_path):
 
     if st.button('Download Selected Images'):
         with zipfile.ZipFile("selected_images.zip", "w") as zipf:
-            for n in session_state['indices']:
+            for n in session_state['indices'][-1]:
                 # Add each file to the ZIP archive
                 zipf.write(data_path+session_state['fnames'][n])
 

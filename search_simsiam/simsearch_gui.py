@@ -100,8 +100,11 @@ if 'neighbors' not in st.session_state:
     st.session_state['neighbors'] = 26
 if 'cropped_roi_tuple' not in st.session_state:
     st.session_state['cropped_roi_tuple'] = (int(1024*0.2), int(1024*0.2), int(1024*0.6), int(1024*0.6))
+if 'indices' not in st.session_state:
+    st.session_state['indices'] = [[]]
 
 aug = 'perform_aug' in st.session_state and st.session_state['perform_aug']
+clear = 'clear' in st.session_state and st.session_state['clear']
 
 # upload image for similarity search
 st.session_state['img'] = st.file_uploader(
@@ -198,31 +201,36 @@ with st.sidebar:
 
     option = ['All'] + [x for x in range(st.session_state['neighbors'])]
 
-    st.session_state['indices'] = st.multiselect('Select image index:',
-                                                 options=tuple(option),
-                                                 help=sii_help)
 
-    if st.toggle("Advanced options", key='toggle'):
-        st.session_state['dist'] = st.selectbox(
-            'Distance metric',
-            ('Euclidean', 'Cosine'),
-            help=distance_metric_help,
-            on_change=empty_fnames,
-            args=([st.session_state]))
 
-        st.session_state['embed'] = st.selectbox(
-            'Embedding Source',
-            ('Projection Head', 'Backbone'),
-            help=embedding_help,
-            on_change=empty_fnames,
-            args=([st.session_state]))
+    if len(st.session_state['fnames']) > 0:
+        st.session_state['indices'].append(st.multiselect('Select image index:',
+                                                      options=tuple(option),
+                                                      help=sii_help))
+        
+        st.button('Clear all', key='clear', on_click=empty_fnames, args=([st.session_state]))
+    else:
+        if st.toggle("Advanced options", key='toggle', on_change=empty_fnames, args=([st.session_state])):
+            st.session_state['dist'] = st.selectbox(
+                'Distance metric',
+                ('Euclidean', 'Cosine'),
+                help=distance_metric_help,
+                on_change=empty_fnames,
+                args=([st.session_state]))
 
-        if st.button("Perform Random Augmentation", key='perform_aug', on_click=empty_fnames, args=([st.session_state])):
-            st.session_state['augmented'] = 1
-            apply_augmentation(st.session_state['img'])
+            st.session_state['embed'] = st.selectbox(
+                'Embedding Source',
+                ('Projection Head', 'Backbone'),
+                help=embedding_help,
+                on_change=empty_fnames,
+                args=([st.session_state]))
 
-        if st.button("Clear Augmentation", on_click=empty_fnames, args=([st.session_state])):
-            st.session_state['augmented'] = 0
+            if st.button("Perform Random Augmentation", key='perform_aug', on_click=empty_fnames, args=([st.session_state])):
+                st.session_state['augmented'] = 1
+                apply_augmentation(st.session_state['img'])
+
+            if st.button("Clear Augmentation", on_click=empty_fnames, args=([st.session_state])):
+                st.session_state['augmented'] = 0
 
 if st.session_state['img'] is not None:
     img_text = col1.empty()
@@ -242,7 +250,10 @@ if st.session_state['img'] is not None:
         aspect_ratio = np_img.shape[1]/np_img.shape[0]
         SIZE = 230
         pil_img = pil_img.resize((int(SIZE*aspect_ratio), SIZE))
-        if st.session_state['sim_search'] or aug:
+
+        ind_comp = len(st.session_state['indices']) > 2 and st.session_state['indices'][-1] != st.session_state['indices'][-2]
+
+        if st.session_state['sim_search'] or aug or ind_comp:
 
             cropped_coords = (st.session_state["cropped_roi_tuple"][0], st.session_state["cropped_roi_tuple"][1],
                               st.session_state["cropped_roi_tuple"][0]+st.session_state["cropped_roi_tuple"][2],
@@ -296,7 +307,7 @@ if st.session_state['img'] is not None:
 
             # Show Preview
             st.write("Cropped Query Image")
-            st.image(st.session_state['img'], use_column_width=True, clamp=True)
+            st.image(img, use_column_width=True, clamp=True)
     else:
         cropped_coords = (230 * 0.2, 230 * 0.2, 230 * 0.8, 230 * 0.8)
 
