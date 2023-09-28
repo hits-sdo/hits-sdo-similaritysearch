@@ -9,6 +9,7 @@ search_simclr/checkpoints
 search_simclr/README.md
 search_simclr/error_logs
 search_simclr/tut_imgs
+search_simclr/simclr/scripts/dataset_aug_honest_plots.py
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

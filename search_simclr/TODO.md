@@ -676,10 +676,10 @@ it's 0.5 < x < 5
 - [ ] Quick Fixes
     - [ ] Reduce distance label in plot nxn in vis_utils.py and/or spread out tiles in plot
     - [ ] Randomize augmentation of values within a neighborhood
-        - [ ] Brighten
-        - [ ] Translate
+        - [X] Brighten
+        - [X] Translate
         - [ ] Zoom
-        - [ ] Blur
+        - [X] Blur
     - [ ] README
 - [ ] Get set up on Google CoLab Pro
     - [ ] Clone repo and add data, run sweeps
@@ -693,4 +693,28 @@ it's 0.5 < x < 5
     - [ ] Epochs 5
     - [ ] Learning rate .02256 (not of high importance)
     - [ ] Optimizer SGD
+- If Time Permits:
+    - [ ] Vary over augmentations to see what values are mort important (not wandb sweeps)
+- [ ] PROFIT !!! 💰💰💰💰💰💰💰💰
+
+## 9/29/23
+- [ ] Quick Fixes
+    - [ ] Reduce distance label in plot nxn in vis_utils.py and/or spread out tiles in plot
+    - [ ] Fix/verify `/search_simclr/tests/test_augmentations.py` unittests for Zoom
+    - [ ] Nadia: configure github actions with augmentations test cases for CI/CD feature
+    - [ ] README
+- [ ] Get set up on Google CoLab Pro
+    - [ ] Clone repo and add data, run sweeps
+- [ ] Create Notebook directory in repo
+- [ ] Improve model loss
+    - [ ] Try Resnet152 with batch size > 32 in CoLab
+    - [ ] Run more sweeps with higher learning rate over larger dataset
+- [ ] Parameters from sweeps thus far (best performer)
+    - [ ] Resnet152
+    - [ ] Batch size 16
+    - [ ] Epochs 5
+    - [ ] Learning rate .02256 (not of high importance)
+    - [ ] Optimizer SGD
+- If Time Permits:
+    - [ ] Vary over augmentations to see what values are mort important (not wandb sweeps)
 - [ ] PROFIT !!! 💰💰💰💰💰💰💰💰
