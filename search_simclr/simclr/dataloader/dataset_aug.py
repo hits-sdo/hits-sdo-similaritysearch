@@ -209,8 +209,8 @@ class Brighten(object):
 
     def __call__(self, sample):
         image, fname = sample["image"], sample["filename"]
-        min_value = random.uniform(0.3, self.brighten)
-        return {"image": np.abs(image)**self.brighten, "filename": fname}
+        min_value = random.uniform(0.001, self.brighten)
+        return {"image": np.abs(image)**min_value, "filename": fname}
     
 class Translate(object):
     def __init__(self, value):

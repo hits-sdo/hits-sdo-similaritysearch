@@ -697,7 +697,7 @@ it's 0.5 < x < 5
     - [ ] Vary over augmentations to see what values are mort important (not wandb sweeps)
 - [ ] PROFIT !!! 💰💰💰💰💰💰💰💰
 
-## 9/29/23
+## 10/02/23
 - [ ] Quick Fixes
     - [ ] Reduce distance label in plot nxn in vis_utils.py and/or spread out tiles in plot
     - [ ] Fix/verify `/search_simclr/tests/test_augmentations.py` unittests for Zoom
@@ -717,4 +717,31 @@ it's 0.5 < x < 5
     - [ ] Optimizer SGD
 - If Time Permits:
     - [ ] Vary over augmentations to see what values are mort important (not wandb sweeps)
-- [ ] PROFIT !!! 💰💰💰💰💰💰💰💰
+- [X] PROFIT !!! 💰💰💰💰💰💰💰💰
+
+## 10/04/23
+
+- [ ] Quick Fixes
+    - [ ] Reduce distance label in plot nxn in vis_utils.py and/or spread out tiles in plot
+    - [ ] Fix/verify `/search_simclr/tests/test_augmentations.py` unittests for Zoom
+        - [ ] Fix Test_Augmentations:
+        - [ ] Brighten (Assert Statement is failing on min() and max(). Use Average)
+        - [ ] Zoom (Assert Statement and the shape is changing when it shouldn't)
+            - [ ] Add in a check for if the image is divisible by two in 'dataset_aug.py' in the Zoom Class
+        - [ ] Rotate (Assert Statement)
+    - [ ] Nadia: configure github actions with augmentations test cases for CI/CD feature
+    - [ ] README
+- [ ] Get set up on Google CoLab Pro
+    - [ ] Clone repo and add data, run sweeps
+- [ ] Create Notebook directory in repo
+- [ ] Improve model loss
+    - [ ] Try Resnet152 with batch size > 32 in CoLab
+    - [ ] Run more sweeps with higher learning rate over larger dataset
+- [ ] Parameters from sweeps thus far (best performer)
+    - [ ] Resnet152
+    - [ ] Batch size 16
+    - [ ] Epochs 5
+    - [ ] Learning rate .02256 (not of high importance)
+    - [ ] Optimizer SGD
+- If Time Permits:
+    - [ ] Vary over augmentations to see what values are mort important (not wandb sweeps)
