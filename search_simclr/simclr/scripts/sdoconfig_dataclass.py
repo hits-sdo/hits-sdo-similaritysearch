@@ -17,9 +17,9 @@ class SDOConfig:
     val_fpath: str = os.path.join(val_dir, 'val_file_list.txt')
     test_fpath: str = None
     percent_split: float = 0.8
-    num_img: int = 10000
+    num_img: int = 400
     model: str = "simclr"
-    backbone: str = "resnet18"
+    backbone: str = "resnet152"
     
     save_vis_dir: str = os.path.join(root, "search_simclr", "visualizations", "simclr_knn")
     save_model_dir: str = os.path.join(root, "search_simclr", "model_weights")
