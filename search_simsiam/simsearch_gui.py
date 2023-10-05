@@ -147,7 +147,7 @@ with st.sidebar:
         args=([st.session_state]))
 
     w = st.session_state['wavelength']
-    data_path = root_path + f'AIA{w}_Miniset/'
+    data_path = root_path + f'/AIA{w}_Miniset/'
 
     st.selectbox(
         'Filter with date',

@@ -9,6 +9,7 @@ import zipfile
 from sklearn.metrics.pairwise import cosine_similarity
 from model import load_model
 from PIL import Image
+import yaml
 
 import pickle
 
@@ -16,14 +17,22 @@ from sdo_augmentation.augmentation_list import AugmentationList
 from sdo_augmentation.augmentation import Augmentations
 
 
-root_path = '/home/schatterjee/Documents/hits/'
+# NOTE: Please change model path to your local machine's path in filepath.yml
+root_path, download_path = '<path>', '<path>'
+with open('filepath.yml', 'r') as file:
+    filepath_dict = yaml.safe_load(file)
+    root_path = filepath_dict['repo_path']
+    download_path = filepath_dict['download_path']
+
+# NOTE: Do not change the following paths
 model_path = root_path + '/hits-sdo-similaritysearch/search_simsiam/saved_model/'
+dicts_path = root_path + '/hits-sdo-similaritysearch/search_simsiam/embeddings_dicts/'
 
 wavelengths_to_models = {
-    '171': model_path + 'epoch=8-step=14769.ckpt',  # TODO replace with correct model
+    '171': model_path + 'epoch=8-step=14769.ckpt',
     '211_193_171': model_path + 'epoch=9-step=17510.ckpt',
-    '304_211_171': model_path + 'epoch=9-step=17510.ckpt',  # TODO replace with correct model
-    '335_193_94': model_path + 'epoch=9-step=17510.ckpt'  # TODO replace with correct model
+    # '304_211_171': model_path + 'epoch=9-step=17510.ckpt',  # TODO replace with correct model
+    # '335_193_94': model_path + 'epoch=9-step=17510.ckpt'  # TODO replace with correct model
 }
 
 def empty_fnames(session_state):
@@ -75,10 +84,11 @@ def display_search_result(session_state, col2, embeddings_dict, data_path):
             overlay = cv2.rectangle(img, (0, 0), (127, 127), (0, 0, 255), 10)
             ax[i].imshow(overlay[:, :, ::-1])
 
+    fig.set_facecolor('#0e1117')  # set background color to match streamlit
     col2.pyplot(fig)
 
     if st.button('Download Selected Images'):
-        with zipfile.ZipFile("selected_images.zip", "w") as zipf:
+        with zipfile.ZipFile(download_path+"/selected_images.zip", "w") as zipf:
             for n in session_state['indices'][-1]:
                 # Add each file to the ZIP archive
                 zipf.write(data_path+session_state['fnames'][n])
@@ -181,9 +191,9 @@ def fetch_n_neighbor_filenames(query_embedding, embeddings_dict, dist_type,
 
 def embeddings_dict(session_state, wavelength):
     if session_state['embed'] == 'Backbone':
-        return pickle.load(open('/home/schatterjee/Documents/hits/hits-sdo-similaritysearch/search_simsiam/'+f'embeddings_dict_{wavelength}.p', 'rb'))
+        return pickle.load(open(f'{dicts_path}embeddings_dict_{wavelength}.p', 'rb'))
     else:
-        return pickle.load(open('/home/schatterjee/Documents/hits/hits-sdo-similaritysearch/search_simsiam/'+f'embeddings_dict_{wavelength}_proj.p', 'rb'))
+        return pickle.load(open(f'{dicts_path}embeddings_dict_{wavelength}_proj.p', 'rb'))
 
 
 
