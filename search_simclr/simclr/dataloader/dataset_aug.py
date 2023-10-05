@@ -209,7 +209,7 @@ class Brighten(object):
 
     def __call__(self, sample):
         image, fname = sample["image"], sample["filename"]
-        min_value = random.uniform(0.001, self.brighten)
+        min_value = random.uniform(0.3, self.brighten)
         return {"image": np.abs(image)**min_value, "filename": fname}
     
 class Translate(object):
@@ -238,7 +238,7 @@ class Zoom(object):
         image, fname = sample["image"], sample["filename"] #Unpack the dictionary
         original_image_shape = image.shape
         zoomed_immage_shape = (int(random_zoom*original_image_shape[0]), int(random_zoom*original_image_shape[1]))
-        img_zeros = np.zeros(original_image_shape) #temporary empty canvas the sizer of the original image
+        img_new = np.zeros(original_image_shape) #temporary empty canvas the sizer of the original image
 
         image_resize = cv.resize(image, (zoomed_immage_shape[1], zoomed_immage_shape[0]), interpolation=cv.INTER_CUBIC)
         # Resize the image using zoom as scaling factor with area interpolation
@@ -247,15 +247,16 @@ class Zoom(object):
             y2 = original_image_shape[0]//2 + zoomed_immage_shape[0]//2 #center of originall image + half of zoomed image
             x1 = original_image_shape[1]//2 - zoomed_immage_shape[1]//2
             x2 = original_image_shape[1]//2 + zoomed_immage_shape[1]//2
-            img_zeros[y1:y2, x1:x2] = image_resize #inlay the "ZOOMED OUT" - Actually just shrunk immage inside the zeros 
+            img_new[y1:y2, x1:x2] = image_resize #inlay the "ZOOMED OUT" - Actually just shrunk immage inside the zeros 
         else:
             y1 = zoomed_immage_shape[0]//2 - original_image_shape[0]//2 #Center of zoomed image - half of original image
             y2 = zoomed_immage_shape[0]//2 + original_image_shape[0]//2 #Center of zoomed image + half of original image
             x1 = zoomed_immage_shape[1]//2 - original_image_shape[1]//2
             x2 = zoomed_immage_shape[1]//2 + original_image_shape[1]//2
-            img_zeros = image_resize[x1:x2, y1:y2,:] #the zeroes immage now gets the cutout of the "ZOOMED IN" immage - Actually just expanded immage
-            
-        return {"image": img_zeros, "filename": fname} #Repac and return the dictionary
+            img_new = image_resize[y1:y2, x1:x2,:] #the zeroes immage now gets the cutout of the "ZOOMED IN" immage - Actually just expanded immage
+        if (img_new.shape != original_image_shape):
+                img_new = cv.resize(img_new, (original_image_shape[1], original_image_shape[0]), interpolation=cv.INTER_CUBIC)
+        return {"image": img_new, "filename": fname} #Repac and return the dictionary
 
 '''    def test_zoom(self):
         """visually check zooming in and out"""
