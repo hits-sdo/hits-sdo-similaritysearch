@@ -30,5 +30,5 @@ dependencies:
     - streamlit
     - lightning
     - lightly
+    - streamlit-cropper-ext
     - git+https://github.com/hits-sdo/hits-sdo-packager.git@pip_nodata
-    - git+https://github.com/hits-sdo/streamlit-cropper.git

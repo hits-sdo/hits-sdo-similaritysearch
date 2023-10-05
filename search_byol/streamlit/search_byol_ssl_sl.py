@@ -2,7 +2,7 @@ import streamlit as st
 # from streamlit_image_coordinates import streamlit_image_coordinates
 from PIL import Image
 # from streamlit_drawable_canvas import st_canvas
-from streamlit_cropper import st_cropper
+from streamlit_cropper_ext import st_cropper_ext
 import numpy as np
 import re
 import torch
@@ -58,7 +58,7 @@ def main():
         # with col1:
         img = Image.open(img_file)
         # Get a cropped image from the frontend
-        cropped_img = st_cropper(img, realtime_update=True, box_color=box_color,
+        cropped_img = st_cropper_ext(img, realtime_update=True, box_color=box_color,
                                     aspect_ratio=aspect_ratio, max_height=700, max_width=700, tile_height=tile_height, tile_width=tile_width)
 
         # cols = cycle(st.columns())
