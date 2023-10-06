@@ -3,6 +3,7 @@ import torch
 #import dataset_aug
 import numpy as np
 import pyprojroot
+import os
 root = pyprojroot.here()
 utils_dir = root / 'search_utils'
 import sys
@@ -15,7 +16,16 @@ class test_data_set(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         print(f'root: {root}')
-        train_dir = root / 'data/miniset/AIA171/monochrome/'
+        # train_dir = root / 'data/miniset/AIA171/monochrome/'
+        train_dir = os.path.join(root, 'data', 'miniset', 'AIA171', 'monochrome')
+        file_list_txt = os.path.join(root, 'data', 'miniset', 'AIA171', 'train_val_simclr', 'train_file_list.txt') #set file list = to train list
+        train_tile_list = list[str]
+        # todo: open text file
+        with open(file_list_txt, 'r') as file:
+            train_tile_list = [line.strip() for line in file.readlines()]
+        print(train_tile_list[0])
+
+        
         transform = Transforms_SimCLR(blur=(1,1), 
                                               brighten=1.0, 
                                               translate=(1, 1), 
@@ -29,15 +39,16 @@ class test_data_set(unittest.TestCase):
 
         # if test_data_set is not None:
         #     print("success!!")
-        cls.train_dataset = SdoDataset(tile_dir=train_dir, 
+        cls.train_dataset = SdoDataset(tile_dir=train_dir, file_list=train_tile_list, 
                                    transform=transform
                                         )
     
     def test_len(cls):
-        cls.assertEqual(len(cls.train_dataset), 180, "The length of the dataset is inconsistent " + 
-                            "with the file provided in setup")
+        cls.assertEqual(len(cls.train_dataset), 144, "The length of the dataset is inconsistent " + 
+                            "with the file provided in setup")  #change to 144 files
 
     def test_get_item(cls):
+        print(cls.train_dataset[0])
         image1, image2, image_fullpath1, image_fullpath2 = cls.train_dataset[0]
         cls.assertIsInstance(image1,torch.Tensor, "The image is not a torch tensor")
         cls.assertEqual(image1.shape, (1, 64, 64), "The shape of the image is inconsistent " + 

@@ -7,12 +7,13 @@ sys.path.append(str(root))
 import search_utils.augmentation_list
 from search_utils.augmentation_list import AugmentationList
 from search_utils.augmentation import Augmentations
-from search_utils.image_utils import read_image
+from search_utils.image_utils import read_image, interpolate_superimage, stitch_adj_imgs
 import cv2 as cv
 import numpy as np
 import torch
 import random
 import os.path
+from typing import Tuple
 
 # rewrite all functions as classes and put those inside call
 # because then we can use that 
@@ -26,32 +27,23 @@ import os.path
 
 #TODO: let's figure out how to get our augmentations class imported (local probably?)
 
-
-def random_augment_image(img):
-    # Make random augmentation dictionary
-    augment_list = AugmentationList(instrument = "euv")  # or mag
-    rand_dict = augment_list.randomize()
-        
-    # Preform Augmentations
-    augments = Augmentations(img, rand_dict)
-    augmented_img, title = augments.perform_augmentations()
-    return augmented_img
     
 class Blur(object):
     def __init__(self, value):
         self.blur = value
-        assert isinstance(value, tuple)
         assert isinstance(value[0], int)
-        assert isinstance(value[1], int)      
+        assert isinstance(value[1], int)
+              
         
-    def __call__(self, img):
+    def __call__(self, sample):
         """
         Blurs the image by the amount by blur (default = (1, 1))
         Blurring is performed as an average blurring
         with kernel size defined by blur
     """
-        image = cv.blur(img, (self.blur[0], self.blur[1]), 0)
-        return image
+        image, fname = sample["image"], sample["filename"]
+        blur_image = cv.blur(image, (self.blur[0], self.blur[1]), 0)
+        return {"image": blur_image, "filename": fname}
 
 class AddNoise(object):
     """
@@ -86,12 +78,13 @@ class AddNoise(object):
         self.std_lim = std_lim
         
 
-    def __call__(self, img):
+    def __call__(self, sample):
+        img, fname = sample["image"], sample["filename"]
         self.std = random.uniform(0, self.std_lim)
         noise = np.random.normal(self.mean, self.std, img.shape)
         img = img + noise
         img = np.clip(img, 0, 1)
-        return img
+        return {"image": img, "filename": fname}
     
 # class FillVoids(object):
 #     """
@@ -120,179 +113,219 @@ class AddNoise(object):
 
 #         return filled_image
         
-# class StitchAdjacentImagesVer2(object): 
+class StitchAdjacentImagesVer2(object): 
     
-#     """ 
-#         do stitch adj images before fill voids (Fill voids uses center tile 
-#         interpolation and you would want to take average of all tiles if 
-#         that info is available)
-#     """
+    """ 
+        do stitch adj images before fill voids (Fill voids uses center tile 
+        interpolation and you would want to take average of all tiles if 
+        that info is available)
+    """
 
-#     def __init__(self, data_dir, file_name, file_list) -> None:
-#         self.data_dir = data_dir
-#         self.file_name = file_name
-#         self.file_list = file_list
+    def __init__(self, data_dir, file_list) -> None:
+        self.data_dir = data_dir
+        #self.file_name = file_name
+        self.file_list = file_list
 
-#     def __call__(self, superImage):
-#         """
-#         stitches adjacent images to return a superimage
-#         """
-#         len_ = len(self.file_name)-len('0000_0000.p')
-#         iStart = int(self.file_name[-11:-7])
-#         jStart = int(self.file_name[-6:-2])
-#         # coordinates of surrounding tiles
-#         coordinates = [
-#             (0, 0), (0, 1), (0, 2), (1, 0), (1, 1), (1, 2), (2, 0), (2, 1), (2, 2)]
+    def __call__(self, sample):
+        
+        """
+        stitches adjacent images to return a superimage
+        """
+        image, fname = sample["image"], sample["filename"]
+        superImage = stitch_adj_imgs(self.data_dir, 
+                        #self.file_name,
+                        fname,
+                        EXISTING_FILES=self.file_list,
+                        multi_wl=True,
+                        iterative=True,
+                        remove_coords=False)
+        # print(f'superImage shape: {superImage.shape}')
+       
 
-#         image_len = read_image(os.path.join(self.data_dir, self.file_name), 'p').shape[0]
-#         # replace np.zeros w/ the interpolated image from fill_voids
-#         superImage = np.zeros((3*image_len, 3*image_len))
+        return {"image": superImage, "filename": fname}
+
+class Cutout(object):
+    def __init__(self, cutout_holes, cutout_size):
+        self.cutout_holes = cutout_holes
+        self.cutout_size = cutout_size
+        assert isinstance(cutout_holes, int)
+        assert isinstance(cutout_size, float)
         
 
-#         for i, j in coordinates:
-#             i_s = iStart - image_len + i * image_len
-#             j_s = jStart - image_len + j * image_len
-
-#             tile_name = \
-#                 f"{self.file_name[0:len_]}{str(i_s).zfill(4)}_{str(j_s).zfill(4)}.p"
-#             if tile_name in self.file_list:
-#                 im = read_image(os.path.join(self.data_dir, tile_name), 'p')
-#                 superImage[i*image_len: (i+1)*image_len, j*image_len:
-#                         (j+1)*image_len] = im
-
-#         return superImage
-
-# class Cutout(object):
-#     def __init__(self, n_holes, length):
-#         assert isinstance(n_holes, int)
-#         assert isinstance(length, int)
-#         self.n_holes = n_holes
-#         self.length = length
+    def __call__(self, sample):
+        cutout_image, fname = sample["image"], sample["filename"]
+        super_image_height, super_image_width = (cutout_image.shape[:2])
         
+        image_height, image_width = (super_image_height // 3, super_image_width // 3)
+        
+        nholes = random.randint(1, self.cutout_holes)
+        
+        for _ in range(nholes):
+            hole_height = random.randint(int(image_height * self.cutout_size/10.0), int(image_height * self.cutout_size))
+            hole_width = random.randint(int(image_height * self.cutout_size/10.0), int(image_width * self.cutout_size))
+        
+            random_coordinate = (random.randint(image_height, 2*image_height-hole_height), random.randint(image_width, 2*image_width-hole_width))
+        
+            mask = np.ones_like(cutout_image)
 
-#     def __call__(self, img):
-#         h, w = img.shape[:2]
-#         mask = np.ones((h, w), np.float32)
+            # Set the region of the hole in the mask to 0
+            mask[random_coordinate[0]:random_coordinate[0]+hole_height, random_coordinate[1]:random_coordinate[1]+hole_width] = 0
 
-#         for n in range(self.n_holes):
-#             y = np.random.randint(h)
-#             x = np.random.randint(w)
+            # Apply the mask to the image
+            cutout_image = cutout_image * mask
 
-#             y1 = np.clip(y - self.length // 2, 0, h)
-#             y2 = np.clip(y + self.length // 2, 0, h)
-#             x1 = np.clip(x - self.length // 2, 0, w)
-#             x2 = np.clip(x + self.length // 2, 0, w)
-
-#             mask[y1:y2, x1:x2] = 0
-
-#         img = img * mask[..., np.newaxis]
-#         return img
+        return {"image": cutout_image, "filename": fname}
 
 class H_Flip(object):
     def __init__(self):
         pass
         
-    def __call__(self, img):
-        return cv.flip(img, 1)
+    def __call__(self, sample):
+        image, fname = sample["image"], sample["filename"]
+        return {"image": cv.flip(image, 1), "filename": fname}
         
 class V_Flip(object):
     def __init__(self):
         pass
         
-    def __call__(self, img):
-        return cv.flip(img, 0)
+    def __call__(self, sample):
+        image, fname = sample["image"], sample["filename"]
+        return {"image": cv.flip(image, 0), "filename": fname}
     
 class P_Flip(object):
     def __init__(self):
         ...
         
-    def __call__(self, img):
-        return (1-img)
+    def __call__(self, sample):
+        image, fname = sample["image"], sample["filename"]
+        return {"image": (1-image), "filename": fname}
     
 class Brighten(object):
     def __init__(self, value) -> None:
         self.brighten = value
         assert isinstance(value, float)
 
-    def __call__(self, img):
-        return np.abs(img)**self.brighten
+    def __call__(self, sample):
+        image, fname = sample["image"], sample["filename"]
+        return {"image": np.abs(image)**self.brighten, "filename": fname}
     
 class Translate(object):
     def __init__(self, value):
         self.translate = value
-        assert isinstance(value, tuple)
         assert isinstance(value[0], int)
         assert isinstance(value[1], int)
-
     
-    def __call__(self, img):
-        s = img.shape
+    def __call__(self, sample):
+        image, fname = sample["image"], sample["filename"]
+        s = image.shape
         m = np.float32([[1, 0, self.translate[0]], [0, 1, self.translate[1]]])
         # Affine transformation to translate the image and output size
-        img = cv.warpAffine(img, m, (s[1], s[0]))
-        return img
-    
+        image = cv.warpAffine(image, m, (s[1], s[0]))
+        return {"image": image, "filename": fname}
+
 class Zoom(object):
     def __init__(self, value):
         self.zoom = value
         assert isinstance(value, float)
     
-    def __call__(self, img):
-        s = img.shape
-        s1 = (int(self.zoom*s[0]), int(self.zoom*s[1]))
-        img_zeros = np.zeros(s)
+    def __call__(self, sample):
+        image, fname = sample["image"], sample["filename"] #Unpack the dictionary
+        original_image_shape = image.shape
+        zoomed_immage_shape = (int(self.zoom*original_image_shape[0]), int(self.zoom*original_image_shape[1]))
+        img_zeros = np.zeros(original_image_shape) #temporary empty canvas the sizer of the original image
 
-        image_resize = cv.resize(img, (s1[1], s1[0]), interpolation=cv.INTER_AREA)
+        image_resize = cv.resize(image, (zoomed_immage_shape[1], zoomed_immage_shape[0]), interpolation=cv.INTER_CUBIC)
         # Resize the image using zoom as scaling factor with area interpolation
         if self.zoom < 1:
-            y1 = s[0]//2 - s1[0]//2
-            y2 = s[0]//2 + s1[0] - s1[0]//2
-            x1 = s[1]//2 - s1[1]//2
-            x2 = s[1]//2 + s1[1] - s1[1]//2
-            img_zeros[y1:y2, x1:x2] = image_resize
-            return img_zeros
+            y1 = original_image_shape[0]//2 - zoomed_immage_shape[0]//2 #center of originall image - half of zoomed image
+            y2 = original_image_shape[0]//2 + zoomed_immage_shape[0]//2 #center of originall image + half of zoomed image
+            x1 = original_image_shape[1]//2 - zoomed_immage_shape[1]//2
+            x2 = original_image_shape[1]//2 + zoomed_immage_shape[1]//2
+            img_zeros[y1:y2, x1:x2] = image_resize #inlay the "ZOOMED OUT" - Actually just shrunk immage inside the zeros 
         else:
-            return image_resize
+            y1 = zoomed_immage_shape[0]//2 - original_image_shape[0]//2 #Center of zoomed image - half of original image
+            y2 = zoomed_immage_shape[0]//2 + original_image_shape[0]//2 #Center of zoomed image + half of original image
+            x1 = zoomed_immage_shape[1]//2 - original_image_shape[1]//2
+            x2 = zoomed_immage_shape[1]//2 + original_image_shape[1]//2
+            img_zeros = image_resize[x1:x2, y1:y2,:] #the zeroes immage now gets the cutout of the "ZOOMED IN" immage - Actually just expanded immage
+            
+        return {"image": img_zeros, "filename": fname} #Repac and return the dictionary
 
+'''    def test_zoom(self):
+        """visually check zooming in and out"""
+        z = 2
+        image_tr = self.augmentations.zoom(self.image, zoom=z)
+        s_tr = image_tr.shape
+        s_old = self.image.shape
+        y1 = s_tr[0]//2 - s_old[0]//2
+        y2 = s_tr[0]//2 + s_old[0]//2
+        x1 = s_tr[1]//2 - s_old[1]//2
+        x2 = s_tr[1]//2 + s_old[1]//2
+        image_tr = image_tr[y1:y2, x1:x2]
+        plt.subplot(1, 2, 1)
+        plt.imshow(self.image, vmin=0, vmax=1)
+        plt.title('original image')
+        plt.subplot(1, 2, 2)
+        plt.imshow(image_tr, vmin=0, vmax=1)
+        if z < 1:
+            plt.title('zoomed out image')
+        else:
+            plt.title('zoomed in image')
+        plt.show()'''
+        
 class Rotate(object):
-    def __init__(self, value):
+    def __init__(self, value=360.0):
         self.rotate = value
+        # print(f"rotate: {self.rotate}") 
         assert isinstance(value, float)
 
-    def __call__(self, img):
-        s = img.shape
+    def __call__(self, sample):
+        image, fname = sample["image"], sample["filename"]
+        s = image.shape
         cy = (s[0]-1)/2  # y center : float
         cx = (s[1]-1)/2  # x center : float
-        M = cv.getRotationMatrix2D((cx, cy), self.rotate, 1)  # rotation matrix
+        M = cv.getRotationMatrix2D((cx, cy), random.uniform(0.0, self.rotate), 1)  # rotation matrix
     
         # Affine transformation to rotate the image and output size s[1],s[0]
-        return cv.warpAffine(img, M, (s[1], s[0]))
+        return {"image": cv.warpAffine(image, M, (s[1], s[0])), "filename": fname}
     
 class Crop(object):
     """Crop image prior to ToTensor step"""
-    def __call__(self, img):
+    def __call__(self, sample):
+        image, fname = sample["image"], sample["filename"]
          # Crop middle part of image1
-        shape1 = img.shape[-2:]
+        shape1 = image.shape[:2]
         h1 = shape1[0] // 3
         h2 = shape1[0] // 3 * 2
         w1 = shape1[1] // 3
         w2 = shape1[1] // 3 * 2
-        cropped_image = img[:,h1:h2,w1:w2] # channels,height,width
-        return cropped_image
-                
+        cropped_image = image[w1:w2,h1:h2,:] #width, height, channels
+        return {"image": cropped_image, "filename": fname}
+
+class ReSize(object):
+    def __init__(self, resize_height: int, resize_width: int ) -> None:
+        self.resize_height = resize_height
+        self.resize_width = resize_width
+
+    def __call__(self, sample):
+        image, fname = sample["image"], sample["filename"]
+        resized_image = cv.resize(image, (self.resize_width, self.resize_height))
+        return {"image": resized_image, "filename": fname}
+
 class ToTensor(object):
     """Convert ndarrays in sample to Tensors."""
 
-    def __call__(self, img):
+    def __call__(self, sample):
+        image, fname = sample["image"], sample["filename"]
         # If the image is grayscale, expand its dimensions to have a third axis
-        if len(img.shape) == 2:
-            img = np.expand_dims(img, axis=-1)
+        if len(image.shape) == 2:
+            image = np.expand_dims(image, axis=-1)
             
         # swap color axis because
         # numpy image: H x W x C
         # torch image: C x H x W
-        img = img.transpose((2, 0, 1))
-        return torch.from_numpy(img)
+        image = image.transpose((2, 0, 1))
+        return {"image": torch.from_numpy(image).to(torch.float32), "filename": fname}
     
 class Transforms_SimCLR(object):
     def __init__(self, 
@@ -303,18 +336,16 @@ class Transforms_SimCLR(object):
                  rotate, 
                  noise_mean, 
                  noise_std, 
-                #  cutout_holes, 
-                #  cutout_size, 
-                #  data_dir, 
-                #  file_name, 
-                #  file_list
+                cutout_holes, 
+                cutout_size, 
+                data_dir,
+                file_list
                 ):
         #print(translate)
         
         self.train_transform = transforms.Compose([
             # Stitch image should happen before the fill voids
-            # StitchAdjacentImagesVer2(data_dir, file_name, file_list),
-            # FillVoids(), 
+            StitchAdjacentImagesVer2(data_dir, file_list),
             transforms.RandomApply([H_Flip()], p=0.5),
             transforms.RandomApply([V_Flip()], p=0.5),
             transforms.RandomApply([P_Flip()], p=0.5), 
@@ -322,20 +353,20 @@ class Transforms_SimCLR(object):
             transforms.RandomApply([Brighten(brighten)], p=0.5),
             transforms.RandomApply([Translate(translate)], p=0.5),
             transforms.RandomApply([Zoom(zoom)], p=0.5),
+            transforms.RandomApply([Cutout(cutout_holes, cutout_size)], p=0.5),
             transforms.RandomApply([Blur(blur)], p=0.5),
             transforms.RandomApply([AddNoise(noise_mean, noise_std)], p=0.5),
-            # transforms.RandomApply([Cutout(cutout_holes, cutout_size)], p=1), 
+            Crop(),
         ToTensor()])
         
         
 
         self.test_transform = transforms.ToTensor()
     
-    def __call__(self, img):
-        # Why are we doing this?
-        transformed_image1 = self.train_transform(img)
-        transformed_image2 = self.train_transform(img)
-        return transformed_image1, transformed_image2
+    def __call__(self, sample):
+        transformed_sample1 = self.train_transform(sample)
+        transformed_sample2 = self.train_transform(sample)
+        return transformed_sample1, transformed_sample2
     
 
     

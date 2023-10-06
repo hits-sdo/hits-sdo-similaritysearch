@@ -1,14 +1,7 @@
 import pickle
 from PIL import Image
 import numpy as np
-from lightly.data import LightlyDataset
-import glob
-import matplotlib.pyplot as plt
-from matplotlib.patches import Rectangle
-from sdo_augmentation.augmentation import Augmentations
-import time
-import cv2
-
+import os
 
 def read_image(image_loc, image_format):
     '''
@@ -36,7 +29,6 @@ def read_image(image_loc, image_format):
         image = np.array(im).astype(float) / 255
 
     return image
-
 
 def interpolate_superimage(img, loc):
     image_top_left = (img.shape[0]*loc[0]//3, img.shape[1]*loc[1]//3)
@@ -161,7 +153,8 @@ def stitch_adj_imgs(data_dir, file_name,
     else:
         removed_coords = []
 
-    source_image = read_image(data_dir + file_name, file_format)
+    source_image = read_image(os.path.join(data_dir, file_name), file_format)
+
     image_len = source_image.shape[0]
     superImage = np.zeros((3*image_len, 3*image_len, 3))
 
@@ -178,7 +171,7 @@ def stitch_adj_imgs(data_dir, file_name,
                                   file_format])
                    
         if tile_name in EXISTING_FILES:
-            im = read_image(data_dir + tile_name, file_format)
+            im = read_image(os.path.join(data_dir, tile_name), file_format)
             superImage[i*image_len: (i+1)*image_len, j*image_len:
                        (j+1)*image_len] = im
         else:
@@ -192,45 +185,5 @@ def stitch_adj_imgs(data_dir, file_name,
             for loc in removed_coords:               
                 superImage = interpolate_superimage(superImage, loc)
 
-
     return superImage
 
-if __name__ == '__main__':
-    start = time.time()
-    idx = 10
-    path_to_data = '/home/schatterjee/Documents/hits/aia_171_color_1perMonth'
-    dataset = LightlyDataset(input_dir=path_to_data)
-    item = dataset[idx]
-    print(item)
-    source_image = np.array(item[0]).astype(float)/255
-    path_list = item[2].split('/')
-    file_dir = path_to_data+'/'+'/'.join(path_list[:2]) +'/'
-    files_list = glob.glob(file_dir+"/*.jpg", recursive = True)
-    file_names = [x[len(file_dir):] for x in files_list]
-    file_name = path_list[2]
-
-    super_image = stitch_adj_imgs(data_dir=file_dir,
-                                  file_name=file_name,
-                                  EXISTING_FILES=file_names,
-                                  multi_wl = False,
-                                  iterative=True,
-                                  remove_coords=True)
-    
-    a = Augmentations(super_image,dct={'translate':(30,30),'rotate':15})
-    img_t, _ = a.perform_augmentations()
-    end = time.time()
-    print(f"Runtime of the program is {end - start}")
-    plt.subplot(1,3,1)
-    plt.imshow(source_image)
-    plt.title('Original')
-    plt.subplot(1,3,2)
-    plt.imshow(super_image)
-    plt.gca().add_patch(Rectangle((128,128),128,128,
-                    edgecolor='green',
-                    facecolor='none',
-                    lw=2))
-    plt.title('Padding')
-    plt.subplot(1,3,3)
-    plt.imshow(img_t[128:256,128:256])
-    plt.title('Augmented')
-    plt.show()
