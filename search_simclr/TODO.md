@@ -761,12 +761,12 @@ it's 0.5 < x < 5
 
 - [ ] Quick Fixes
     - [X] Reduce distance label in plot nxn in vis_utils.py and/or spread out tiles in plot
-    - [ ] Fix/verify `/search_simclr/tests/test_augmentations.py` unittests for Zoom
-        - [ ] Fix Test_Augmentations:
+    - [X] Fix/verify `/search_simclr/tests/test_augmentations.py` unittests for Zoom
+        - [X] Fix Test_Augmentations:
         - [X] Brighten (Assert Statement is failing on min() and max(). Use Average)
         - [X] Zoom (Assert Statement and the shape is changing when it shouldn't)
             ~~- [ ] Add in a check for if the image is divisible by two in 'dataset_aug.py' in the Zoom Class~~
-        - [?] Rotate (Assert Statement) fix `/search_simclr/tests/test_augmentations.py` re-evaluate what assert 
+        - [X] Rotate (Assert Statement) fix `/search_simclr/tests/test_augmentations.py` re-evaluate what assert 
                 statement is doing and restructure
             ```
             assert((cv2.compareHist(blue_hist, blue_rot_hist, cv2.HISTCMP_BHATTACHARYYA) > 0.9) and \
@@ -775,6 +775,29 @@ it's 0.5 < x < 5
 
             ```
     - [?] Nadia: configure github actions with augmentations test cases for CI/CD feature
+    - [ ] README
+- [ ] Get set up on Google CoLab Pro
+    - [ ] Clone repo and add data, run sweeps
+- [ ] Create Notebook directory in repo
+- [ ] Improve model loss
+    - [ ] Try Resnet152 with batch size > 32 in CoLab
+    - [ ] Run more sweeps with higher learning rate over larger dataset
+- [ ] Parameters from sweeps thus far (best performer)
+    - [ ] Resnet152
+    - [ ] Batch size 16
+    - [ ] Epochs 5
+    - [ ] Learning rate .02256 (not of high importance)
+    - [ ] Optimizer SGD
+- If Time Permits:
+    - [ ] Vary over augmentations to see what values are mort important (not wandb sweeps)
+- [ ] GPU multiparallelization agents in wandb
+- [ ] Finalize slides and Script
+
+- [X]PROFIT :moneybag::moneybag::moneybag::moneybag::moneybag::moneybag::moneybag::moneybag::moneybag:
+
+## 10/9/23
+
+ - [?] Nadia: configure github actions with augmentations test cases for CI/CD feature
     - [ ] README
 - [ ] Get set up on Google CoLab Pro
     - [ ] Clone repo and add data, run sweeps

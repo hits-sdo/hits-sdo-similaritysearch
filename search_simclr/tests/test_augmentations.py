@@ -24,6 +24,13 @@ from search_simclr.simclr.dataloader.dataset_aug import (
 )
 import matplotlib.pyplot as plt
 
+def normalize8(I):
+  mn = I.min()
+  mx = I.max()
+  mx -= mn
+  I = ((I - mn)/mx) * 255
+  return I.astype(np.uint8)
+
 class TestAugmentations(unittest.TestCase):
 
     @classmethod
@@ -43,12 +50,11 @@ class TestAugmentations(unittest.TestCase):
         cls.zoom = Zoom(1.5) 
         cls.rotate = Rotate(30.0)
         cls.to_tensor = ToTensor()
-        cls.plotImages = False
+        cls.plotImages = True
 
     def test_blur(self):
         sample_img_blurred = self.blur(self.sample)
         img_blurred = sample_img_blurred["image"]
-        print(type(img_blurred))
         self.assertLess(img_blurred.std(), self.img.std(), "Image is not blurred")
         
         if self.plotImages:
@@ -105,8 +111,6 @@ class TestAugmentations(unittest.TestCase):
             axarr[1].set_title('Brightened Image')
             plt.show()       
 
-        print(f"img_brightened.min() = {np.average(img_brightened)}, self.img.min() = {np.average(self.img)}") 
-
         assert np.average(img_brightened) != np.average(self.img), "Image is not brightened"
 
 
@@ -154,17 +158,18 @@ class TestAugmentations(unittest.TestCase):
 
         # Split the image into its color channels
         # the format for images in opencv is 
-        np_image = cen_patch.astype(np.uint8)
+        np_image = normalize8(cen_patch)
         bgr_img = cv2.cvtColor(np_image, cv2.COLOR_RGB2BGR)
         blue_hist = cv2.calcHist([bgr_img], [0], None, [256], [0, 256])
         green_hist = cv2.calcHist([bgr_img], [1], None, [256], [0, 256])
         red_hist = cv2.calcHist([bgr_img], [2], None, [256], [0, 256])
 
-        np_rot_image = cen_rotated.astype(np.uint8)
+        np_rot_image = normalize8(cen_rotated)
         bgr_rot_img = cv2.cvtColor(np_rot_image, cv2.COLOR_RGB2BGR)
         blue_rot_hist = cv2.calcHist([bgr_rot_img], [0], None, [256], [0, 256])
         green_rot_hist = cv2.calcHist([bgr_rot_img], [1], None, [256], [0, 256])
         red_rot_hist = cv2.calcHist([bgr_rot_img], [2], None, [256], [0, 256])
+
         
         if self.plotImages:
             f, axarr = plt.subplots(1,2)
@@ -173,20 +178,11 @@ class TestAugmentations(unittest.TestCase):
             axarr[1].set_title('Rotated Image')
             plt.show()
 
-        assert((cv2.compareHist(blue_hist, blue_rot_hist, cv2.HISTCMP_BHATTACHARYYA) > 0.9) and \
-            (cv2.compareHist(green_hist, green_rot_hist, cv2.HISTCMP_BHATTACHARYYA) > 0.9) and \
-            (cv2.compareHist(red_hist, red_rot_hist, cv2.HISTCMP_BHATTACHARYYA) > 0.9)), 'Center patch is not the same after rotation'
-
+        tolerance = .15
         
-        
-        '''
-        The np.allclose function returns True if two arrays are element-wise equal within a tolerance. 
-        The tolerance level is defined by the atol parameter, which in this case is 1e-3. If the arrays 
-        are not close, np.allclose returns False.
-        '''
-        # assert np.allclose(cen_patch, cen_rotated, atol=1e-3), "Center patch is not the same after rotation"
-        
-
+        assert((cv2.compareHist(blue_hist, blue_rot_hist, cv2.HISTCMP_BHATTACHARYYA) < tolerance) and \
+            (cv2.compareHist(green_hist, green_rot_hist, cv2.HISTCMP_BHATTACHARYYA) < tolerance) and \
+            (cv2.compareHist(red_hist, red_rot_hist, cv2.HISTCMP_BHATTACHARYYA) < tolerance)), 'Center patch is not the same after rotation'
 
 
 if __name__ == '__main__':
