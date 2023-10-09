@@ -20,7 +20,7 @@ from search_simclr.simclr.dataloader.dataset import SdoDataset, partition_tile_d
 from search_utils.file_utils import get_file_list, split_val_files
 from search_simclr.simclr.dataloader.datamodule import SimCLRDataModule
 from search_simclr.simclr.model.simCLR import SimCLR, SimCLRCallback
-from search_simclr.simclr_utils.vis_utils import generate_embeddings, plot_knn_examples, plot_nearest_neighbors_3x3
+from search_simclr.simclr_utils.vis_utils import generate_embeddings, plot_nearest_neighbors_3x3
 from typing import Tuple
 from argparse import ArgumentParser
 import yaml
