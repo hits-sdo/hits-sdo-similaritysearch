@@ -799,17 +799,17 @@ it's 0.5 < x < 5
 
  - [?] Nadia: configure github actions with augmentations test cases for CI/CD feature
     - [ ] README
-- [ ] Get set up on Google CoLab Pro
-    - [ ] Clone repo and add data, run sweeps
-- [ ] Create Notebook directory in repo
+- [X] Get set up on Google CoLab Pro
+    - [X] Clone repo and add data, run sweeps
+- [X] Create Notebook directory in repo
 - [ ] Improve model loss
     - [ ] Try Resnet152 with batch size > 32 in CoLab
     - [ ] Run more sweeps with higher learning rate over larger dataset
-- [ ] Parameters from sweeps thus far (best performer)
-    - [ ] Resnet152
-    - [ ] Batch size 16
-    - [ ] Epochs 5
-    - [ ] Learning rate .02256 (not of high importance)
+- [X] Parameters from sweeps thus far (best performer)
+    - [X] Resnet152
+    - [X] Batch size 16
+    - [X] Epochs 5
+    - [X] Learning rate .02256 (not of high importance)
     - [ ] Optimizer SGD
 - If Time Permits:
     - [ ] Vary over augmentations to see what values are mort important (not wandb sweeps)
@@ -817,3 +817,5 @@ it's 0.5 < x < 5
 - [ ] Finalize slides and Script
 
 - [X]PROFIT :moneybag::moneybag::moneybag::moneybag::moneybag::moneybag::moneybag::moneybag::moneybag:
+
+## 10/11/23
