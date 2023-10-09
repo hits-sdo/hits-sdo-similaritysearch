@@ -36,7 +36,6 @@ def train(sweep = True):
     parser.add_argument("--epochs",type=int,help="Number of epochs to train for.",default=config.epochs)
     parser.add_argument("--split",type=bool,help="True if you want to overide the split files",default=True)
     parser.add_argument("--percent",type=float,help="Percentage of the total number of files that's reserved for training",default=config.percent_split)
-    parser.add_argument("--numworkers",type=int,help="Number of processors running at the same time",default=config.num_workers)
     parser.add_argument('--tile_dir', type=str, default=config.tile_dir, help='Path to tile directory')
     parser.add_argument('--train_dir', type=str, default=config.train_dir, help='Path to train directory')
     parser.add_argument('--val_dir', type=str, default=config.val_dir, help='Path to validation directory') 
