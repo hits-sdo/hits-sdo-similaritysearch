@@ -25,7 +25,7 @@ from search_simclr.simclr_utils.vis_utils import (
     plot_scatter,
     plot_NxN_examples
 )
-from typing import Tuple
+# from typing import Tuple
 from argparse import ArgumentParser
 import yaml
 from datetime import datetime

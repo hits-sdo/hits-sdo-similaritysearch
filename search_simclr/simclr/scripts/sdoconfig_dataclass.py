@@ -1,6 +1,6 @@
 import os
 import torch
-from typing import Tuple
+# from typing import Tuple
 import pyprojroot
 root = pyprojroot.here()
 from dataclasses import dataclass
@@ -26,9 +26,9 @@ class SDOConfig:
     save_checkpoint_dir: str = os.path.join(root, "search_simclr", "checkpoints")
     #TODO: train_flist: str = 
     tot_fpath_wfname = os.path.join(train_dir, 'tot_full_path_files.txt')
-    blur: Tuple[int, int] = (5,5)
+    blur: tuple[int, int] = (5,5)
     brighten: float = 1.0
-    translate: Tuple[int, int] = (1,3)
+    translate: tuple[int, int] = (1,3)
     zoom: float = 1.5
     rotate: float = 360.0
     noise_mean: float = 0.0 
