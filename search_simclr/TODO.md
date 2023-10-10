@@ -819,3 +819,29 @@ it's 0.5 < x < 5
 - [X]PROFIT :moneybag::moneybag::moneybag::moneybag::moneybag::moneybag::moneybag::moneybag::moneybag:
 
 ## 10/11/23
+
+README.md development #36
+
+### Description
+Develop the README.md to go over the instructions to run simCLR from start to finish with the arg parser and with sweeps.yml
+
+
+### Files
+
+search_simclr/simclr/scripts/download_extract_fpaths.sh
+search_simclr/simclr/scripts/make_folders.sh
+search_simclr/simclr/scripts/model_run.py
+search_simclr/simclr/scripts/load_checkpoint.py
+search_simclr/simclr/scripts/validate_model.py
+
+### Tasks
+ Configure github actions to run upon repo push for augmentations
+ Add github badges
+ Show user how to download data
+ Describe directory structure to user
+ Describe make_folders.sh script
+ Show how to train model
+ Go over wandb sweeps and significance of output (provide screenshots)
+ Describe processes behind validate_model.py
+ Provide screenshots of latent space/embeddings (PCA, TSNE, UMAP)
+ Provide screenshots of the similarity search lookup

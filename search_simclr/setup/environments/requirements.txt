@@ -24,7 +24,7 @@ comm==0.1.3
 contourpy==1.0.7
 cycler==0.11.0
 debugpy==1.6.7
-decorator==5.1.1
+decorator==4.0.2
 defusedxml==0.7.1
 docker-pycreds==0.4.0
 executing==1.2.0
@@ -33,14 +33,14 @@ filelock
 fonttools==4.39.4
 fqdn==1.5.1
 frozenlist==1.3.3
-fsspec==2023.5.0
+fsspec==2023.6.0
 gdown==4.7.1
 gitdb==4.0.10
 GitPython==3.1.31
 hydra-core==1.3.2
 idna
-ipykernel==6.23.1
-ipython==8.14.0
+ipykernel==5.5.6
+ipython==7.34.0
 ipython-genutils==0.2.0
 ipywidgets==8.0.6
 isoduration==20.11.0
@@ -77,7 +77,7 @@ nbconvert==7.4.0
 nbformat==5.9.0
 nest-asyncio==1.5.6
 networkx
-notebook==6.5.4
+notebook==6.5.5
 notebook_shim==0.2.3
 numba==0.58.0
 numpy
@@ -94,7 +94,7 @@ Pillow==9.5.0
 platformdirs==3.5.1
 prometheus-client==0.17.0
 prompt-toolkit==3.0.38
-protobuf==4.23.2
+protobuf==3.20.3
 psutil==5.9.5
 pure-eval==0.2.2
 pycparser==2.21
