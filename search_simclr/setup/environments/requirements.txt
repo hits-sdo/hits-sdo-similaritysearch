@@ -110,7 +110,7 @@ python-json-logger==2.0.7
 pytorch-lightning==2.0.2
 pytz
 PyYAML==6.0
-pyzmq==25.1.0
+pyzmq
 requests
 rfc3339-validator==0.1.4
 rfc3986-validator==0.1.1
