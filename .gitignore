@@ -173,6 +173,7 @@ cython_debug/
 
 *.npy
 *.ckpt
+*.p
 *.pt
 *.json
 
