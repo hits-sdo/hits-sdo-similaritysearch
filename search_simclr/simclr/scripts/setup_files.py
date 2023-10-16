@@ -2,9 +2,9 @@ import os
 
 # User Input Here
 # 1. Data Directory (Absolute Path) to save the data references
-data_dir = '../../data'
+data_dir = 'C:\Projects\HITS-GIBS\Team_Sunflower_Phase_2\d0'
 # 2. Image Directory (Relative Path) to save the images
-image_dir = 'AIA211_193_171_Miniset'
+image_dir = 'Miniset'
 
 # Data Directory (Absolute Path) to save the data references
 if not os.path.exists(data_dir):
@@ -27,3 +27,5 @@ with open(os.path.join(data_dir, 'train_val_simclr', 'tot_full_path_files.txt'),
             if file.endswith('.jpg'):
                 # Remove the data_dir path when wrting to the file
                 f.write(os.path.join(root, file).replace(data_dir+'\\', '') + '\n')
+
+# "/d0/euv/aia/preprocessed/AIA_211_193_171/AIA_211_193_171_256x256"
