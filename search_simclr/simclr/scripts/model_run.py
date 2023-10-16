@@ -155,9 +155,9 @@ def train(sweep = True):
     sdo_datamodule.setup(stage=args.train_stage)
 
 
-    for batch_idx, (img1, img2, fname, _) in enumerate(sdo_datamodule.train_dataloader()):
-        print (batch_idx, img1.shape, img2.shape, fname)
-        break
+    # for batch_idx, (img1, img2, fname, _) in enumerate(sdo_datamodule.train_dataloader()):
+    #     print (batch_idx, img1.shape, img2.shape, fname)
+    #     break
     
     #success = wandb.login()
     #print("Wandb: "+success)

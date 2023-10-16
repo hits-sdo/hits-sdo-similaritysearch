@@ -9,7 +9,7 @@ from dataclasses import dataclass
 @dataclass
 class SDOConfig:
     """ Configuration options for HITS-SDO Dataset"""
-    tile_dir = os.path.join(root , 'data')
+    tile_dir = os.path.join('C:/Projects','HITS-GIBS','Team_Sunflower_Phase_2','d0','Miniset')
     train_dir: str = os.path.join(tile_dir, 'train_val_simclr')
     val_dir: str = os.path.join(tile_dir, 'train_val_simclr')
     test_dir: str = None
@@ -17,7 +17,7 @@ class SDOConfig:
     val_fpath: str = os.path.join(val_dir, 'val_file_list.txt')
     test_fpath: str = None
     percent_split: float = 0.8
-    num_img: int = 112112
+    num_img: int = 500
     model: str = "simclr"
     backbone: str = "resnet152"
     
@@ -40,7 +40,7 @@ class SDOConfig:
     num_workers: int = 8
     batch_size: int = 80
     seed: int = 1
-    epochs: int = 3
+    epochs: int = 1
     input_size: int = 128 # input resolution
     num_ftrs: int = 32
     accelerator: str = "gpu" if torch.cuda.is_available() else "cpu"

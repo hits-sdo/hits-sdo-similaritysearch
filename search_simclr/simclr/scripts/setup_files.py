@@ -1,18 +1,18 @@
 import os
+import pyprojroot
+root = pyprojroot.here()
+import sys
+sys.path.append(str(root))
+from search_simclr.simclr.scripts.sdoconfig_dataclass import SDOConfig
 
+config = SDOConfig()
 # User Input Here
 # 1. Data Directory (Absolute Path) to save the data references
-data_dir = 'C:\Projects\HITS-GIBS\Team_Sunflower_Phase_2\d0'
-# 2. Image Directory (Relative Path) to save the images
-image_dir = 'Miniset'
+data_dir = config.tile_dir
 
 # Data Directory (Absolute Path) to save the data references
 if not os.path.exists(data_dir):
     raise Exception('Data directory does not exist')
-
-target_dir = os.path.join(data_dir, image_dir)
-if not os.path.exists(target_dir):
-    raise Exception('Images directory does not exist')
 
 # Make folders required for setup, training, and validating
 paths = [f'{data_dir}/train_val_simclr', '../../model_weights', '../../visualizations', '../../visualizations/simclr_knn', '../../checkpoints']
@@ -22,7 +22,7 @@ for path in paths:
 
 # Make tot_full_path_files.txt by looping through all the files in the target directory
 with open(os.path.join(data_dir, 'train_val_simclr', 'tot_full_path_files.txt'), 'w') as f:
-    for root, dirs, files in os.walk(f'{target_dir}'):
+    for root, dirs, files in os.walk(f'{data_dir}'):
         for file in files:
             if file.endswith('.jpg'):
                 # Remove the data_dir path when wrting to the file
