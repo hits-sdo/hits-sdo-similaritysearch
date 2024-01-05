@@ -22,7 +22,7 @@ class EmbeddingUtils:
         self.prediction = prediction
 
     def embedder(self):
-        device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
         embeddings = []
         filenames = []
 
@@ -35,11 +35,14 @@ class EmbeddingUtils:
                 num_workers=self.num_workers,
             )
 
-            self.model.eval()
+            #self.model.eval()
+            k = 0
+            length = len(self.dataset)/self.batch_size
             with torch.no_grad():
                 # passes batches and filenames to model to find embeddings
                 # embedding -> vectorize image, simpler representation of image
-                for x, _, fnames in dataloader:
+                #for x, _, fnames in dataloader:
+                for x, fnames in dataloader:
                     # move the images to the gpu
                     # embed the images with the pre-trained backbone
                     y = self.model.backbone(x.to(device)).flatten(start_dim=1)
@@ -50,6 +53,8 @@ class EmbeddingUtils:
                             y = self.model.prediction_head(y)
                     embeddings.append(y)
                     filenames = filenames + list(fnames)
+                    k += 1
+                    print(f'{k} batches done out of {length}')
 
             # concatenate the embeddings and convert to numpy
             embeddings = torch.cat(embeddings, dim=0)
