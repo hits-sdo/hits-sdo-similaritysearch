@@ -1,0 +1,39 @@
+instr : 'euv'
+
+data_dir:
+  'euv': '/d0/euv/aia/preprocessed/AIA_211_193_171/AIA_211_193_171_256x256/'
+  'mag': '/d0/euv/aia/preprocessed/HMI/HMI_256x256/'
+
+model_dir:
+  'euv': '/d0/subhamoy/models/search/AIA_211_193_171/'
+  'mag': '/d0/subhamoy/models/search/magnetograms/'
+
+model_name:
+  'euv': 'Subh_SIMSIAM_ftrs_512_pretrained_False_projdim_512_preddim_128_odim_512_contrastive_False_AIA_211_193_171_patch_stride_1_batch_64_optim_sgd_lr_0.0125_schedule_coeff_1.0_offlimb_frac_1.ckpt'
+  'mag': 'Subh_SIMSIAM_Magnetic_patch_stride_1_batch_64_lr_0.0125.ckpt'
+
+query_img:
+  'euv': '/d0/euv/aia/preprocessed/AIA_211_193_171/raw/20230714_074800_aia_211_193_171.jpg'
+  'mag': '/home/subhamoy/search/latest_4096_HMIBC.jpg'
+
+query_roi:
+  'euv': [1500, 1100]
+  'mag': [1500, 2400]
+
+contrastive : False
+gpu_number : 1
+num_workers : 4                                                                  
+batch_size : 64 
+epochs : 10
+num_ftrs : 512
+stride : 1                                                                     
+iterative : False
+fill_type : 'Nearest'
+iterative : False
+optim_type : 'sgd'
+lr_schedule_coeff : 1.0
+pretrained : False
+out_dim : 512
+proj_hidden_dim : 512
+pred_hidden_dim : 128
+offlimb_frac : 1
