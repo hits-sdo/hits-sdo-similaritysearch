@@ -10,7 +10,7 @@ from search_utils.image_utils import read_image
 import torch
 import random
 
-class HMItilesDataset(Dataset):
+class AIAHMItilesDataset(Dataset):
     '''
         Dataset to load jpg patches produced by the search packager:
         https://github.com/hits-sdo/hits-sdo-packager
@@ -117,7 +117,7 @@ class HMItilesDataset(Dataset):
         
 if __name__ == '__main__':
     DATA_DIR = '/d0/euv/aia/preprocessed/HMI/HMI_256x256/'
-    dataset_train_simsiam = HMItilesDataset(data_path=DATA_DIR, augmentation='double',
+    dataset_train_simsiam = AIAHMItilesDataset(data_path=DATA_DIR, augmentation='double',
                                                data_stride=1, offlimb_frac=1)
     
     dataloader_train_simsiam = torch.utils.data.DataLoader(
