@@ -11,10 +11,10 @@ import torch
 import torchvision
 from model import load_model
 from gui_utils import fetch_n_neighbor_filenames
+import yaml
 
 
-def get_scatter_plot_with_thumbnails(filenames, embeddings_2d, q, 
-                                     nn_filenames, nn_embeddings_2d, title):
+def get_scatter_plot_with_thumbnails(filenames, embeddings_2d, q, title, config_data):
     """Creates a scatter plot with image overlays."""
     
    
@@ -41,8 +41,7 @@ def get_scatter_plot_with_thumbnails(filenames, embeddings_2d, q,
     # plot image overlays
     for idx in shown_images_idx:
         thumbnail_size = int(rcp["figure.figsize"][0] * 2.0)
-        #path = os.path.join('/d0/euv/aia/preprocessed/HMI/HMI_256x256/', filenames[idx])
-        path = os.path.join('/d0/euv/aia/preprocessed/AIA_211_193_171/AIA_211_193_171_256x256/', filenames[idx])
+        path = os.path.join(config_data['data_dir'][config_data['instr']], filenames[idx])
         img = Image.open(path)
         img = functional.resize(img, thumbnail_size)
         img = np.array(img)
@@ -53,24 +52,6 @@ def get_scatter_plot_with_thumbnails(filenames, embeddings_2d, q,
         )
         ax.add_artist(img_box)
         
-       # plot image overlays
-    
-    # for i, ff in enumerate(nn_filenames):
-    #     thumbnail_size = int(rcp["figure.figsize"][0] * 5.0)
-    #     # path = os.path.join('/d0/euv/aia/preprocessed/HMI/HMI_256x256/', ff)
-    #     path = os.path.join('/d0/euv/aia/preprocessed/AIA_211_193_171/AIA_211_193_171_256x256/', ff)
-    #     img = Image.open(path)
-    #     img = functional.resize(img, thumbnail_size)
-    #     img = np.array(img)
-    #     img_box = osb.AnnotationBbox(
-    #         osb.OffsetImage(img, cmap=plt.cm.gray_r),
-    #         [nn_embeddings_2d[i][0], nn_embeddings_2d[i][1]],
-    #         pad=0.2,
-    #     )
-    #     ax.add_artist(img_box)
-        
-    # ax.set_xlim([0.9, 1])
-    # ax.set_ylim([0.7, 0.8])
     ax.add_artist( Drawing_uncolored_circle )
     ax.set_xticks([])
     ax.set_yticks([])
@@ -80,49 +61,60 @@ def get_scatter_plot_with_thumbnails(filenames, embeddings_2d, q,
     return fig
 
 def main():
-    # model_path = '/d0/subhamoy/models/search/magnetograms/Subh_SIMSIAM_Magnetic_patch_stride_1_batch_64_lr_0.0125.ckpt'
-    model_path = '/d0/subhamoy/models/search/AIA_211_193_171/Subh_SIMSIAM_ftrs_512_pretrained_False_projdim_512_preddim_128_odim_512_contrastive_False_AIA_211_193_171_patch_stride_1_batch_64_optim_sgd_lr_0.0125_schedule_coeff_1.0_offlimb_frac_1.ckpt'
+    with open('config.yml','r') as f:
+        config_data = yaml.safe_load(f)
+    instr = config_data['instr']
+    model_path = config_data['model_dir'][instr] + config_data['model_name'][instr]
     pl_module = load_model(model_path)
     pl_module.eval()
     transforms = torchvision.transforms.Compose([torchvision.transforms.ToTensor()])
-    # query_image = Image.open('/home/subhamoy/search/latest_4096_HMIBC.jpg')
-    query_image = Image.open('/d0/euv/aia/preprocessed/AIA_211_193_171/raw/20230714_074800_aia_211_193_171.jpg')
+    query_image = Image.open(config_data['query_img'][instr])
+    ys, xs = config_data['query_roi'][instr]
+    
+    images = [np.array(query_image), np.array(query_image)[ys:(ys + 256), xs:(xs + 256),:]]
+    titles = ['Full-disk','Query RoI']
+    
     tensor = transforms(query_image)
-    # tensor = tensor[None, :3, 1500:1756,2400:2656]
-    tensor = tensor[None, :3, 1500:1756,1100:1356]
-    # plt.imshow(tensor[0,:,:,:].permute(1, 2, 0))
-    # plt.savefig('img_crop.png')
+    tensor = tensor[None, :3, ys:(ys + 256), xs:(xs + 256)]
     with torch.no_grad():
         embedding = pl_module.backbone(tensor.to('cuda:1')).flatten(start_dim=1)
     query_embedding = embedding[0].cpu().data.numpy()
     print(query_embedding.shape)
-    stride = 10
-    # p = pickle.load(open('/d0/subhamoy/models/search/magnetograms/embeddings_dict_mag.p','rb'))
-    p = pickle.load(open('/d0/subhamoy/models/search/magnetograms/embeddings_dict_AIA_211_193_171.p','rb'))
+    stride = 100
+    p = pickle.load(open(f"{config_data['model_dir'][instr]}embeddings_dict_{instr}.p",'rb'))
     nn_filenames = fetch_n_neighbor_filenames(query_embedding,
                                         p,
                                         "EUCLIDEAN",
                                         num_images=4)
+    
+    
+    
+    for i,f in enumerate(nn_filenames):
+        images.append(np.array(Image.open(config_data['data_dir'][instr] + f))) # 
+        n = i+1
+        titles.append(f"NN {n}")
+
+ 
+    fig, axes = plt.subplots(1,6, figsize=(24,4), constrained_layout=True)
+    ax = axes.ravel()
+
+    for i, t in enumerate(titles):
+        ax[i].imshow(images[i])
+        if i==0:
+            xs = [xs, xs + 256, xs + 256, xs, xs]
+            ys = [ys, ys, ys + 256, ys + 256, ys]
+            ax[i].plot(xs, ys, color="red", linewidth=2.0)
+        ax[i].set_title(t)
+        
+    plt.savefig((f"{instr}_nearest_neighbors.png"))
+        
     filenames = p['filenames'][::stride]
     embeddings = p['embeddings'][::stride]
     
-    nn_embeddings = np.zeros((4, 512))
-    
-    for i in range(4):
-        #ff_image = Image.open('/d0/euv/aia/preprocessed/HMI/HMI_256x256/'+ nn_filenames[i])
-        ff_image = Image.open(nn_filenames[i])
-        tensor = transforms(ff_image)
-        tensor = tensor[None, :3, :, :]
-        with torch.no_grad():
-            embedding = pl_module.backbone(tensor.to('cuda:1')).flatten(start_dim=1)
-        nn_embeddings[i,:] = embedding[0].cpu().data.numpy()
-    
-    
-    
-    embeddings_ = np.zeros((len(filenames) + 5,512))
+    embeddings_ = np.zeros((len(filenames) + 1,512))
     embeddings_[:len(filenames),:] = embeddings
     embeddings_[len(filenames), :] = query_embedding
-    embeddings_[-4:,:] = nn_embeddings
+
     
     embeddings = embeddings_
     print(embeddings.shape)
@@ -131,15 +123,15 @@ def main():
     M = np.max(embeddings_2d, axis=0)
     m = np.min(embeddings_2d, axis=0)
     embeddings_2d = (embeddings_2d - m) / (M - m)
-    query_2d = embeddings_2d[-5]
-    nn_embeddings_2d = embeddings_2d[-4:]
+    query_2d = embeddings_2d[-1]
+    embeddings_2d = embeddings_2d[:-1]
+
     
-    print(query_2d)
-    print(nn_embeddings_2d)
+
     get_scatter_plot_with_thumbnails(filenames, embeddings_2d, query_2d,
-                                     nn_filenames, nn_embeddings_2d,
-                                     'EUV_patch_Emebedding_Space')
-    plt.savefig('AIA_211_193_171_embedding_space.png')
+                                     f"{instr}_patch_Embedding_Space",
+                                     config_data)
+    plt.savefig(f"{instr}_embedding_space.png")
     
 if __name__ == '__main__':
     main()
