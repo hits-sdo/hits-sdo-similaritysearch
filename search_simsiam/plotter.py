@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pytorch_lightning as pl
 from lightly.data import LightlyDataset
-from dataset import HMItilesDataset
+from dataset import AIAHMItilesDataset
 import torch
 import wandb
 import torchvision
@@ -13,10 +13,9 @@ from PIL import Image
 import glob
 from model import load_model
 class SimSiamPlotter(pl.Callback):
-    def __init__(self, stride = 1, name = None, instr = 'mag'):
+    def __init__(self, stride = 1, instr = 'mag'):
         super().__init__()
         self.stride = stride
-        self.name = name
         self.instr = instr
 
     def on_train_epoch_end(self, trainer, pl_module):
@@ -28,14 +27,10 @@ class SimSiamPlotter(pl.Callback):
             DATA_DIR = '/d0/euv/aia/preprocessed/AIA_211_193_171/AIA_211_193_171_256x256/'
         
         transforms = torchvision.transforms.Compose([torchvision.transforms.ToTensor()])
-        #dataset_train_simsiam = LightlyDataset(input_dir=DATA_DIR, transform=transforms)
-        dataset_train_simsiam = HMItilesDataset(data_path=DATA_DIR,
+        dataset_train_simsiam = AIAHMItilesDataset(data_path=DATA_DIR,
                                                 augmentation=None, 
-                                                instr=self.instr)
-        stride = self.stride
-        if stride>1:
-            indices = range(0, len(dataset_train_simsiam), stride)
-            dataset_train_simsiam = torch.utils.data.Subset(dataset_train_simsiam, indices)
+                                                instr=self.instr,
+                                                data_stride=self.stride)
         
         pl_module.eval()
         E = EmbeddingUtils(model=pl_module,
@@ -66,7 +61,6 @@ class SimSiamPlotter(pl.Callback):
         images = [np.array(query_image), np.array(query_image)[ys_:(ys_ + 256), xs_:(xs_ + 256),:]]
         titles = ['Full-disk','Query RoI']
         for i,f in enumerate(filenames):
-            # images.append(np.array(Image.open(DATA_DIR+f)))
             images.append(np.array(Image.open(f)))
             n = i+1
             titles.append(f"NN {n}")
@@ -83,10 +77,6 @@ class SimSiamPlotter(pl.Callback):
                 ax[i].plot(xs, ys, color="red", linewidth=2.0)
             ax[i].set_title(t)
                 
-
-        # if self.name is not None:
-        #     names = glob.glob(f'/d0/subhamoy/models/search/magnetograms/{self.name}*.ckpt')
-        #     pl_module = load_model(names[-1])
         pl_module.train()
         wandb.log({"Retrieved Images": wandb.Image(fig)})
         
