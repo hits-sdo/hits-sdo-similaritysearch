@@ -22,12 +22,10 @@ from search_simclr.simclr.dataloader.datamodule import SimCLRDataModule
 from search_simclr.simclr.model.simCLR import SimCLR
 from search_simclr.simclr_utils.vis_utils import (
     generate_embeddings,
-    plot_knn_examples,
     plot_scatter,
-    plot_nearest_neighbors_3x3,
     plot_NxN_examples
 )
-from typing import Tuple
+# from typing import Tuple
 from argparse import ArgumentParser
 import yaml
 from datetime import datetime
@@ -46,9 +44,9 @@ def main():
 
         
     # Load the model from path
-    model = SimCLR()
+    model = SimCLR(model_str=config.backbone)
     #model = model.to(torch.float64)
-    path = os.path.join(root, 'search_simclr', 'model_weights', '2023-09-15_14-55-23_model.pth')
+    path = os.path.join(root, 'search_simclr', 'model_weights', '2023-09-25_10-27-17_model_resnet152_easy_sweep.pth')
     print(f'path: {path}')
     temp = torch.load(path)
     #print(f'temp.shape: {temp.shape}')

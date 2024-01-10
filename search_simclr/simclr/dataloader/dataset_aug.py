@@ -13,7 +13,7 @@ import numpy as np
 import torch
 import random
 import os.path
-from typing import Tuple
+# from typing import Tuple
 
 # rewrite all functions as classes and put those inside call
 # because then we can use that 
@@ -42,7 +42,9 @@ class Blur(object):
         with kernel size defined by blur
     """
         image, fname = sample["image"], sample["filename"]
-        blur_image = cv.blur(image, (self.blur[0], self.blur[1]), 0)
+        kernal_w = random.randint(1, self.blur[0])
+        kernal_h = random.randint(1, self.blur[1])
+        blur_image = cv.blur(image, (kernal_w, kernal_h), 0)
         return {"image": blur_image, "filename": fname}
 
 class AddNoise(object):
@@ -207,18 +209,21 @@ class Brighten(object):
 
     def __call__(self, sample):
         image, fname = sample["image"], sample["filename"]
-        return {"image": np.abs(image)**self.brighten, "filename": fname}
+        min_value = random.uniform(0.3, self.brighten)
+        return {"image": np.abs(image)**min_value, "filename": fname}
     
 class Translate(object):
     def __init__(self, value):
         self.translate = value
         assert isinstance(value[0], int)
-        assert isinstance(value[1], int)
+        assert isinstance(value[1], int) 
     
     def __call__(self, sample):
+        random_x = random.randint(-self.translate[0], self.translate[0])
+        random_y = random.randint(-self.translate[1], self.translate[1])
         image, fname = sample["image"], sample["filename"]
         s = image.shape
-        m = np.float32([[1, 0, self.translate[0]], [0, 1, self.translate[1]]])
+        m = np.float32([[1, 0, random_x], [0, 1, random_y]])
         # Affine transformation to translate the image and output size
         image = cv.warpAffine(image, m, (s[1], s[0]))
         return {"image": image, "filename": fname}
@@ -229,27 +234,29 @@ class Zoom(object):
         assert isinstance(value, float)
     
     def __call__(self, sample):
+        random_zoom = self.zoom #1.5 #random.uniform(0, self.zoom)
         image, fname = sample["image"], sample["filename"] #Unpack the dictionary
         original_image_shape = image.shape
-        zoomed_immage_shape = (int(self.zoom*original_image_shape[0]), int(self.zoom*original_image_shape[1]))
-        img_zeros = np.zeros(original_image_shape) #temporary empty canvas the sizer of the original image
+        zoomed_immage_shape = (int(random_zoom*original_image_shape[0]), int(random_zoom*original_image_shape[1]))
+        img_new = np.zeros(original_image_shape) #temporary empty canvas the sizer of the original image
 
         image_resize = cv.resize(image, (zoomed_immage_shape[1], zoomed_immage_shape[0]), interpolation=cv.INTER_CUBIC)
         # Resize the image using zoom as scaling factor with area interpolation
-        if self.zoom < 1:
+        if random_zoom < 1:
             y1 = original_image_shape[0]//2 - zoomed_immage_shape[0]//2 #center of originall image - half of zoomed image
             y2 = original_image_shape[0]//2 + zoomed_immage_shape[0]//2 #center of originall image + half of zoomed image
             x1 = original_image_shape[1]//2 - zoomed_immage_shape[1]//2
             x2 = original_image_shape[1]//2 + zoomed_immage_shape[1]//2
-            img_zeros[y1:y2, x1:x2] = image_resize #inlay the "ZOOMED OUT" - Actually just shrunk immage inside the zeros 
+            img_new[y1:y2, x1:x2] = image_resize #inlay the "ZOOMED OUT" - Actually just shrunk immage inside the zeros 
         else:
             y1 = zoomed_immage_shape[0]//2 - original_image_shape[0]//2 #Center of zoomed image - half of original image
             y2 = zoomed_immage_shape[0]//2 + original_image_shape[0]//2 #Center of zoomed image + half of original image
             x1 = zoomed_immage_shape[1]//2 - original_image_shape[1]//2
             x2 = zoomed_immage_shape[1]//2 + original_image_shape[1]//2
-            img_zeros = image_resize[x1:x2, y1:y2,:] #the zeroes immage now gets the cutout of the "ZOOMED IN" immage - Actually just expanded immage
-            
-        return {"image": img_zeros, "filename": fname} #Repac and return the dictionary
+            img_new = image_resize[y1:y2, x1:x2,:] #the zeroes immage now gets the cutout of the "ZOOMED IN" immage - Actually just expanded immage
+        if (img_new.shape != original_image_shape):
+                img_new = cv.resize(img_new, (original_image_shape[1], original_image_shape[0]), interpolation=cv.INTER_CUBIC)
+        return {"image": img_new, "filename": fname} #Repac and return the dictionary
 
 '''    def test_zoom(self):
         """visually check zooming in and out"""
@@ -275,7 +282,7 @@ class Zoom(object):
         
 class Rotate(object):
     def __init__(self, value=360.0):
-        self.rotate = value
+        self.rotate = value #this is a tuple
         # print(f"rotate: {self.rotate}") 
         assert isinstance(value, float)
 

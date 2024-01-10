@@ -20,8 +20,8 @@ from search_simclr.simclr.dataloader.dataset import SdoDataset, partition_tile_d
 from search_utils.file_utils import get_file_list, split_val_files
 from search_simclr.simclr.dataloader.datamodule import SimCLRDataModule
 from search_simclr.simclr.model.simCLR import SimCLR, SimCLRCallback
-from search_simclr.simclr_utils.vis_utils import generate_embeddings, plot_knn_examples, plot_nearest_neighbors_3x3
-from typing import Tuple
+from search_simclr.simclr_utils.vis_utils import generate_embeddings, plot_nearest_neighbors_3x3
+# from typing import Tuple
 from argparse import ArgumentParser
 import yaml
 from datetime import datetime
@@ -36,7 +36,6 @@ def train(sweep = True):
     parser.add_argument("--epochs",type=int,help="Number of epochs to train for.",default=config.epochs)
     parser.add_argument("--split",type=bool,help="True if you want to overide the split files",default=True)
     parser.add_argument("--percent",type=float,help="Percentage of the total number of files that's reserved for training",default=config.percent_split)
-    parser.add_argument("--numworkers",type=int,help="Number of processors running at the same time",default=config.num_workers)
     parser.add_argument('--tile_dir', type=str, default=config.tile_dir, help='Path to tile directory')
     parser.add_argument('--train_dir', type=str, default=config.train_dir, help='Path to train directory')
     parser.add_argument('--val_dir', type=str, default=config.val_dir, help='Path to validation directory') 
@@ -50,9 +49,9 @@ def train(sweep = True):
     parser.add_argument('--save_vis_dir', type=str, default=config.save_vis_dir, help='Path to save visualizations')
     parser.add_argument('--save_model_dir', type=str, default=config.save_model_dir, help='Path to save models')
     parser.add_argument('--tot_fpath_wfname', type=str, default=config.tot_fpath_wfname, help='Path to total file list')
-    parser.add_argument('--blur', type=Tuple[int, int], default=config.blur, help='Blur range')
+    parser.add_argument('--blur', type=tuple[int, int], default=config.blur, help='Blur range')
     parser.add_argument('--brighten', type=float, default=config.brighten, help='Brightness level')
-    parser.add_argument('--translate', type=Tuple[int,int], default=config.translate, help='Translate range')
+    parser.add_argument('--translate', type=tuple[int,int], default=config.translate, help='Translate range')
     parser.add_argument('--zoom', type=float, default=config.zoom, help='Zoom level')
     parser.add_argument('--rotate', type=float, default=config.rotate, help='Rotation angle') 
     parser.add_argument('--noise_mean', type=float, default=config.noise_mean, help='Noise mean')

@@ -1,6 +1,6 @@
 import os
 import torch
-from typing import Tuple
+# from typing import Tuple
 import pyprojroot
 root = pyprojroot.here()
 from dataclasses import dataclass
@@ -17,18 +17,18 @@ class SDOConfig:
     val_fpath: str = os.path.join(val_dir, 'val_file_list.txt')
     test_fpath: str = None
     percent_split: float = 0.8
-    num_img: int = 10000
+    num_img: int = 112112
     model: str = "simclr"
-    backbone: str = "resnet18"
+    backbone: str = "resnet152"
     
     save_vis_dir: str = os.path.join(root, "search_simclr", "visualizations", "simclr_knn")
     save_model_dir: str = os.path.join(root, "search_simclr", "model_weights")
     save_checkpoint_dir: str = os.path.join(root, "search_simclr", "checkpoints")
     #TODO: train_flist: str = 
     tot_fpath_wfname = os.path.join(train_dir, 'tot_full_path_files.txt')
-    blur: Tuple[int, int] = (5,5)
+    blur: tuple[int, int] = (5,5)
     brighten: float = 1.0
-    translate: Tuple[int, int] = (1,3)
+    translate: tuple[int, int] = (1,3)
     zoom: float = 1.5
     rotate: float = 360.0
     noise_mean: float = 0.0 
@@ -38,7 +38,7 @@ class SDOConfig:
 
     lr: float = 0.005
     num_workers: int = 8
-    batch_size: int = 32
+    batch_size: int = 80
     seed: int = 1
     epochs: int = 3
     input_size: int = 128 # input resolution

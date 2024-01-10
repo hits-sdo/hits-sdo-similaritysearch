@@ -13,15 +13,15 @@ from search_simclr.simclr.dataloader.dataset import SdoDataset, partition_tile_d
 from search_utils import image_utils  # TODO needed?
 from search_simclr.simclr.dataloader.dataset_aug import Transforms_SimCLR
 from search_utils.file_utils import get_file_list, split_val_files
-from typing import Tuple
+# from typing import tuple
 
 
 
 class SimCLRDataModule(pl.LightningDataModule):
     def __init__(self,
-                 blur: Tuple[int, int] = Tuple[5,5], 
+                 blur: tuple[int, int] = (5,5), 
                  brighten: float = 1.0, 
-                 translate: Tuple[int, int] = Tuple[1, 3], 
+                 translate: tuple[int, int] = (1, 3), 
                  zoom: float = 1.5, 
                  rotate: float = 360.0, 
                  noise_mean: float = 0.0, 

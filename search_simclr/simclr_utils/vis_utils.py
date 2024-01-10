@@ -48,81 +48,6 @@ def get_image_as_np_array(filename: str):
     """Returns an image as an numpy array"""
     img = Image.open(filename)
     return np.asarray(img)
-
-
-# def plot_knn_examples(embeddings, filenames, path_to_data="root/data", n_neighbors=3, num_examples=6, vis_output_dir=None):
-#     """Plots multiple rows of random images with their nearest neighbors"""
-#     print(f'Embeddings.shape: {len(embeddings)}')
-#     # lets look at the nearest neighbors for some samples
-#     # we use the sklearn library
-#     nbrs = NearestNeighbors(n_neighbors=n_neighbors).fit(embeddings)
-#     distances, indices = nbrs.kneighbors(embeddings)
-
-#     # get 5 random samples
-#     samples_idx = np.random.choice(len(indices), size=num_examples, replace=False)
-#     print(f'len(samples_idx): {len(samples_idx)}')
-
-#     # loop through our randomly picked samples
-#     i = 0
-#     for idx in samples_idx:
-#         fig = plt.figure()
-#         # loop through their nearest neighbors
-#         for plot_x_offset, neighbor_idx in enumerate(indices[idx]):
-#             # add the subplot
-#             ax = fig.add_subplot(1, len(indices[idx]), plot_x_offset + 1)
-#             # get the correponding filename for the current index
-#             fname = os.path.join(path_to_data, filenames[neighbor_idx]) # tailor to our path directory structure
-#             print(f'file name: {fname}')
-#             # plot the image
-#             plt.imshow(get_image_as_np_array(fname), cmap='hot')
-#             # set the title to the distance of the neighbor
-#             ax.set_title(f"d={distances[idx][plot_x_offset]:.3f}")
-#             # let's disable the axis
-#             plt.axis("off")
-#         #plt.show()
-#         i +=1
-#         plt.savefig(os.path.join(vis_output_dir, f'{i}_knn_plot.png'))
-
-def plot_knn_examples(embeddings, filenames, path_to_data="root/data", n_neighbors=3, num_examples=6, vis_output_dir=None):
-    """Plots multiple rows of random images with their nearest neighbors"""
-    print(f'Embeddings.shape: {len(embeddings)}')
-    grid_size = (n_neighbors, n_neighbors)
-    # lets look at the nearest neighbors for some samples
-    # we use the sklearn library
-    nbrs = NearestNeighbors(n_neighbors=n_neighbors).fit(embeddings)
-    distances, indices = nbrs.kneighbors(embeddings)
-
-    # get random samples
-    samples_idx = np.random.choice(len(indices), size=num_examples, replace=False)
-    print(f'len(samples_idx): {len(samples_idx)}')
-
-    # calculate number of rows and columns in the grid
-    num_rows, num_cols = grid_size
-    # total_plots = num_rows * num_cols
-
-    # loop through our randomly picked samples
-    for i, idx in enumerate(samples_idx):
-        fig = plt.figure()
-        # loop through their nearest neighbors
-        for plot_idx, neighbor_idx in enumerate(indices[idx]):
-            # calculate the row and column position of the subplot
-            row = math.floor(plot_idx / num_cols)
-            col = plot_idx % num_cols
-
-            # add the subplot
-            ax = fig.add_subplot(num_rows, num_cols, plot_idx + 1)
-            # get the corresponding filename for the current index
-            fname = os.path.join(path_to_data, filenames[neighbor_idx]) # tailor to our path directory structure
-            print(f'file name: {fname}')
-            # plot the image
-        plt.imshow(get_image_as_np_array(fname), cmap='hot')
-            # set the title to the distance of the neighbor
-        ax.set_title(f"d={distances[idx][plot_idx]:.3f}")
-            # let's disable the axis
-        plt.axis("off")
-
-        # save the plot with row and column information in the filename
-        plt.savefig(os.path.join(vis_output_dir, f'{i+1}_knn_plot_row{row+1}_col{col+1}.png'))
         
 def plot_NxN_examples(embeddings, filenames, path_to_data="root/data", vis_output_dir=None, grid_size=3, num_examples=6, distType='minkowski'):
     """Plots multiple rows of random images with their nearest neighbors"""
@@ -146,9 +71,9 @@ def plot_NxN_examples(embeddings, filenames, path_to_data="root/data", vis_outpu
 
     # Define the order of the subplots in a spiral starting from the center
     order = concentric_order_of_subplots(num_rows, num_cols)
-    print("Concentric order of subplots:")
-    for i, pos in enumerate(order):
-        print(f"Position {i+1}: {pos}")
+    # print("Concentric order of subplots:")
+    # for i, pos in enumerate(order):
+    #     print(f"Position {i+1}: {pos}")
 
     # Loop through our randomly picked samples
     for sample, idx in enumerate(samples_idx):
@@ -165,11 +90,22 @@ def plot_NxN_examples(embeddings, filenames, path_to_data="root/data", vis_outpu
             fname = os.path.join(path_to_data, filenames[neighbor_idx]) # tailor to our path directory structure
             # print(f'file name: {fname}')
             # plot the image
-            plt.imshow(get_image_as_np_array(fname), cmap='hot')
-            # set the title to the distance of the neighbor
-            ax.set_title(f"d={distances[idx][plot_idx]:.3f}")
+            plt.imshow(get_image_as_np_array(fname))
+            # Make the fontsize smaller
+            fontsize = 12
+            y = 0.95
+            if grid_size == 5:
+                fontsize = 10
+                y = 0.9
+            elif grid_size == 7:
+                fontsize = 8
+                y = 0.85
+            # set the title to the distance of the neighbor. Y param is the vertical alignment
+            ax.set_title(f"d={distances[idx][plot_idx]:.3f}", fontsize=fontsize, y=y)
             # let's disable the axis
             plt.axis("off")
+            
+        plt.subplots_adjust(wspace=0.01, hspace=0.4)
 
         # save the plot with row and column information in the filename
         plt.savefig(os.path.join(vis_output_dir, f'{num_rows}x{num_cols}_knn_plot_{sample+1}_{distType}.png'))
@@ -244,23 +180,7 @@ def plot_scatter(components_table: pd.DataFrame,
         plt.show()
 
     else: #3D
-        # create scatterplot in 3D
-        # fig = plt.figure()
-        # ax=fig.add_subplot(111,projection='3d')
-
-        # scatter = ax.scatter(components_table['CP_0'], components_table['CP_1'], components_table['CP_2'], cmap='hot', sizes=[10])
-        # ax.set_xlabel('CP_0')
-        # ax.set_ylabel('CP_1')
-        # ax.set_zlabel('CP_2')
-        # ax.set_title(f'{columns} component {type}')
-        
         plot_3D(components_table, vis_output_dir, data_dir, type)
-    
-    
-
-
-
-
 
 def plot_3D(components_table: pd.DataFrame,
             vis_output_dir = None,
@@ -467,46 +387,8 @@ def plot_nearest_neighbors_3x3(example_image: str, i: int, embeddings, filenames
         # let's disable the axis
         plt.axis("off")
 
-
-
-
-
 # ===========================
 
-
-# def display_search_result(session_state, col2, embeddings_dict, data_path):
-#     if 'All' in session_state["indices"]:
-#         session_state["indices"] = [x for x in range(session_state['neighbors'])]
-
-#     col2.write('Retrieved Images')
-#     idx = embeddings_dict['filenames'].index(session_state['fnames'][0])
-#     print('N:', embeddings_dict['embeddings'][idx, :5])
-
-#     dim = math.ceil(math.sqrt(session_state['neighbors']))
-#     fig, ax = plt.subplots(dim, dim, figsize=(10, 10))
-#     ax = ax.ravel()
-#     plt.subplots_adjust(wspace=0.1, hspace=0.1)
-
-#     for a in ax:
-#         a.axis('off')
-
-#     for i, f in enumerate(session_state['fnames']):
-#         img = cv2.imread(data_path + f)
-#         ax[i].imshow(img[:, :, ::-1])
-
-#         ax[i].text(10, 30, i, color='black', fontsize=(10/dim)*10)
-
-#         if i in session_state['indices']:
-#             overlay = cv2.rectangle(img, (0, 0), (127, 127), (0, 0, 255), 10)
-#             ax[i].imshow(overlay[:, :, ::-1])
-
-#     col2.pyplot(fig)
-
-#     if st.button('Download Selected Images'):
-#         with zipfile.ZipFile("selected_images.zip", "w") as zipf:
-#             for n in session_state['indices']:
-#                 # Add each file to the ZIP archive
-#                 zipf.write(data_path+session_state['fnames'][n])
 
 def get_image_as_np_array_with_frame(filename: str, w: int = 5):
     """Returns an image as a numpy array with a black frame of width w."""
